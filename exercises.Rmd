@@ -34,8 +34,16 @@ ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
   geom_segment(aes(x=qt(.975,70),xend=qt(.975,70),y=0,yend=dt(qt(.975,70),70)))+
   geom_segment(aes(x=qt(.025,70),xend=qt(.025,70),y=0,yend=dt(qt(.025,70),70)))+
   scale_x_continuous("t", round(c(-5,qt(1-.975,70),0,qt(.975,70),5),3), limits=c(-5,5))+
-  annotate("segment", x = c(-2.2,2.2), xend = c(-3.8,3.8), y = c(0.02,0.02), yend = c(.16,.16), colour = "red", size=1, alpha=0.6, arrow=arrow())+
-  annotate("text", x = c(-3.8,3.8), y = c(0.17,0.17), label = c("P(T < -1.994)=0.025", "P(T > -1.994)=0.025") , size=4 , fontface="bold")+
+  annotate("segment", x = c(-2.2,2.2,0), xend = c(-3.8,3.8,2), 
+           y = c(0.02,0.02,.3), yend = c(.16,.16,.35), colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  stat_function(fun = dt, args = list(df = 70),
+                xlim = c(qt(.975,70),5),
+                geom = "area",fill="red",alpha=0.5)+
+  stat_function(fun = dt, args = list(df = 70),
+                xlim = c(-5,qt(.025,70)),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = c(-3.8,3.8,2.7), y = c(0.17,0.17,.37), 
+           label = c("P(T > -1.994)=0.025", "P(T < 1.994)=0.025","P(-1.994 < T < 1.994)=0.95") , size=4 , fontface="bold")+
   theme_bw()
 ```
 
