@@ -16,7 +16,7 @@ library(knitr)
 ## Intervalo de confianza para el valor esperado
 La formula del intervalo de confianza para el valor esperado tiene la siguiente formula:
 
-$$\Bigg(\bar{X}-t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}},\bar{X}-t_{n-1,\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}\Bigg)$$
+$$\Bigg( S-t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}},\bar{X}-t_{n-1,\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}\Bigg)$$
 
 Donde:
 
@@ -26,10 +26,10 @@ Donde:
 * $t_{n-1,\frac{\alpha}{2}}$ es el cuantil $\frac{\alpha}{2}$ de la distribucion $T$ con $n-1$ grados de libertad
 * $t_{n-1,1-\frac{\alpha}{2}}$ es el cuantil $1-\frac{\alpha}{2}$ de la distribucion $T$ con $n-1$ grados de libertad
 
-Por ejemplo en la figura \ref{fig:tdensity} se muestran los cuantiles $t_{70,0.025}=-1.994$ y $t_{70,0.975}=1.994$ para una distribucion $T$ con $70$ grados de libertad.
+Por ejemplo en la figura \ref{fig:tdensity} se muestran los cuantiles $t_{70,0.025}=-1.994$ y $t_{70,0.975}=1.994$ para una distribucion $T$ con $70$ grados de libertad. Es importante entender que el parametro grados de libertad cambia la forma de la curva, como se puede apreciar en la figura 
 
-```{r tdensity, echo=F, fig.width=6, fig.height=4, fig.cap="\\label{fig:tdensity} Desnidad de la distribucion T"}
-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
+```{r tdensity, echo=F, fig.width=14, fig.height=4, fig.cap="\\label{fig:tdensity} Desnidad de la distribucion T"}
+p1<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
   stat_function(fun = dt, args = list(df = 70))+ylab("f(t)")+
   geom_segment(aes(x=qt(.975,70),xend=qt(.975,70),y=0,yend=dt(qt(.975,70),70)))+
   geom_segment(aes(x=qt(.025,70),xend=qt(.025,70),y=0,yend=dt(qt(.025,70),70)))+
@@ -43,15 +43,10 @@ ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
                 xlim = c(-5,qt(.025,70)),
                 geom = "area",fill="red",alpha=0.5)+
   annotate("text", x = c(-3.8,3.8,2.7), y = c(0.17,0.17,.37), 
-           label = c("P(T > -1.994)=0.025", "P(T < 1.994)=0.025","P(-1.994 < T < 1.994)=0.95") , size=4 , fontface="bold")+
+           label = c("list(P(T[70] > -1.994)==0.025)", "list(P(T[70] < 1.994)==0.025)","P(list(-1.994 < T[70])< 1.994)==0.95"),parse=T , size=4 , fontface="bold")+
   theme_bw()
-```
 
-Es importante entender que el parametro grados de libertad cambia la forma de la curva, como se puede apreciar en la figura
- \ref{fig:gd}
-
-```{r gd, echo=F, fig.width=6, fig.height=4, fig.cap="\\label{fig:gd} Grados de libertad en la distribucion T"}
-ggplot(data = data.frame(x = c(-3, 3)), aes(x)) +
+p2<-ggplot(data = data.frame(x = c(-3, 3)), aes(x)) +
   stat_function(fun = dt, args = list(df = 70),color="blue")+ylab("f(t)")+xlab("t")+
   stat_function(fun = dt, args = list(df = 35),color="green")+
   stat_function(fun = dt, args = list(df = 10),color="orange")+
@@ -60,7 +55,10 @@ ggplot(data = data.frame(x = c(-3, 3)), aes(x)) +
            label = paste0("GL = ",c(70,35,10,5)) , size=4 , 
            color=c("blue","green","orange","red"))+
   theme_bw()
+gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
 ```
+
+
 Al cambiar la forma de la curva, el valor de los cuantiles cambia tambien, como se puede apreciar en la siguiente tabla 
 ```{r echo=FALSE, results = 'asis'}
 t1<-kable(data.frame(GL=c(70,35,10,5),t_0.05=qt(.05,c(70,35,10,5))))
@@ -70,7 +68,55 @@ kable_styling(t1,"striped", position = "left")
 ## Intervalo de confianza para la varianza
 La formula del intervalo de confianza para la varianza tiene la siguiente formula:
 
-$$\Bigg( S-t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}},\bar{X}-t_{n-1,\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}\Bigg)$$
+$$\Bigg(\frac{(n-1)S^2}{\chi_{n-1,1-\alpha/2}^{2}},\frac{(n-1)S^2}{\chi_{n-1,\alpha/2}^{2}}\Bigg)$$
+Donde:
+
+* $S^2$ es el estimador de la varianza
+* $n$ es el tamaño de la muestra
+* $\chi_{n-1,\alpha/2}^{2}$ es el cuantil $\frac{\alpha}{2}$ de la distribucion $\chi^2$ con $n-1$ grados de libertad
+* $\chi_{n-1,1-\alpha/2}^{2}$ es el cuantil $1-\frac{\alpha}{2}$ de la distribucion $\chi^2$ con $n-1$ grados de libertad
+
+De igual forma que en el caso de la distribucion $T$, los grados de libertad asociados a la distribucion $\chi^2$, cambian su forma y por ende los cuantiles cambian tambien.
+```{r chi, echo=F, fig.width=14, fig.height=4, fig.cap="\\label{fig:chi} distribucion Chi cuadrado con 70 GL"}
+p1<-ggplot(data = data.frame(x = c(0, 70)), aes(x)) +
+  stat_function(fun = dchisq, args = list(df = 30))+ylab("f(x)")+
+  geom_segment(aes(x=qchisq(.975,30),xend=qchisq(.975,30),y=0,yend=dchisq(qchisq(.975,30),30)))+
+  geom_segment(aes(x=qchisq(.025,30),xend=qchisq(.025,30),y=0,yend=dchisq(qchisq(.025,30),30)))+
+  scale_x_continuous("x", round(c(0,qchisq(1-.975,30),30,qchisq(.975,30),70),3), limits=c(0,70))+
+  annotate("segment", x = c(16,48,30), xend = c(10,54,42), 
+           y = c(0.005,.003,.03), yend = c(.018,.015,.04), colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  stat_function(fun = dchisq, args = list(df = 30),
+                xlim = c(qchisq(.975,30),70),
+                geom = "area",fill="red",alpha=0.5)+
+  stat_function(fun = dchisq, args = list(df = 30),
+                xlim = c(0,qchisq(.025,30)),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = c(7), y = c(0.02), 
+           label = "P(chi[70]^{2}<=16.791)==0.025",parse = TRUE , size=4 , fontface="bold")+
+  annotate("text", x = c(56), y = c(0.017), 
+           label = "P(chi[70]^{2}>46.979)==0.025",parse = TRUE , size=4 , fontface="bold")+
+  annotate("text", x = c(48), y = c(0.043), 
+           label = "P(list(16.791<=chi[70]^{2})<=46.979)==0.95",parse = TRUE , size=4 , fontface="bold")+
+  theme_bw()
+
+p2<-ggplot(data = data.frame(x = c(0, 110)), aes(x)) +
+  stat_function(fun = dchisq, args = list(df = 70),color="blue")+ylab("f(t)")+xlab("t")+
+  stat_function(fun = dchisq, args = list(df = 35),color="green")+
+  stat_function(fun = dchisq, args = list(df = 15),color="orange")+
+  stat_function(fun = dchisq, args = list(df = 10),color="red")+
+  annotate("text", x = rep(60,4), y = seq(.09,.075,length.out = 4), 
+           label = paste0("GL = ",c(70,35,15,10)) , size=4 , 
+           color=c("blue","green","orange","red"))+
+  theme_bw()
+gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
+```
+Al cambiar la forma de la curva, el valor de los cuantiles cambia tambien, como se puede apreciar en la siguiente tabla 
+```{r echo=FALSE, results = 'asis'}
+t1<-kable(data.frame(GL=c(70,35,15,10),Chi_0.05=qchisq(.05,c(70,35,15,10))))
+kable_styling(t1,"striped", position = "left")
+
+```
+
 
 #Ejercicio 1
   
