@@ -1,7 +1,7 @@
 ---
 title: "Ejercicios intervalos de confianza y pruebas de hipótesis"
 author: "Nicolás Molano Gonzalez"
-date: "January 1, 2015"
+date: "18 de Septiembre de 2018"
 output: 
   html_document:
     fig_caption: true
@@ -11,22 +11,25 @@ library(datasets)
 library(tidyverse)
 library(kableExtra)
 library(knitr)
+library(MASS)
+library(boot)
+library(carData)   
 ```
 # Formulas de intervalos de confianza
 ## Intervalo de confianza para el valor esperado
-La formula del intervalo de confianza para el valor esperado tiene la siguiente formula:
+La formula del intervalo de confianza para el valor esperado es la siguiente:
 
 $$\Bigg( S-t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}},\bar{X}-t_{n-1,\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}\Bigg)$$
 
 Donde:
 
-* $\bar{X}$ es el promedio calculado con la muestra
-* $S$ Es la desviacion estandar calculada con la muestra
-* $n$ es el tamaño de la muestra y $\sqrt{n}$ su raiz cuadrada
-* $t_{n-1,\frac{\alpha}{2}}$ es el cuantil $\frac{\alpha}{2}$ de la distribucion $T$ con $n-1$ grados de libertad
-* $t_{n-1,1-\frac{\alpha}{2}}$ es el cuantil $1-\frac{\alpha}{2}$ de la distribucion $T$ con $n-1$ grados de libertad
+* $\bar{X}$ es el promedio calculado con la muestra.
+* $S$ es la desviación estándar calculada con la muestra.
+* $n$ es el tamaño de la muestra y $\sqrt{n}$ su raíz cuadrada.
+* $t_{n-1,\frac{\alpha}{2}}$ es el cuantil $\frac{\alpha}{2}$ de la distribución $T$ con $n-1$ grados de libertad.
+* $t_{n-1,1-\frac{\alpha}{2}}$ es el cuantil $1-\frac{\alpha}{2}$ de la distribución $T$ con $n-1$ grados de libertad.
 
-Por ejemplo en la figura \ref{fig:tdensity} se muestran los cuantiles $t_{70,0.025}=-1.994$ y $t_{70,0.975}=1.994$ para una distribucion $T$ con $70$ grados de libertad. Es importante entender que el parametro grados de libertad cambia la forma de la curva, como se puede apreciar en la figura 
+Por ejemplo en la figura \ref{fig:tdensity} se muestran los cuantiles $t_{70,0.025}=-1.994$ y $t_{70,0.975}=1.994$ para una distribución $T$ con $70$ grados de libertad. Es importante entender que el parametro grados de libertad cambia la forma de la curva, como se puede apreciar en la figura 
 
 ```{r tdensity, echo=F, fig.width=14, fig.height=4, fig.cap="\\label{fig:tdensity} Desnidad de la distribucion T"}
 p1<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
@@ -59,7 +62,7 @@ gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
 ```
 
 
-Al cambiar la forma de la curva, el valor de los cuantiles cambia tambien, como se puede apreciar en la siguiente tabla 
+Al cambiar la forma de la curva, el valor de los cuantiles cambia también, como se puede apreciar en la siguiente tabla 
 ```{r echo=FALSE, results = 'asis'}
 t1<-kable(data.frame(GL=c(70,35,10,5),t_0.05=qt(.05,c(70,35,10,5))))
 kable_styling(t1,"striped", position = "left")
@@ -73,10 +76,10 @@ Donde:
 
 * $S^2$ es el estimador de la varianza
 * $n$ es el tamaño de la muestra
-* $\chi_{n-1,\alpha/2}^{2}$ es el cuantil $\frac{\alpha}{2}$ de la distribucion $\chi^2$ con $n-1$ grados de libertad
-* $\chi_{n-1,1-\alpha/2}^{2}$ es el cuantil $1-\frac{\alpha}{2}$ de la distribucion $\chi^2$ con $n-1$ grados de libertad
+* $\chi_{n-1,\alpha/2}^{2}$ es el cuantil $\frac{\alpha}{2}$ de la distribución $\chi^2$ con $n-1$ grados de libertad
+* $\chi_{n-1,1-\alpha/2}^{2}$ es el cuantil $1-\frac{\alpha}{2}$ de la distribución $\chi^2$ con $n-1$ grados de libertad
 
-De igual forma que en el caso de la distribucion $T$, los grados de libertad asociados a la distribucion $\chi^2$, cambian su forma y por ende los cuantiles cambian tambien.
+De igual forma que en el caso de la distribución $T$, los grados de libertad asociados a la distribución $\chi^2$, cambian su forma y por ende los cuantiles cambian tambien.
 ```{r chi, echo=F, fig.width=14, fig.height=4, fig.cap="\\label{fig:chi} distribucion Chi cuadrado con 70 GL"}
 p1<-ggplot(data = data.frame(x = c(0, 70)), aes(x)) +
   stat_function(fun = dchisq, args = list(df = 30))+ylab("f(x)")+
@@ -120,7 +123,25 @@ kable_styling(t1,"striped", position = "left")
 
 #Ejercicio 1
   
-El peso de 71 gallinas fue medido en kilogramos. Calcule el intervalo de confianza al 95% para el valor esperado de esta muestra en base a la siguiente información:
+El peso de 71 gallinas fue medido en kilogramos. He aquí una parte de los datos:
+
+```{r echo=FALSE, results = 'asis'}
+kable_styling(kable(data.frame(Kg=head(chickwts$weight,10))),"striped", position = "left")
+```
+
+A continuación presentamos el histograma de estos datos:
+
+```{r , echo=F, fig.width=6, fig.height=4}
+ggplot(chickwts, aes(x=weight)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+```
+
+A continuación presentamos algunas estadísticas descriptivas de estos datos:
+
+```{r , echo=F, fig.width=6, fig.height=4}
+chickwts$weight%>%summary
+```
+
+Calcule el intervalo de confianza al 95% para el valor esperado de esta muestra en base a la siguiente información:
 
 * $\bar{X}=$ `r round(mean(chickwts$weight),3)`
 * $S=$ `r round(sd(chickwts$weight),3)`
@@ -140,4 +161,180 @@ Ahora calcule el intervalo con un nivel de confianza del 90%
 
 #Ejercicio 2
 
+Con los datos del ejercicio anterior calcule el intervalo de 95% y 90% de confianza para la varianza. Recuerde que el estimador de la varianza es $S^{2}$. Escoja los cuantiles apropiados para construir el intervalo
 
+```{r echo=FALSE, results = 'asis'}
+my_df<-c(15,20,35,70,100)  
+t2<-data.frame(GL=my_df,q0.025=qchisq(0.025,my_df),q0.05=qchisq(0.05,my_df),q0.1=qchisq(0.1,my_df),q0.9=qchisq(0.9,my_df),q0.95=qchisq(0.95,my_df),q0.975=qchisq(0.975,my_df))
+
+t2<-kable(t2)
+kable_styling(t2,"striped", position = "left")
+
+```
+
+#Ejercicio 3
+Se tiene el peso corporal y el peso del corazón de 144 gatos. A continuación se presentan algunos datos:
+
+```{r echo=FALSE, results = 'asis'}
+kable_styling(kable(head(cats[,2:3],10)),"striped", position = "left")
+```
+
+A continuación se presentan los histogramas para las dos variables
+
+```{r , echo=F, fig.width=12, fig.height=4}
+p1<-ggplot(cats, aes(x=Bwt)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()+xlab("Peso Corporal")
+p2<-ggplot(cats, aes(x=Hwt)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()+xlab("Peso Corazon")
+gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
+```
+
+A continuación presentamos algunas estadísticas descriptivas de estos datos:
+
+```{r , echo=F, fig.width=6, fig.height=4}
+cats[,2:3]%>%summary
+```
+
+Bwt es el peso corporal y Hwt es el peso del corazón.
+
+Calcule los intervalos de confianza del 95% y del 99% para el valor esperado y la varianza teniendo en cuenta la siguiente información:
+
+```{r echo=FALSE, results = 'asis'}
+t2<-data.frame(promedio=apply(cats[,2:3],2,mean),varianza=apply(cats[,2:3],2,var))
+t2<-kable(t2)
+kable_styling(t2,"striped", position = "left")
+
+```
+
+A continuación se presentan algunos cuantiles de las distribuciones $T_{n-1}$ y $\chi_{n-1}$
+```{r echo=FALSE, results = 'asis'}
+alpha<-c(0.005,0.025,0.05,0.1)
+GL<-c(35,50,75,90,120,143,144,150)
+res<-outer(GL,c(alpha,rev(1-alpha)),function(x,y){qt(y,x)})
+colnames(res)<-paste0("qT_",c(alpha,rev(1-alpha)))
+res<-cbind(GL,res)
+
+res<-kable(res)
+kable_styling(res,"striped", position = "left")
+
+```
+
+```{r echo=FALSE, results = 'asis'}
+alpha<-c(0.005,0.025,0.05,0.1)
+GL<-c(35,50,75,90,120,143,144,150)
+res<-outer(GL,c(alpha,rev(1-alpha)),function(x,y){qchisq(y,x)})
+colnames(res)<-paste0("qChi_",c(alpha,rev(1-alpha)))
+res<-cbind(GL,res)
+
+res<-kable(res)
+kable_styling(res,"striped", position = "left")
+
+```
+
+#Ejercicio 4
+A continuación se presentan algunos datos de un estudio sobre parámetros fisicoquímicos de la orina.
+```{r echo=FALSE, results = 'asis'}
+kable_styling(kable(head(urine[,2:4],10)),"striped", position = "left")
+```
+
+A continuación se presentan los histogramas para las 3 variables
+
+```{r , echo=F, fig.width=18, fig.height=4, warning =F}
+p1<-ggplot(urine, aes(x=gravity)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+p2<-ggplot(urine, aes(x=ph )) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+p3<-ggplot(urine, aes(x=osmo)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+gridExtra::grid.arrange(grobs =list(p1,p2,p3),nrow=1,ncol=3)
+```
+
+A continuación presentamos algunas estadísticas descriptivas de estos datos:
+
+```{r , echo=F, fig.width=6, fig.height=4}
+urine[,2:4]%>%summary
+```
+
+Calcule los intervalos de confianza del 90%, 95% y del 99% para el valor esperado y la varianza teniendo en cuenta la siguiente información:
+
+```{r echo=FALSE, results = 'asis'}
+t2<-data.frame(promedio=apply(urine[,2:4],2,mean),varianza=apply(urine[,2:4],2,var))
+t2<-kable(t2)
+kable_styling(t2,"striped", position = "left")
+
+```
+
+A continuación se presentan algunos cuantiles de las distribuciones $T_{n-1}$ y $\chi_{n-1}$
+```{r echo=FALSE, results = 'asis'}
+alpha<-c(0.005,0.025,0.05,0.1)
+GL<-c(35,50,77,78,79,90,120,143)
+res<-outer(GL,c(alpha,rev(1-alpha)),function(x,y){qt(y,x)})
+colnames(res)<-paste0("qT_",c(alpha,rev(1-alpha)))
+res<-cbind(GL,res)
+
+res<-kable(res)
+kable_styling(res,"striped", position = "left")
+
+```
+
+```{r echo=FALSE, results = 'asis'}
+alpha<-c(0.005,0.025,0.05,0.1)
+GL<-c(35,50,77,78,79,90,120,143)
+res<-outer(GL,c(alpha,rev(1-alpha)),function(x,y){qchisq(y,x)})
+colnames(res)<-paste0("qChi_",c(alpha,rev(1-alpha)))
+res<-cbind(GL,res)
+
+res<-kable(res)
+kable_styling(res,"striped", position = "left")
+
+```
+#Ejercicio 5
+A continuación se presentan algunos datos de un estudio sobre pacientes hospitalizados por depresión.
+```{r echo=FALSE, results = 'asis'}
+kable_styling(kable(head(Ginzberg[,1:4],10)),"striped", position = "left")
+```
+
+A continuación se presentan los histogramas para las 3 variables
+
+```{r , echo=F, fig.width=10, fig.height=8, warning =F}
+p1<-ggplot(Ginzberg, aes(x=simplicity)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+p2<-ggplot(Ginzberg, aes(x=fatalism )) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+p3<-ggplot(Ginzberg, aes(x=depression)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+p4<-ggplot(Ginzberg, aes(x=adjsimp)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+gridExtra::grid.arrange(grobs =list(p1,p2,p3,p4),nrow=2,ncol=2)
+```
+
+A continuación presentamos algunas estadísticas descriptivas de estos datos:
+
+```{r , echo=F, fig.width=6, fig.height=4}
+Ginzberg[,1:4]%>%summary
+```
+
+Calcule los intervalos de confianza del 90%, 95% y del 99% para el valor esperado y la varianza teniendo en cuenta la siguiente información:
+
+```{r echo=FALSE, results = 'asis'}
+t2<-data.frame(promedio=apply(Ginzberg[,1:4],2,mean),varianza=apply(Ginzberg[,1:4],2,var))
+t2<-kable(t2)
+kable_styling(t2,"striped", position = "left")
+
+```
+
+A continuación se presentan algunos cuantiles de las distribuciones $T_{n-1}$ y $\chi_{n-1}$
+```{r echo=FALSE, results = 'asis'}
+alpha<-c(0.005,0.025,0.05,0.1)
+GL<-c(35,50,77,80,81,82,120,143)
+res<-outer(GL,c(alpha,rev(1-alpha)),function(x,y){qt(y,x)})
+colnames(res)<-paste0("qT_",c(alpha,rev(1-alpha)))
+res<-cbind(GL,res)
+
+res<-kable(res)
+kable_styling(res,"striped", position = "left")
+
+```
+
+```{r echo=FALSE, results = 'asis'}
+alpha<-c(0.005,0.025,0.05,0.1)
+GL<-c(35,50,77,80,81,82,120,143)
+res<-outer(GL,c(alpha,rev(1-alpha)),function(x,y){qchisq(y,x)})
+colnames(res)<-paste0("qChi_",c(alpha,rev(1-alpha)))
+res<-cbind(GL,res)
+
+res<-kable(res)
+kable_styling(res,"striped", position = "left")
+
+```
