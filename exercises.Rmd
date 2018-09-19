@@ -19,7 +19,7 @@ library(carData)
 ## Intervalo de confianza para el valor esperado
 La formula del intervalo de confianza para el valor esperado es la siguiente:
 
-$$\Bigg( S-t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}},\bar{X}-t_{n-1,\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}\Bigg)$$
+$$\Bigg( \bar{X}-t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}},\bar{X}-t_{n-1,\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}\Bigg)$$
 
 Donde:
 
@@ -123,13 +123,7 @@ kable_styling(t1,"striped", position = "left")
 
 #Ejercicio 1
   
-El peso de 71 gallinas fue medido en kilogramos. He aquí una parte de los datos:
-
-```{r echo=FALSE, results = 'asis'}
-kable_styling(kable(data.frame(Kg=head(chickwts$weight,10))),"striped", position = "left")
-```
-
-A continuación presentamos el histograma de estos datos:
+El peso de 71 gallinas fue medido en kilogramos. A continuación presentamos el histograma de estos datos:
 
 ```{r , echo=F, fig.width=6, fig.height=4}
 ggplot(chickwts, aes(x=weight)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
