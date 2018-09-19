@@ -17,7 +17,7 @@ library(carData)
 
 set.seed(150)
 ```
-En este documento exploraremos los factores que determinan la amplitud de un intervalo de confianza. Para efectos practicos, haremos el analisis con el intervalo de confianza para el valor esperado. Recordemos cual es su formula.
+En este documento exploraremos los factores que determinan la amplitud de un intervalo de confianza. Para efectos prácticos, haremos el análisis con el intervalo de confianza para el valor esperado. Recordemos cual es su formula.
 # Intervalo de confianza para el valor esperado
 La formula del intervalo de confianza para el valor esperado es la siguiente:
 
@@ -76,11 +76,11 @@ Al estudiar la formula del intervalo de confianza, observamos que existen tres c
 
 $$\Bigg( \bar{X}-t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}},\bar{X}-t_{n-1,\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}\Bigg)$$
 
-El tamaño de la muestra $n$, El nivel de confianza (es decir $1-\alpha$) y la desviacion estandar de los datos $S$. A continuacion exploraremos el efecto de cada una de estas cantidades sobre la amplitud del intervalo.
+El tamaño de la muestra $n$, El nivel de confianza (es decir $1-\alpha$) y la desviación estándar de los datos $S$. A continuación exploraremos el efecto de cada una de estas cantidades sobre la amplitud del intervalo.
 
 ##Tamaño de la muestra
 
-Considere la siguiente funcion de densidad, del peso para una poblacion en particular.
+Considere la siguiente función de densidad, del peso para una población en particular.
 
 ```{r , echo=F, fig.width=6, fig.height=4}
 sim_mean<-70
@@ -90,7 +90,7 @@ ggplot(data = data.frame(x = c(25,120)), aes(x)) +
   theme_bw()
 ```
 
-De esta poblacion hipotetica haremos diferentes muestreos con diferentes tamaños de muestra y calcularemos el intervalo de confianza para cada una. A continuacion se presentan los histogramas para cada una de las muestras:
+De esta población hipotética haremos diferentes muestreos con diferentes tamaños de muestra y calcularemos el intervalo de confianza para cada una. A continuación se presentan los histogramas para cada una de las muestras:
 
 ```{r echo=FALSE, results = 'asis'}
 sample_list<-list()
@@ -108,7 +108,7 @@ sampl_df%>%ggplot(aes(x=data,group=sample))+
   facet_wrap(~sample)+theme_bw()
 ```
 
-La curva azul es la verdadera funcion de densidad de la poblacion. Ahora construimos los intervalos de confianza para cada muestra:
+La curva azul es la verdadera función de densidad de la población. Ahora construimos los intervalos de confianza para cada muestra:
 
 ```{r echo=FALSE, results = 'asis'}
 ttest_list<-sample_list%>%map(t.test)
@@ -123,16 +123,16 @@ ci_df%>%ggplot(aes(x=n,y=mean))+geom_point()+
   theme_bw()
 ```
 
-En azul se destaca el verdadero valor esperado de la poblacion. Es claro que a mayor tamaño de muestra, la amplitud del intervalo de confianza disminuye.
+En azul se destaca el verdadero valor esperado de la población. Es claro que a mayor tamaño de muestra, la amplitud del intervalo de confianza disminuye.
 
 ##Nivel de confianza
 
 Para observar cual es el efecto del nivel de confianza en la amplitud del intervalo de confianza primero observemos los siguiente:
 
-* El nivel de confianza se define como $1-\alpha$ y los cuantiles que usamos para contruir el intervalo para el valor esperado estan dados por $t_{n-1,\frac{\alpha}{2}}$ y $t_{n-1,1-\frac{\alpha}{2}}$, donde $n$ es el tamaño de la muestra.
+* El nivel de confianza se define como $1-\alpha$ y los cuantiles que usamos para contruir el intervalo para el valor esperado están dados por $t_{n-1,\frac{\alpha}{2}}$ y $t_{n-1,1-\frac{\alpha}{2}}$, donde $n$ es el tamaño de la muestra.
 * Veamos un ejemplo de esto: si el nivel de confianza es del 95%, esto quiere decir que $0.95 = 1-\alpha$ luego $\alpha =1-.95=0.05$. Ahora los cuantiles que debemos usar son $\frac{\alpha}{2}=0.05/2=0.025$ y $1-\frac{\alpha}{2}=1-\frac{0.05}{2}= 1-0.025=0.975$
 
-A continuacion presentamos una tabla con diferentes nivels de confianza, su correspondiente $\alpha$ y cuantiles.
+A continuación presentamos una tabla con diferentes niveles de confianza, su correspondiente $\alpha$ y cuantiles.
 
 ```{r echo=FALSE, results = 'asis'}
 confianza<-c(.9,.92,.94,.95,.99)
@@ -140,7 +140,7 @@ t1<-data.frame(confianza=confianza,alpha=1-confianza,q_inf=(1-confianza)/2,q_sup
 kable_styling(kable(t1),"striped", position = "left")
 ```
 
-Aqui q_inf corresponde a $\frac{\alpha}{2}$ y q_sup corresponde a $1-\frac{\alpha}{2}$.
+Aquí q_inf corresponde a $\frac{\alpha}{2}$ y q_sup corresponde a $1-\frac{\alpha}{2}$.
 
 Veamos ahora como se comportan los diferentes cuantiles dependiendo de los valores de confianza y $\alpha$:
 
@@ -162,7 +162,7 @@ ggplot(data = data.frame(x = c(-3, 3)), aes(x)) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 ```
 
-Es claro que a medida que la confianza aumenta la distancia entre los correspondientes cuantiles tambien aumenta. Ahora veamos un ejemplo concreto de una muestra de pesos de una poblacion particular en donde calculamos los intervalos con diferentes valores de confianza.
+Es claro que a medida que la confianza aumenta la distancia entre los correspondientes cuantiles también aumenta. Ahora veamos un ejemplo concreto de una muestra de pesos de una población particular en donde calculamos los intervalos con diferentes valores de confianza.
 
 ```{r echo=FALSE, results = 'asis',fig.width=6, fig.height=4}
 x<-rnorm(100,sim_mean,sim_sd)
@@ -180,3 +180,52 @@ ci_df%>%ggplot(aes(x=conf,y=mean))+geom_point()+
   theme_bw()
 
 ```
+##Varianza
+
+Para observar cual es el efecto de la varianza en la amplitud del intervalo de confianza, estudiaremos varias poblaciones con diferentes varianzas:
+
+```{r echo=FALSE, results = 'asis',fig.width=6, fig.height=4}
+var_exp_sd<-c(5,10,15)
+
+ggplot(data = data.frame(x = c(25, 120)), aes(x)) +ylab("f(peso)")+xlab("peso")+
+  stat_function(fun = dnorm, args = list(mean = sim_mean,sd=5),color="blue")+
+  stat_function(fun = dnorm, args = list(mean = sim_mean,sd=10),color="green")+
+  stat_function(fun = dnorm, args = list(mean = sim_mean,sd=15),color="red")+
+  annotate("text", x = rep(95,3), y = seq(.06,.08,length.out = 3), 
+           label = paste0("var = ",var_exp_sd^2) , size=4 , 
+           color=c("blue","green","red"))+
+  theme_bw()
+```
+
+De cada población extraeremos muestras de tamaño 50. Aquí se observan los resultados:
+
+```{r echo=FALSE, results = 'asis',fig.width=6, fig.height=4}
+sample_list<-list()
+sampl_df<-NULL
+for(i in seq_along(var_exp_sd)){
+  sample_list[[i]]<-rnorm(50,sim_mean,var_exp_sd[i])
+  sampl_df<-rbind(sampl_df,data.frame(data=sample_list[[i]],var=var_exp_sd[i]^2,stringsAsFactors = F))
+}
+sampl_df$var<-factor(sampl_df$var)
+
+sampl_df%>%ggplot(aes(x=data,group=var))+
+  geom_histogram(aes(y = ..density..),bins=10,color="black",fill="grey")+
+  facet_wrap(~var)+theme_bw()
+```
+
+Ahora construiremos los intervalos de 95% de confianza para cada muestra:
+
+```{r echo=FALSE, results = 'asis',fig.width=6, fig.height=4}
+sample_list%>%map(~t.test(.))->ttest_list
+ttest_list%>%sapply( function(x){c(x$conf.int[1],x$estimate,x$conf.int[2])})%>%t(.)->ci_df
+data.frame(factor(var_exp_sd^2),ci_df)->ci_df
+colnames(ci_df)<-c("var","LCI","mean","UCI")
+
+ci_df%>%ggplot(aes(x=var,y=mean))+geom_point()+
+  geom_errorbar(aes(ymin=LCI, ymax=UCI),width=.1)+
+  geom_hline(yintercept=sim_mean, linetype="dashed", 
+                color = "blue", size=1)+
+  theme_bw()
+```
+
+Es claro que a mayor varianza, mayor amplitud del intervalo
