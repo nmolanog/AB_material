@@ -65,7 +65,7 @@ gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
 Al cambiar la forma de la curva, el valor de los cuantiles cambia también, como se puede apreciar en la siguiente tabla 
 ```{r echo=FALSE, results = 'asis'}
 t1<-kable(data.frame(GL=c(70,35,10,5),t_0.05=qt(.05,c(70,35,10,5))))
-kable_styling(t1,"striped", position = "left")
+kable_styling(t1,"striped", position = "center")
 
 ```
 ## Intervalo de confianza para la varianza
@@ -116,7 +116,7 @@ gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
 Al cambiar la forma de la curva, el valor de los cuantiles cambia tambien, como se puede apreciar en la siguiente tabla 
 ```{r echo=FALSE, results = 'asis'}
 t1<-kable(data.frame(GL=c(70,35,15,10),Chi_0.05=qchisq(.05,c(70,35,15,10))))
-kable_styling(t1,"striped", position = "left")
+kable_styling(t1,"striped", position = "center")
 
 ```
 
@@ -148,7 +148,7 @@ my_df<-c(5,10,35,70,100)
 t2<-data.frame(GL=my_df,q0.025=qt(0.025,my_df),q0.05=qt(0.05,my_df),q0.1=qt(0.1,my_df),q0.9=qt(0.9,my_df),q0.95=qt(0.95,my_df),q0.975=qt(0.975,my_df))
 
 t2<-kable(t2)
-kable_styling(t2,"striped", position = "left")
+kable_styling(t2,"striped", position = "center")
 
 ```
 Ahora calcule el intervalo con un nivel de confianza del 90%
@@ -162,7 +162,7 @@ my_df<-c(15,20,35,70,100)
 t2<-data.frame(GL=my_df,q0.025=qchisq(0.025,my_df),q0.05=qchisq(0.05,my_df),q0.1=qchisq(0.1,my_df),q0.9=qchisq(0.9,my_df),q0.95=qchisq(0.95,my_df),q0.975=qchisq(0.975,my_df))
 
 t2<-kable(t2)
-kable_styling(t2,"striped", position = "left")
+kable_styling(t2,"striped", position = "center")
 
 ```
 
@@ -170,10 +170,10 @@ kable_styling(t2,"striped", position = "left")
 Se tiene el peso corporal y el peso del corazón de 144 gatos. A continuación se presentan algunos datos:
 
 ```{r echo=FALSE, results = 'asis'}
-kable_styling(kable(head(cats[,2:3],10)),"striped", position = "left")
+kable_styling(kable(head(cats[,2:3],10)),"striped", position = "center")
 ```
 
-A continuación se presentan los histogramas para las dos variables
+A continuación se presentan los histogramas para las dos variables:
 
 ```{r , echo=F, fig.width=12, fig.height=4}
 p1<-ggplot(cats, aes(x=Bwt)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()+xlab("Peso Corporal")
@@ -194,7 +194,7 @@ Calcule los intervalos de confianza del 95% y del 99% para el valor esperado y l
 ```{r echo=FALSE, results = 'asis'}
 t2<-data.frame(promedio=apply(cats[,2:3],2,mean),varianza=apply(cats[,2:3],2,var))
 t2<-kable(t2)
-kable_styling(t2,"striped", position = "left")
+kable_styling(t2,"striped", position = "center")
 
 ```
 
@@ -207,7 +207,7 @@ colnames(res)<-paste0("qT_",c(alpha,rev(1-alpha)))
 res<-cbind(GL,res)
 
 res<-kable(res)
-kable_styling(res,"striped", position = "left")
+kable_styling(res,"striped", position = "center")
 
 ```
 
@@ -219,17 +219,17 @@ colnames(res)<-paste0("qChi_",c(alpha,rev(1-alpha)))
 res<-cbind(GL,res)
 
 res<-kable(res)
-kable_styling(res,"striped", position = "left")
+kable_styling(res,"striped", position = "center")
 
 ```
 
 #Ejercicio 4
-A continuación se presentan algunos datos de un estudio sobre parámetros fisicoquímicos de la orina.
+A continuación se presentan algunos datos de un estudio sobre parámetros fisicoquímicos de la orina:
 ```{r echo=FALSE, results = 'asis'}
-kable_styling(kable(head(urine[,2:4],10)),"striped", position = "left")
+kable_styling(kable(head(urine[,2:4],10)),"striped", position = "center")
 ```
 
-A continuación se presentan los histogramas para las 3 variables
+A continuación se presentan los histogramas para las 3 variables:
 
 ```{r , echo=F, fig.width=18, fig.height=4, warning =F}
 p1<-ggplot(urine, aes(x=gravity)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
@@ -249,11 +249,11 @@ Calcule los intervalos de confianza del 90%, 95% y del 99% para el valor esperad
 ```{r echo=FALSE, results = 'asis'}
 t2<-data.frame(promedio=apply(urine[,2:4],2,mean),varianza=apply(urine[,2:4],2,var))
 t2<-kable(t2)
-kable_styling(t2,"striped", position = "left")
+kable_styling(t2,"striped", position = "center")
 
 ```
 
-A continuación se presentan algunos cuantiles de las distribuciones $T_{n-1}$ y $\chi_{n-1}$
+A continuación se presentan algunos cuantiles de las distribuciones $T_{n-1}$ y $\chi_{n-1}^{2}$:
 ```{r echo=FALSE, results = 'asis'}
 alpha<-c(0.005,0.025,0.05,0.1)
 GL<-c(35,50,77,78,79,90,120,143)
@@ -262,7 +262,7 @@ colnames(res)<-paste0("qT_",c(alpha,rev(1-alpha)))
 res<-cbind(GL,res)
 
 res<-kable(res)
-kable_styling(res,"striped", position = "left")
+kable_styling(res,"striped", position = "center")
 
 ```
 
@@ -274,16 +274,16 @@ colnames(res)<-paste0("qChi_",c(alpha,rev(1-alpha)))
 res<-cbind(GL,res)
 
 res<-kable(res)
-kable_styling(res,"striped", position = "left")
+kable_styling(res,"striped", position = "center")
 
 ```
 #Ejercicio 5
-A continuación se presentan algunos datos de un estudio sobre pacientes hospitalizados por depresión.
+A continuación se presentan algunos datos de un estudio sobre pacientes hospitalizados por depresión:
 ```{r echo=FALSE, results = 'asis'}
-kable_styling(kable(head(Ginzberg[,1:4],10)),"striped", position = "left")
+kable_styling(kable(head(Ginzberg[,1:4],10)),"striped", position = "center")
 ```
 
-A continuación se presentan los histogramas para las 3 variables
+A continuación se presentan los histogramas para las 3 variables:
 
 ```{r , echo=F, fig.width=10, fig.height=8, warning =F}
 p1<-ggplot(Ginzberg, aes(x=simplicity)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
@@ -304,11 +304,11 @@ Calcule los intervalos de confianza del 90%, 95% y del 99% para el valor esperad
 ```{r echo=FALSE, results = 'asis'}
 t2<-data.frame(promedio=apply(Ginzberg[,1:4],2,mean),varianza=apply(Ginzberg[,1:4],2,var))
 t2<-kable(t2)
-kable_styling(t2,"striped", position = "left")
+kable_styling(t2,"striped", position = "center")
 
 ```
 
-A continuación se presentan algunos cuantiles de las distribuciones $T_{n-1}$ y $\chi_{n-1}$
+A continuación se presentan algunos cuantiles de las distribuciones $T_{n-1}$ y $\chi_{n-1}^{2}$:
 ```{r echo=FALSE, results = 'asis'}
 alpha<-c(0.005,0.025,0.05,0.1)
 GL<-c(35,50,77,80,81,82,120,143)
@@ -317,7 +317,7 @@ colnames(res)<-paste0("qT_",c(alpha,rev(1-alpha)))
 res<-cbind(GL,res)
 
 res<-kable(res)
-kable_styling(res,"striped", position = "left")
+kable_styling(res,"striped", position = "center")
 
 ```
 
@@ -329,6 +329,6 @@ colnames(res)<-paste0("qChi_",c(alpha,rev(1-alpha)))
 res<-cbind(GL,res)
 
 res<-kable(res)
-kable_styling(res,"striped", position = "left")
+kable_styling(res,"striped", position = "center")
 
 ```

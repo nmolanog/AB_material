@@ -18,7 +18,9 @@ library(carData)
 set.seed(150)
 ```
 En este documento exploraremos los factores que determinan la amplitud de un intervalo de confianza. Para efectos prácticos, haremos el análisis con el intervalo de confianza para el valor esperado. Recordemos cual es su formula.
+
 # Intervalo de confianza para el valor esperado
+
 La formula del intervalo de confianza para el valor esperado es la siguiente:
 
 $$\Bigg( \bar{X}-t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}},\bar{X}-t_{n-1,\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}\Bigg)$$
@@ -31,9 +33,9 @@ Donde:
 * $t_{n-1,\frac{\alpha}{2}}$ es el cuantil $\frac{\alpha}{2}$ de la distribución $T$ con $n-1$ grados de libertad.
 * $t_{n-1,1-\frac{\alpha}{2}}$ es el cuantil $1-\frac{\alpha}{2}$ de la distribución $T$ con $n-1$ grados de libertad.
 
-Por ejemplo en la figura \ref{fig:tdensity} se muestran los cuantiles $t_{70,0.025}=-1.994$ y $t_{70,0.975}=1.994$ para una distribución $T$ con $70$ grados de libertad. Es importante entender que el parametro grados de libertad cambia la forma de la curva, como se puede apreciar en la figura 
+Por ejemplo en la figura se muestran los cuantiles $t_{70,0.025}=-1.994$ y $t_{70,0.975}=1.994$ para una distribución $T$ con $70$ grados de libertad. Es importante entender que el parametro grados de libertad cambia la forma de la curva, como se puede apreciar en la figura 
 
-```{r tdensity, echo=F, fig.width=14, fig.height=4, fig.cap="\\label{fig:tdensity} Desnidad de la distribucion T"}
+```{r , echo=F, fig.width=14, fig.height=4}
 p1<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
   stat_function(fun = dt, args = list(df = 70))+ylab("f(t)")+
   geom_segment(aes(x=qt(.975,70),xend=qt(.975,70),y=0,yend=dt(qt(.975,70),70)))+
@@ -64,10 +66,10 @@ gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
 ```
 
 
-Al cambiar la forma de la curva, el valor de los cuantiles cambia también, como se puede apreciar en la siguiente tabla 
+Al cambiar la forma de la curva, el valor de los cuantiles cambia también, como se puede apreciar en la siguiente tabla: 
 ```{r echo=FALSE, results = 'asis'}
 t1<-kable(data.frame(GL=c(70,35,10,5),t_0.05=qt(.05,c(70,35,10,5))))
-kable_styling(t1,"striped", position = "left")
+kable_styling(t1,"striped", position = "center")
 
 ```
 #Factores que afectan la amplitud del intervalo de confianza
@@ -76,11 +78,12 @@ Al estudiar la formula del intervalo de confianza, observamos que existen tres c
 
 $$\Bigg( \bar{X}-t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}},\bar{X}-t_{n-1,\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}\Bigg)$$
 
-El tamaño de la muestra $n$, El nivel de confianza (es decir $1-\alpha$) y la desviación estándar de los datos $S$. A continuación exploraremos el efecto de cada una de estas cantidades sobre la amplitud del intervalo.
+El tamaño de la muestra $n$, El nivel de confianza (es decir $1-\alpha$) y la desviación estándar de los datos $S$. 
+A continuación exploraremos el efecto de cada una de estas cantidades sobre la amplitud del intervalo.
 
 ##Tamaño de la muestra
 
-Considere la siguiente función de densidad, del peso para una población en particular.
+Considere la siguiente función de densidad del peso para una población en particular.
 
 ```{r , echo=F, fig.width=6, fig.height=4}
 sim_mean<-70
@@ -127,7 +130,7 @@ En azul se destaca el verdadero valor esperado de la población. Es claro que a 
 
 ##Nivel de confianza
 
-Para observar cual es el efecto del nivel de confianza en la amplitud del intervalo de confianza primero observemos los siguiente:
+Para observar cual es el efecto del nivel de confianza en la amplitud del intervalo de confianza primero observemos lo siguiente:
 
 * El nivel de confianza se define como $1-\alpha$ y los cuantiles que usamos para contruir el intervalo para el valor esperado están dados por $t_{n-1,\frac{\alpha}{2}}$ y $t_{n-1,1-\frac{\alpha}{2}}$, donde $n$ es el tamaño de la muestra.
 * Veamos un ejemplo de esto: si el nivel de confianza es del 95%, esto quiere decir que $0.95 = 1-\alpha$ luego $\alpha =1-.95=0.05$. Ahora los cuantiles que debemos usar son $\frac{\alpha}{2}=0.05/2=0.025$ y $1-\frac{\alpha}{2}=1-\frac{0.05}{2}= 1-0.025=0.975$
@@ -137,7 +140,7 @@ A continuación presentamos una tabla con diferentes niveles de confianza, su co
 ```{r echo=FALSE, results = 'asis'}
 confianza<-c(.9,.92,.94,.95,.99)
 t1<-data.frame(confianza=confianza,alpha=1-confianza,q_inf=(1-confianza)/2,q_sup=1-(1-confianza)/2)
-kable_styling(kable(t1),"striped", position = "left")
+kable_styling(kable(t1),"striped", position = "center")
 ```
 
 Aquí q_inf corresponde a $\frac{\alpha}{2}$ y q_sup corresponde a $1-\frac{\alpha}{2}$.
@@ -162,7 +165,7 @@ ggplot(data = data.frame(x = c(-3, 3)), aes(x)) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 ```
 
-Es claro que a medida que la confianza aumenta la distancia entre los correspondientes cuantiles también aumenta. Ahora veamos un ejemplo concreto de una muestra de pesos de una población particular en donde calculamos los intervalos con diferentes valores de confianza.
+Es claro que a medida que la confianza aumenta, la distancia entre los correspondientes cuantiles también aumenta. Ahora veamos un ejemplo concreto de una muestra de pesos de una población particular en donde calculamos los intervalos con diferentes valores de confianza.
 
 ```{r echo=FALSE, results = 'asis',fig.width=6, fig.height=4}
 x<-rnorm(100,sim_mean,sim_sd)
