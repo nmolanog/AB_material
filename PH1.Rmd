@@ -1,0 +1,263 @@
+---
+title: "Introducción a las Pruebas de hipótesis"
+author: "Nicolás Molano Gonzalez"
+date: "18 de Septiembre de 2018"
+output: 
+  html_document:
+    fig_caption: true
+---
+```{r echo=F, message = FALSE, warning =F}
+library(datasets)
+library(tidyverse)
+library(kableExtra)
+library(knitr)
+library(MASS)
+library(boot)
+library(carData)   
+library(ggbeeswarm)
+
+set.seed(150)
+```
+
+En este documento introducimos los conceptos básicos al rededor de las pruebas de hipótesis. En resumen las pruebas de hipótesis se usan para probar hipótesis estadísticas acerca de parámetros poblacionales. Veamos un ejemplo
+
+# Estudio metformina + glibenclamida
+
+Un investigador quiere determinar si el tratamiento metformina + glibenclamida funciona, es decir reduce la glucosa en sangre (*glu*) en una población de indígenas del Amazonas. Para esto, con ayuda de un estadístico, se ha diseñado un experimento en donde a una muestra de 100 indígenas de esta población se les hace dos mediciones de *glu*: una primera medición antes de aplicar el medicamento y otra  medición después de aplicarlo. Con estos datos de _pre-post_, se calcula la resta de la segunda medición menos la primera. A continuación presentamos como se ven los datos en una tabla:
+
+```{r echo=FALSE, results = 'asis'}
+n<-100
+mu_pre<-145
+sd_pre<-7.5
+sd_post<-3.3
+pre<-rnorm(n,mu_pre,sd_pre)
+post<-rnorm(n,100,sd_post)
+data_pre_post1<-data.frame(Pre=pre,Post=post,Dif=post-pre)
+kable_styling(kable(head(data_pre_post1,10)),"striped", position = "center")
+```
+
+Para estudiar el efecto del medicamento en la *glu* desde un punto de vista estadístico, pensemos en la distribución poblacional de la diferencia _post-pre_, en particular en su valor esperado. Sea $Dif= Post-Pre$. Existen tres posibilidades para $E(Dif)$:
+
+```{r , echo=F, fig.width=14, fig.height=5}
+sd_dif<-sqrt(7.5^2+3.3^2)
+p1<-ggplot(data = data.frame(x = c(-50,60)), aes(x)) + ylab("f(Dif)")+xlab("Dif")+
+  stat_function(fun = dnorm, args = list(mean = -15,sd=sd_dif),color="green")+
+  stat_function(fun = dnorm, args = list(mean = 0,sd=sd_dif),color="blue")+
+  stat_function(fun = dnorm, args = list(mean = 15,sd=sd_dif),color="red")+
+  annotate("text", x = rep(50,3), y = seq(.05,.04,length.out = 3), 
+           label = c("E(Dif)<0","E(Dif)=0","E(Dif)>0") , size=4 , 
+           color=c("green","blue","red"))+
+  theme_bw()
+
+p2<-ggplot(data = data.frame(x = c(-40,20)), aes(x)) + ylab("f(Dif)")+xlab("Dif")+
+  stat_function(fun = dnorm, args = list(mean = -15,sd=sd_dif))+
+  geom_segment(aes(x=0,xend=0,y=0,yend=dnorm(0,-15,sd_dif)),color="red")+
+  stat_function(fun = dnorm, args = list(mean=-15,sd=sd_dif),
+                xlim = c(0,20),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("segment", x = 3, xend = 9, y =.002 , yend = .02, colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  annotate("text", x = c(10), y = c(.022), 
+           label = "Patients with Dif > 0",size=4 , fontface="bold")+
+  annotate("segment", x = -10, xend = -3, y =.03 , yend = .04, colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  annotate("text", x = c(-2), y = c(.042), 
+           label = "Patients with Dif < 0",size=4 , fontface="bold")+
+  theme_bw()
+gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
+```
+
+* Si $E(Dif)=0$ esto implicaría que, en general, el tratamiento no cambia los niveles de glucosa en sangre en la población. Esto no quiere decir que los valores de $Dif$ para todos los pacientes sea 0. Lo que ocurriría en la practica es que existen grupos de pacientes para los cuales el medicamento disminuye los niveles de *glu* (es decir $Dif<0$) y para otros aumentaría (es decir $Dif>0$). Parecería que el medicamento funciona aleatoriamente reduciendo o aumentando la *glu* en la población. Ante un comportamiento tan impredecible llegaríamos a la conclusión que el medicamento no funciona.
+
+* Si $E(Dif)<0$ esto implicaría que existe un gran numero de pacientes para los cuales el medicamento produjo una disminución de *glu*. Aunque puedan existir pacientes para los cuales $Dif>0$, es decir que se produjo un aumento de *glu* después de aplicar el tratamiento, este porcentaje de pacientes seria mucho menor que el de aquellos en los que hubo una reducción (es decir $Dif<0$).
+
+* De forma similar sucedería con $E(Dif)<0$
+
+Entonces, es claro que dependiendo del valor de $E(Dif)$ en relación al valor de comparación $0$, se podría concluir acerca de la eficacia del medicamento. Sin embargo, $E(Dif)$ es desconocido y la única forma que tenemos para aproximarnos a su verdadero valor es la información obtenida a partir de la muestra. A continuación presentamos tres muestras obtenidas de las tres posibles distribuciones anteriormente mostradas para $Dif$:
+
+## Caso 1
+
+A continuación presentamos una muestra de la población en donde $E(Dif)=0$.
+
+```{r , echo=F, fig.width=14, fig.height=5}
+post1<-pre+rnorm(n,0,sd_post)
+sample_dif1<-data.frame(Pre=pre,Post=post1,Dif=post1-pre)
+
+sample_dif1%>%gather()%>%mutate(key=factor(key,levels=c("Pre","Post","Dif")))%>%ggplot(aes(x=value))+
+  geom_histogram(aes(y = ..density..),bins=10,color="black",fill="grey")+
+  facet_wrap(~key, scales = "free")+xlab("glu")+theme_bw()
+
+
+```
+
+
+```{r , echo=F, fig.width=6, fig.height=4}
+sample_dif1%>%summary
+```
+
+Vemos que el valor promedio del *glu* _pre_ es `r sample_dif1$Pre %>% mean%>% round(3)`, el valor promedio de *glu* _post_ es `r sample_dif1$Post %>% mean%>% round(3)` y la diferencia promedio es `r sample_dif1$Dif %>% mean%>% round(3)`. Con estos datos, podríamos pensar que $E(Dif)$ esta muy cerca de 0 y que por ende el medicamento no seria efectivo. 
+
+Que herramienta podríamos usar para saber que tan cerca estaría $E(Dif)$ de 0 en base a la información de la muestra? Podríamos calcular el intervalo de 95% de confianza para $E(Dif)$ y ver si el valor de 0 cae en ese intervalo. 
+
+Ejercicio: Calcule el intervalo de 95% de confianza para $E(Dif)$ usando la siguiente información: $n=$ `r n`; $\overline{Dif}=$ `r sample_dif1$Dif %>% mean%>% round(3)`; $S=$ `r sample_dif1$Dif %>% mean%>% round(3)`; usar los cuantiles $t_{99,0.025}=$ `r qt(0.025,99)` y $t_{99,0.975}=$ `r qt(0.975,99)`.
+
+Al hacer los cálculos determinamos que el intervalo de confianza es: 
+
+```{r , echo=F, fig.width=6, fig.height=4}
+sample_dif1$Dif%>%t.test()%>%{c(.$conf.int[1],.$conf.int[2])}
+```
+Claramente, 0 esta en el intervalo de confianza. Otro dato mas que apoyaría la _hipótesis_ de que $E(Dif)=0$.
+
+Otra forma de visualizar los datos e inspeccionar que tanta diferencia hay entre las medidas _pre_ y _post_ en un boxplot:
+
+```{r , echo=F, fig.width=5, fig.height=3.4}
+
+sample_dif1%>%gather()%>%filter(!key %in% "Dif") %>%
+  mutate(key=factor(key,levels=c("Pre","Post")))%>%
+  ggplot(aes(x=key,y=value))+
+  geom_boxplot()+
+ geom_beeswarm(priority='density',cex=2.5)+
+  ylab("glu")+theme_bw()
+
+```
+
+De nuevo vemos evidencia de la nula diferencia entre las medidas _pre_ y _post_
+
+##Caso 2
+Ahora presentamos una muestra de la población en donde $E(Dif)>0$.
+
+```{r , echo=F, fig.width=10, fig.height=8}
+post2<-pre+rnorm(n,10,sd_post)
+sample_dif2<-data.frame(Pre=pre,Post=post2,Dif=post2-pre)
+
+p1<-sample_dif2%>%gather()%>%mutate(key=factor(key,levels=c("Pre","Post","Dif")))%>%ggplot(aes(x=value))+
+  geom_histogram(aes(y = ..density..),bins=10,color="black",fill="grey")+
+  facet_wrap(~key, scales = "free")+xlab("glu")+theme_bw()
+
+p2<-sample_dif2%>%gather()%>%filter(!key %in% "Dif") %>%
+  mutate(key=factor(key,levels=c("Pre","Post")))%>%
+  ggplot(aes(x=key,y=value))+
+  geom_boxplot()+
+ geom_beeswarm(priority='density',cex=2.5)+
+  ylab("glu")+theme_bw()
+gridExtra::grid.arrange(grobs =list(p1,p2),layout_matrix=matrix(c(1,1,1,1,3,2,2,4),byrow = T,nrow=2))
+
+```
+
+
+```{r , echo=F, fig.width=6, fig.height=4}
+sample_dif2%>%summary
+```
+
+Analizando toda la información es claro que el medicamento aumenta la _glu_. Calculemos el intervalo de 95% confianza: $n=$ `r n`; $\overline{Dif}=$ `r sample_dif2$Dif %>% mean%>% round(3)`; $S=$ `r sample_dif2$Dif %>% mean%>% round(3)`; usamos los cuantiles $t_{99,0.025}=$ `r qt(0.025,99)` y $t_{99,0.975}=$ `r qt(0.975,99)`.
+
+Al hacer los cálculos determinamos que el intervalo de confianza es: 
+```{r , echo=F, fig.width=6, fig.height=4}
+sample_dif2$Dif%>%t.test()%>%{c(.$conf.int[1],.$conf.int[2])}
+```
+Claramente, el intervalo de confianza esta por encima de 0 y no tendríamos dudas de que el medicamento aumenta la _glu_.
+
+##Caso 3
+Ahora presentamos una muestra de la población en donde $E(Dif)<0$.
+
+```{r , echo=F, fig.width=10, fig.height=8}
+post3<-pre+rnorm(n,-3,7)
+sample_dif3<-data.frame(Pre=pre,Post=post3,Dif=post3-pre)
+
+p1<-sample_dif3%>%gather()%>%mutate(key=factor(key,levels=c("Pre","Post","Dif")))%>%ggplot(aes(x=value))+
+  geom_histogram(aes(y = ..density..),bins=10,color="black",fill="grey")+
+  facet_wrap(~key, scales = "free")+xlab("glu")+theme_bw()
+
+p2<-sample_dif3%>%gather()%>%filter(!key %in% "Dif") %>%
+  mutate(key=factor(key,levels=c("Pre","Post")))%>%
+  ggplot(aes(x=key,y=value))+
+  geom_boxplot()+
+ geom_beeswarm(priority='density',cex=2.5)+
+  ylab("glu")+theme_bw()
+gridExtra::grid.arrange(grobs =list(p1,p2),layout_matrix=matrix(c(1,1,1,1,3,2,2,4),byrow = T,nrow=2))
+
+```
+
+
+```{r , echo=F, fig.width=6, fig.height=4}
+sample_dif3%>%summary
+```
+
+Analizando toda la información **no es tan claro** que el medicamento disminuya la _glu_, en particular la disminución es apenas perceptible, la diferencia promedio es de apenas `r sample_dif3$Dif %>% mean%>% round(3)`. Calculemos el intervalo de 95% confianza: $n=$ `r n`; $\overline{Dif}=$ `r sample_dif3$Dif %>% mean%>% round(3)`; $S=$ `r sample_dif3$Dif %>% mean%>% round(3)`; usamos los cuantiles $t_{99,0.025}=$ `r qt(0.025,99)` y $t_{99,0.975}=$ `r qt(0.975,99)`.
+
+Al hacer los cálculos determinamos que el intervalo de confianza es: 
+```{r , echo=F, fig.width=6, fig.height=4}
+sample_dif3$Dif%>%t.test()%>%{c(.$conf.int[1],.$conf.int[2])}
+```
+El intervalo de confianza esta por debajo de 0 indicando que efectivamente $E(Dif)<0$. Sin embargo la evidencia gráfica no nos deja tan convencidos.
+
+##Prueba de hipótesis
+Ya que necesitamos una forma objetiva de tomar una decisión frente a la relación que pueda tener $E(Dif)$ con el valor de referencia $0$, desarrollaremos la prueba de hipótesis.
+
+Supongamos que nos interesa demostrar que el medicamento cambia la *glu* sin importar si logra un aumento o disminución. Es decir que nos enteriza demostrar que $E(Dif)\neq 0$. Entonces se plantea el siguiente sistema de hipótesis:
+$$H_{0}: E(Dif)=0$$
+$$H_{a}: E(Dif) \neq 0$$
+$H_0$ y $H_a$ se conocen como hipótesis nula y alternativa respectivamente (mas adelante brindaremos mas detalles acerca de esto). 
+
+Ya que estamos hablando acerca del valor esperado, recordemos al estadístico $T$ cuya formula es: 
+$$T_{n-1}=\frac{\sqrt(n)\Big(\overline{Dif}-E(Dif)\Big)}{S}$$
+Donde
+
+* $\overline{Dif}$ es el promedio calculado con la muestra.
+* $S$ es la desviación estándar calculada con la muestra.
+* $n$ es el tamaño de la muestra y $\sqrt{n}$ su raíz cuadrada.
+* $E(Dif)$ es el valor esperado de $Dif$
+
+Y cuya distribución no depende de $E(Dif)$ si no de el tamaño de la muestra $n$.
+
+```{r , echo=F, fig.width=6, fig.height=4}
+ggplot(data = data.frame(x = c(-3, 3)), aes(x)) +
+  stat_function(fun = dt, args = list(df = 70),color="blue")+ylab("f(t)")+xlab("t")+
+  stat_function(fun = dt, args = list(df = 35),color="green")+
+  stat_function(fun = dt, args = list(df = 10),color="orange")+
+  stat_function(fun = dt, args = list(df = 5),color="red")+
+  annotate("text", x = rep(1.7,4), y = seq(.39,.31,length.out = 4), 
+           label = paste0("GL = ",c(70,35,10,5)) , size=4 , 
+           color=c("blue","green","orange","red"))+
+  theme_bw()
+```
+
+Anteriormente nuca fuimos capases de calcular el estadístico $T$ con los datos de la muestra, ya que en la formula, teníamos toda la información salvo $E(Dif)$, el parámetro poblacional, que precisamente queríamos estimar, y para el cual usamos el estadístico $T$ con el fin de calcular el intervalo de confianza. Sin embargo, si asumimos que la hipótesis nula es cierta entonces $E(Dif)=0$ y tendríamos todos los valores para calcular el estadístico $T$.
+
+A continuación presentamos los valores del estadístico calculados para las tres muestras antes analizadas. (Ejercicio: verifique los cálculos).
+
+```{r echo=FALSE, results = 'asis'}
+dif_list<-list(s1=sample_dif1$Dif,s2=sample_dif2$Dif,s3=sample_dif3$Dif)
+t_df<-data.frame(Caso=1:3,t_obs=dif_list%>%map(~t.test(.))%>%map_dbl(~.$statistic))
+t1<-kable(t_df)
+kable_styling(t1,"striped", position = "center")
+
+```
+
+La posibilidad de calcular el estadístico $T$ asumiendo el escenario de la hipótesis nula (es decir $E(Dif)=0$) nos permitirá cuantificar que tan probables o compatibles son los datos a la luz de la hipótesis nula. Veamos los estadísticos $t$ calculados en relación con la distribución $T_{99}$:
+
+```{r, echo=F, fig.width=6, fig.height=4}
+t_new<-1.86
+t_toplot<-c(t_df$t_obs[-2],t_new)
+ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
+  stat_function(fun = dt, args = list(df = 99),color="blue")+ylab("f(t)")+
+  annotate("segment", x = t_toplot, xend = t_toplot, 
+           y = rep(0.2,length(t_df$t_obs[-2])+1), yend = rep(0,length(t_df$t_obs[-2])+1), colour = "red", size=.6, alpha=0.6, arrow=arrow())+
+  annotate("text", x = t_toplot+.4, y = rep(0.22,3), 
+           label = paste0(c("s1: t= ","s3: t= ", "t= "),round(t_toplot,2)), size=4 , fontface="bold")+
+  theme_bw()
+```
+
+Es claro que el estadístico $t$ calculado con la muestra del __caso 1__ (`r round(t_df$t_obs[1],3)`), se encuentra en una zona de alta densidad de probabilidad bajo la distribución del estadístico $T_{99}$. Esta distribución y el estadístico asumen el escenario de la hipótesis nula (es decir $E(Dif)=0$), por lo cual diremos lo siguiente:
+
+* __Ya que el estadístico $t$ observado, calculado con los datos de la muestra, cayo en una zona de alta densidad de probabilidad, bajo el escenario de la hipótesis nula, concluimos que los datos son altamente compatibles con el escenario de la hipótesis nula __
+
+Es decir, el hecho que el valor del estadístico $t$ observado se encuentre un una zona de alta densidad de probabilidad indicaría que la hipótesis nula $H_{0}: E(Dif)=0$ no podria descartarse.
+
+En contraste el estadístico $t$ calculado con la muestra del __caso 2 y 3__ (`r round(t_df$t_obs[2:3],3)`), se encuentran en zonas de muy baja densidad de probabilidad bajo la distribución del estadifico $T_{99}$, por lo cual diremos lo siguiente:
+
+* __Ya que el estadístico $t$ observado, calculado con los datos de la muestra, cayo en una zona de baja densidad de probabilidad, bajo el escenario de la hipótesis nula, concluimos que los datos _NO_ son compatibles con el escenario de la hipótesis nula __
+
+Es decir, el hecho que el valor del estadístico $t$ observado se encuentre un una zona de baja densidad de probabilidad indicaría que la hipótesis nula $H_{0}: E(Dif)=0$ **puede descartarse** y la única alternativa restante seria $H_{a}: E(Dif) \neq 0$.
+
+Pero que pensaríamos si el valor del estadístico observado fuera `r round(t_new,3)`? abría gente que pensaría que ese valor esta en una región de baja probabilidad pero para otras persona, esa región no tiene una probabilidad despreciable. En esta situación se hace difícil tomar una decisión acerca de la plausibilidad de los datos bajo el escenario de la hipótesis nula.
+
+###Recapitulación
