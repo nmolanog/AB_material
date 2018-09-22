@@ -7,14 +7,19 @@ output:
     fig_caption: true
 ---
 ```{r echo=F, message = FALSE, warning =F}
-library(datasets)
-library(tidyverse)
-library(kableExtra)
-library(knitr)
-library(MASS)
-library(boot)
-library(carData)   
-library(ggbeeswarm)
+rm(list=ls())
+list.of.packages <- c("pacman")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+library(pacman)
+p_load(datasets)
+p_load(tidyverse)
+p_load(kableExtra)
+p_load(knitr)
+p_load(MASS)
+p_load(boot)
+p_load(carData)   
+p_load(ggbeeswarm)
 
 set.seed(150)
 ```
@@ -97,7 +102,7 @@ Vemos que el valor promedio del *glu* _pre_ es `r sample_dif1$Pre %>% mean%>% ro
 
 Que herramienta podríamos usar para saber que tan cerca estaría $E(Dif)$ de 0 en base a la información de la muestra? Podríamos calcular el intervalo de 95% de confianza para $E(Dif)$ y ver si el valor de 0 cae en ese intervalo. 
 
-Ejercicio: Calcule el intervalo de 95% de confianza para $E(Dif)$ usando la siguiente información: $n=$ `r n`; $\overline{Dif}=$ `r sample_dif1$Dif %>% mean%>% round(3)`; $S=$ `r sample_dif1$Dif %>% mean%>% round(3)`; usar los cuantiles $t_{99,0.025}=$ `r qt(0.025,99)` y $t_{99,0.975}=$ `r qt(0.975,99)`.
+Ejercicio: Calcule el intervalo de 95% de confianza para $E(Dif)$ usando la siguiente información: $n=$ `r n`; $\overline{Dif}=$ `r sample_dif1$Dif %>% mean%>% round(3)`; $S=$ `r sample_dif1$Dif %>% sd%>% round(3)`; usar los cuantiles $t_{99,0.025}=$ `r qt(0.025,99)` y $t_{99,0.975}=$ `r qt(0.975,99)`.
 
 Al hacer los cálculos determinamos que el intervalo de confianza es: 
 
@@ -147,7 +152,7 @@ gridExtra::grid.arrange(grobs =list(p1,p2),layout_matrix=matrix(c(1,1,1,1,3,2,2,
 sample_dif2%>%summary
 ```
 
-Analizando toda la información es claro que el medicamento aumenta la _glu_. Calculemos el intervalo de 95% confianza: $n=$ `r n`; $\overline{Dif}=$ `r sample_dif2$Dif %>% mean%>% round(3)`; $S=$ `r sample_dif2$Dif %>% mean%>% round(3)`; usamos los cuantiles $t_{99,0.025}=$ `r qt(0.025,99)` y $t_{99,0.975}=$ `r qt(0.975,99)`.
+Analizando toda la información es claro que el medicamento aumenta la _glu_. Calculemos el intervalo de 95% confianza: $n=$ `r n`; $\overline{Dif}=$ `r sample_dif2$Dif %>% mean%>% round(3)`; $S=$ `r sample_dif2$Dif %>% sd%>% round(3)`; usamos los cuantiles $t_{99,0.025}=$ `r qt(0.025,99)` y $t_{99,0.975}=$ `r qt(0.975,99)`.
 
 Al hacer los cálculos determinamos que el intervalo de confianza es: 
 ```{r , echo=F, fig.width=6, fig.height=4}
@@ -181,7 +186,7 @@ gridExtra::grid.arrange(grobs =list(p1,p2),layout_matrix=matrix(c(1,1,1,1,3,2,2,
 sample_dif3%>%summary
 ```
 
-Analizando toda la información **no es tan claro** que el medicamento disminuya la _glu_, en particular la disminución es apenas perceptible, la diferencia promedio es de apenas `r sample_dif3$Dif %>% mean%>% round(3)`. Calculemos el intervalo de 95% confianza: $n=$ `r n`; $\overline{Dif}=$ `r sample_dif3$Dif %>% mean%>% round(3)`; $S=$ `r sample_dif3$Dif %>% mean%>% round(3)`; usamos los cuantiles $t_{99,0.025}=$ `r qt(0.025,99)` y $t_{99,0.975}=$ `r qt(0.975,99)`.
+Analizando toda la información **no es tan claro** que el medicamento disminuya la _glu_, en particular la disminución es apenas perceptible, la diferencia promedio es de apenas `r sample_dif3$Dif %>% mean%>% round(3)`. Calculemos el intervalo de 95% confianza: $n=$ `r n`; $\overline{Dif}=$ `r sample_dif3$Dif %>% mean%>% round(3)`; $S=$ `r sample_dif3$Dif %>% sd%>% round(3)`; usamos los cuantiles $t_{99,0.025}=$ `r qt(0.025,99)` y $t_{99,0.975}=$ `r qt(0.975,99)`.
 
 Al hacer los cálculos determinamos que el intervalo de confianza es: 
 ```{r , echo=F, fig.width=6, fig.height=4}
@@ -259,5 +264,82 @@ En contraste el estadístico $t$ calculado con la muestra del __caso 2 y 3__ (`r
 Es decir, el hecho que el valor del estadístico $t$ observado se encuentre un una zona de baja densidad de probabilidad indicaría que la hipótesis nula $H_{0}: E(Dif)=0$ **puede descartarse** y la única alternativa restante seria $H_{a}: E(Dif) \neq 0$.
 
 Pero que pensaríamos si el valor del estadístico observado fuera `r round(t_new,3)`? abría gente que pensaría que ese valor esta en una región de baja probabilidad pero para otras persona, esa región no tiene una probabilidad despreciable. En esta situación se hace difícil tomar una decisión acerca de la plausibilidad de los datos bajo el escenario de la hipótesis nula.
+
+###Limites de Aceptacion y Rechazo
+
+Ya que juzgar si el estaditico de prueba observado (EPO de aque en adelante) se encuentra en una zona de alta o baja probabilidad se hace subjetivo, debemos establecer una regla objetiva para determinar si el EPO se encuentra en una zona de alta o baja probabilidad, es decir, si se acepta o se rechaza la hipotesis nula.
+
+Para esto, denuevo, usaremos los cuantiles de la distribucion $T$. Defineremos dos cuantiles que acumulen una cantidad de probabilidad deseable como $1-\alpha$ (esto se parece a algo!!) y EPOs por fuera de estos dos cuantiles seran considerados como evidencia en contra de la hipotesis nula. Por ejemplo, si $\alpha=0.05$ entonces $1-\alpha=0.95$ y , de nuevo, usaremos los cuantiles $t_{n-1,\alpha/2}$ y $t_{n-1,1-\alpha/2}$
+```{r, echo=F, fig.width=14, fig.height=4}
+gl<-30
+p1<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
+  stat_function(fun = dt, args = list(df = 30))+ylab("f(t)")+
+  geom_segment(aes(x=qt(.975,gl),xend=qt(.975,gl),y=0,yend=dt(qt(.975,gl),gl)))+
+  geom_segment(aes(x=qt(.025,gl),xend=qt(.025,gl),y=0,yend=dt(qt(.025,gl),gl)))+
+  scale_x_continuous("t", round(c(-5,qt(1-.975,gl),0,qt(.975,gl),5),3), limits=c(-5,5))+
+  annotate("segment", x = c(-2.2,2.2,0), xend = c(-3.8,3.8,2), 
+           y = c(0.02,0.02,.3), yend = c(.16,.16,.35), colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(qt(.975,gl),5),
+                geom = "area",fill="red",alpha=0.5)+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(-5,qt(.025,gl)),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = c(-3.8,3.8,2.7), y = c(0.18,0.18,.37), 
+           label = c("alpha/2","alpha/2","1-alpha"),parse=T , size=4 , fontface="bold")+
+  theme_bw()
+
+p2<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
+  stat_function(fun = dt, args = list(df = 30))+ylab("f(t)")+
+  geom_segment(aes(x=qt(.975,gl),xend=qt(.975,gl),y=0,yend=dt(qt(.975,gl),gl)))+
+  geom_segment(aes(x=qt(.025,gl),xend=qt(.025,gl),y=0,yend=dt(qt(.025,gl),gl)))+
+  scale_x_continuous("t", round(c(-5,qt(1-.975,gl),0,qt(.975,gl),5),3), limits=c(-5,5))+
+  annotate("segment", x = c(-2.2,2.2,0), xend = c(-3.8,3.8,2), 
+           y = rep(0,3), yend = c(.16,.16,.35), colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(qt(.975,gl),5),
+                geom = "area",fill="red",alpha=0.5)+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(-5,qt(.025,gl)),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = c(-3.8,3.8,2.7), y = c(0.18,0.18,.37), 
+           label = c("Zona~de~rechazo~H[0]","Zona~de~rechazo~H[0]","Zona~de~aceptacion~H[0]"),parse=T , size=4 , fontface="bold")+
+  theme_bw()
+gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
+```
+
+###Error tipo I
+
+Una vez establecidos los limetes de aceptacion y rechazo, debemos caer en cuenta de la posibilidad de equivocarnos en nuestra desicion. Que error podriamos cometer al establecer esta regla de desicion? En primera instancia podriamos rechazar $H_{0}$ cuando esta es en realidad verdadera. Las zonas de baja probabilidad del estadistico $T$ que hemos delimitado con los cauntiles $t_{n-1,\alpha/2}$ y $t_{n-1,1-\alpha/2}$, acumulan en conjunto una probabilidad de $\alpha$, por lo general $\alpha$ es un numero pequeño, al rededor de $0.05$. Esto quiere decir que si $H_0$ es cierta, existe la posibilidad de observar EPO en la zona de rechazo, en concreto la probabilidad de observar esto es de $\alpha=0.05$. De esta forma, y asumiendo que $H_0$ es cierta, con esta regla de desicion la probabilidad de equivocarnos es $\alpha$. El error de rechazar $H_0$ cuando esta es verdadera se llama __Error Tipo I__ y $\alpha$ se conoce como __Nivel de significancia__ y es en realidad la probabilidad de cometer el error tipo I, claro, en el caso en que $H_0$ es verdadera.
+$$\alpha=P_{H_0}(Error~Tipo~I)$$
+
+###Vovliendo al ejemplo
+
+Establescamos los limites de aceptacion y rechazo para el caso de nuestro estudio, asumiendo una probabilidad de error tipo I o nivel de significancia $\alpha$ de $0.05$. Debemos encontrar los cuantiles $t_{99,\alpha/2=0.025}$ y $t_{9,1-\alpha/2=0.975}$. Estos tienen los siguientes valores: $t_{99,0.025} =$ `r round(qt(0.025,99),3)` y $t_{99,0.975} =$ `r round(qt(0.975,99),3)`.
+
+
+```{r, echo=F, fig.width=6, fig.height=4}
+gl<-99
+s_level<-0.05
+t_toplot<-c(t_df$t_obs[-2],t_new)
+ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
+  stat_function(fun = dt, args = list(df = gl),color="blue")+ylab("f(t)")+
+  geom_segment(aes(x=qt(1-(s_level/2),gl),xend=qt(1-(s_level/2),gl),y=0,yend=dt(qt(1-(s_level/2),gl),gl)))+
+  geom_segment(aes(x=qt(s_level/2,gl),xend=qt(s_level/2,gl),y=0,yend=dt(qt(s_level/2,gl),gl)))+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(qt(1-(s_level/2),gl),5),
+                geom = "area",fill="red",alpha=0.5)+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(-5,qt(s_level/2,gl)),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("segment", x = t_toplot[-3], xend = t_toplot[-3], 
+           y = rep(0.2,length(t_df$t_obs[-2])), yend = rep(0,length(t_df$t_obs[-2])), colour = "red", size=.6, alpha=0.6, arrow=arrow())+
+  annotate("text", x = t_toplot[-3]+.4, y = rep(0.22,2), 
+           label = paste0(c("s1: t= ","s3: t= "),round(t_toplot[-3],2)), size=4 , fontface="bold")+
+  theme_bw()
+```
+Para las muestras de los casos 2 y 3 el EPO cae en las zonas de rechazo y por ende $H_0: E(Dif)=0$ se rechaza y queda la hipotesis alternativa como unica opcion $H_a: E(Dif) \neq 0$. Para la muestra del caso 1, el EPO cae en la zona de aceptacion y no se puede rechazar $H_0: E(Dif)=0$.
+
+La interpretacion de estos resultados, es que al rechazar la hipotesis nula mostramos que, segun la informacion de la muestra, $E(Dif) \neq 0$ y por ende el tratamiento cambia de alguna forma (aun por determinar) la _glu_.
 
 ###Recapitulación
