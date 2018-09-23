@@ -1,0 +1,88 @@
+---
+title: "cross_ref_test2"
+author: "Nicolás Molano Gonzalez"
+date: "18 de Septiembre de 2018"
+output: 
+  html_document:
+  fig_caption: true
+---
+
+```{r number_figures, echo=FALSE}
+# This is a knitr hook to enable figure and table captions
+# number figures
+# from http://stackoverflow.com/a/18672268/1036500
+library("knitr")
+tn = local({
+  i = 0
+  function(x) {
+    i <<- i + 1
+    paste("<table><caption>", 'Figure ', i, ': ', x, "</caption><colgroup><col width='100'></col></colgroup><thead><tr class='header'></tr></thead><tbody></tbody></table><p>", sep = '')
+  }
+})
+knit_hooks$set(fig.cap = function(before, options, envir) {
+  if(!before)
+    tn(options$fig.cap)
+})
+default_output_hook = knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  if (is.null(options$fig.cap) == F)  
+    x
+  else
+    default_output_hook(x,options)
+})
+
+# number tables
+# from http://stackoverflow.com/a/18672268/1036500
+to = local({
+  i = 0
+  function(x) {
+    i <<- i + 1
+    paste("<table><caption>", 'Table ', i, ': ', x, "</caption><colgroup><col width='100'></col></colgroup><thead><tr class='header'></tr></thead><tbody></tbody></table><p>", sep = '')
+  }
+})
+knit_hooks$set(tab.cap = function(before, options, envir) {
+  if(!before)
+    to(options$tab.cap)
+})
+default_output_hook = knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  if (is.null(options$tab.cap) == F)  
+    x
+  else
+    default_output_hook(x,options)
+})
+```
+
+```{r setup, echo=FALSE, message=FALSE}
+library(pacman)
+p_load(tidyverse)
+p_load(knitr)
+p_load(kfigr)
+opts_chunk$set(message=FALSE, warning=FALSE)
+```
+
+# My document starts here
+
+We can  embed plots, for example:
+
+```{r first, anchor="figure", fig.cap="Rather small sample", fig.align='center',echo=F}
+require(ggplot2)
+qplot(rnorm(10), geom="histogram")
+```
+
+Note that for `r figr('first', TRUE, type="figure")` we can refer to the figure by the chunck label and that will generate an auto-numbered reference in the text that also links to the figure.
+
+```{r second, anchor="figure", fig.cap="Look at this nice big sample", fig.align='center'}
+require(ggplot2)
+qplot(rnorm(1000), geom="histogram")
+```
+
+Note that for `r figr('second', TRUE, type="figure")` we can do the same thing, numbering is taken care of for us.
+
+```{r mytable, anchor="table", tab.cap="my table about cars", tab.align='center'}
+kable(mtcars)
+```
+
+And we can have a table, see `r figr('mytable', TRUE, type="table")` we can refer to the table with a numbered reference in the text that also links to the table.
+
+We can refer to the figures and tables multiple times in the text with no problems: `r figr('first', TRUE, type="figure")`, `r figr('second', TRUE, type="figure")`, `r figr('mytable', TRUE, type="table")`

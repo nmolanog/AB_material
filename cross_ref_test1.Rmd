@@ -1,0 +1,116 @@
+---
+title: "cross_ref_test2"
+author: "Nicolás Molano Gonzalez"
+date: "18 de Septiembre de 2018"
+output: 
+  html_document:
+  fig_caption: true
+---
+  
+```{r number_figures, echo=FALSE}
+# This is a knitr hook to enable figure and table captions
+# number figures
+# from http://stackoverflow.com/a/18672268/1036500
+library("knitr")
+tn = local({
+  i = 0
+  function(x) {
+    i <<- i + 1
+    paste("<table><caption>", 'Figura ', i, ': ', x, "</caption><colgroup><col width='100'></col></colgroup><thead><tr class='header'></tr></thead><tbody></tbody></table><p>", sep = '')
+  }
+})
+knit_hooks$set(fig.cap = function(before, options, envir) {
+  if(!before)
+    tn(options$fig.cap)
+})
+default_output_hook = knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  if (is.null(options$fig.cap) == F)  
+    x
+  else
+    default_output_hook(x,options)
+})
+
+# number tables
+# from http://stackoverflow.com/a/18672268/1036500
+to = local({
+  i = 0
+  function(x) {
+    i <<- i + 1
+    paste("<table><caption>", 'Tabla ', i, ': ', x, "</caption><colgroup><col width='100'></col></colgroup><thead><tr class='header'></tr></thead><tbody></tbody></table><p>", sep = '')
+  }
+})
+knit_hooks$set(tab.cap = function(before, options, envir) {
+  if(!before)
+    to(options$tab.cap)
+})
+default_output_hook = knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  if (is.null(options$tab.cap) == F)  
+    x
+  else
+    default_output_hook(x,options)
+})
+```
+
+```{r setup, echo=FALSE, message=FALSE}
+library(pacman)
+p_load(tidyverse)
+p_load(knitr)
+p_load(kfigr)
+p_load(kableExtra)
+opts_chunk$set(message=FALSE, warning=FALSE)
+```
+
+# Formulas de intervalos de confianza
+## Intervalo de confianza para el valor esperado
+La formula del intervalo de confianza para el valor esperado es la siguiente:
+
+$$\Bigg( \bar{X}-t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}},\bar{X}-t_{n-1,\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}\Bigg)$$
+
+Donde:
+
+* $\bar{X}$ es el promedio calculado con la muestra.
+* $S$ es la desviación estándar calculada con la muestra.
+* $n$ es el tamaño de la muestra y $\sqrt{n}$ su raíz cuadrada.
+* $t_{n-1,\frac{\alpha}{2}}$ es el cuantil $\frac{\alpha}{2}$ de la distribución $T$ con $n-1$ grados de libertad.
+* $t_{n-1,1-\frac{\alpha}{2}}$ es el cuantil $1-\frac{\alpha}{2}$ de la distribución $T$ con $n-1$ grados de libertad.
+
+Por ejemplo en la `r figr('tdensity', TRUE, type="figure")` se muestran los cuantiles $t_{70,0.025}=-1.994$ y $t_{70,0.975}=1.994$ para una distribución $T$ con $70$ grados de libertad. Es importante entender que el parametro grados de libertad cambia la forma de la curva, como se puede apreciar en la figura 
+
+```{r tdensity, echo=F, fig.width=14, fig.height=4, anchor="figure", fig.cap="Desnidad de la distribucion T"}
+p1<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
+  stat_function(fun = dt, args = list(df = 70))+ylab("f(t)")+
+  geom_segment(aes(x=qt(.975,70),xend=qt(.975,70),y=0,yend=dt(qt(.975,70),70)))+
+  geom_segment(aes(x=qt(.025,70),xend=qt(.025,70),y=0,yend=dt(qt(.025,70),70)))+
+  scale_x_continuous("t", round(c(-5,qt(1-.975,70),0,qt(.975,70),5),3), limits=c(-5,5))+
+  annotate("segment", x = c(-2.2,2.2,0), xend = c(-3.8,3.8,2), 
+           y = c(0.02,0.02,.3), yend = c(.16,.16,.35), colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  stat_function(fun = dt, args = list(df = 70),
+                xlim = c(qt(.975,70),5),
+                geom = "area",fill="red",alpha=0.5)+
+  stat_function(fun = dt, args = list(df = 70),
+                xlim = c(-5,qt(.025,70)),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = c(-3.8,3.8,2.7), y = c(0.17,0.17,.37), 
+           label = c("list(P(T[70] > -1.994)==0.025)", "list(P(T[70] < 1.994)==0.025)","P(list(-1.994 < T[70])< 1.994)==0.95"),parse=T , size=4 , fontface="bold")+
+  theme_bw()
+
+p2<-ggplot(data = data.frame(x = c(-3, 3)), aes(x)) +
+  stat_function(fun = dt, args = list(df = 70),color="blue")+ylab("f(t)")+xlab("t")+
+  stat_function(fun = dt, args = list(df = 35),color="green")+
+  stat_function(fun = dt, args = list(df = 10),color="orange")+
+  stat_function(fun = dt, args = list(df = 5),color="red")+
+  annotate("text", x = rep(1.7,4), y = seq(.39,.31,length.out = 4), 
+           label = paste0("GL = ",c(70,35,10,5)) , size=4 , 
+           color=c("blue","green","orange","red"))+
+  theme_bw()
+gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
+```
+
+En la `r figr('tdensity', TRUE, type="figure")` se puede observar que al cambiar la forma de la curva, el valor de los cuantiles cambia también, como se puede apreciar en la tabla `r figr('cuantil_t', F, type="table")` 
+
+```{r cuantil_t, echo=FALSE, results = 'asis', anchor="table",tab.cap="Cuantil 0.05 en la distribucion T con diferentes grados de libertad (GL)", tab.align='center'}
+t1<-kable(data.frame(GL=c(70,35,10,5),t_0.05=qt(.05,c(70,35,10,5))))
+kable_styling(t1,"striped", position = "center")
+```
