@@ -76,9 +76,9 @@ Donde:
 * $t_{n-1,\frac{\alpha}{2}}$ es el cuantil $\frac{\alpha}{2}$ de la distribución $T$ con $n-1$ grados de libertad.
 * $t_{n-1,1-\frac{\alpha}{2}}$ es el cuantil $1-\frac{\alpha}{2}$ de la distribución $T$ con $n-1$ grados de libertad.
 
-Por ejemplo en la `r figr('tdensity', TRUE, type="figure")` se muestran los cuantiles $t_{70,0.025}=-1.994$ y $t_{70,0.975}=1.994$ para una distribución $T$ con $70$ grados de libertad. Es importante entender que el parametro grados de libertad cambia la forma de la curva, como se puede apreciar en la figura 
+Por ejemplo en la `r figr('tdensity', TRUE, type="figura")` se muestran los cuantiles $t_{70,0.025}=-1.994$ y $t_{70,0.975}=1.994$ para una distribución $T$ con $70$ grados de libertad. Es importante entender que el parametro grados de libertad cambia la forma de la curva, como se puede apreciar en la figura 
 
-```{r tdensity, echo=F, fig.width=14, fig.height=4, anchor="figure", fig.cap="Desnidad de la distribucion T"}
+```{r tdensity, echo=F, fig.width=14, fig.height=4, anchor="figura", fig.cap="Desnidad de la distribucion T"}
 p1<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
   stat_function(fun = dt, args = list(df = 70))+ylab("f(t)")+
   geom_segment(aes(x=qt(.975,70),xend=qt(.975,70),y=0,yend=dt(qt(.975,70),70)))+
@@ -108,9 +108,9 @@ p2<-ggplot(data = data.frame(x = c(-3, 3)), aes(x)) +
 gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
 ```
 
-En la `r figr('tdensity', TRUE, type="figure")` se puede observar que al cambiar la forma de la curva, el valor de los cuantiles cambia también, como se puede apreciar en la tabla `r figr('cuantil_t', F, type="table")` 
+En la `r figr('tdensity', TRUE, type="figura")` se puede observar que al cambiar la forma de la curva, el valor de los cuantiles cambia también, como se puede apreciar en la tabla `r figr('cuantil_t', F, type="tabla")` 
 
-```{r cuantil_t, echo=FALSE, results = 'asis', anchor="table",tab.cap="Cuantil 0.05 en la distribucion T con diferentes grados de libertad (GL)", tab.align='center'}
+```{r cuantil_t, echo=FALSE, results = 'asis', anchor="tabla",tab.cap="Cuantil 0.05 en la distribucion T con diferentes grados de libertad (GL)", tab.align='center'}
 t1<-kable(data.frame(GL=c(70,35,10,5),t_0.05=qt(.05,c(70,35,10,5))))
 kable_styling(t1,"striped", position = "center")
 ```
