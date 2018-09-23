@@ -21,7 +21,16 @@ p_load(boot)
 p_load(carData)   
 p_load(ggbeeswarm)
 
+tex2markdown <- function(texstring) {
+  writeLines(text = texstring,
+             con = myfile <- tempfile(fileext = ".tex"))
+  texfile <- pandoc(input = myfile, format = "html")
+  cat(readLines(texfile), sep = "\n")
+  unlink(c(myfile, texfile))
+}
 set.seed(150)
+
+
 ```
 
 En este documento introducimos los conceptos básicos al rededor de las pruebas de hipótesis. En resumen las pruebas de hipótesis se usan para probar hipótesis estadísticas acerca de parámetros poblacionales. Veamos un ejemplo
@@ -342,4 +351,24 @@ Para las muestras de los casos 2 y 3 el EPO cae en las zonas de rechazo y por en
 
 La interpretacion de estos resultados, es que al rechazar la hipotesis nula mostramos que, segun la informacion de la muestra, $E(Dif) \neq 0$ y por ende el tratamiento cambia de alguna forma (aun por determinar) la _glu_.
 
-###Recapitulación
+###Como plantear sistemas de hipotesis
+En el ejemplo anterior, vimos que el sistema de hipotesis empleado fue:
+
+$$H_{0}: E(Dif)= 0$$
+$$H_{a}: E(Dif) \neq 0$$
+
+Pero existen 2 sistemas alternativos mas, para un total de 3 posibles sistemas de hipotesis:
+
+```{r echo=FALSE, results = 'asis', message=FALSE}
+textable<-"
+\\begin{table}[]
+\\begin{tabular}{|l|l|l|}
+ Caso 1                 & Caso 2               & Caso 3               \\\\ \\hline
+ $H_{0}: E(Dif)=0$      & $H_{0}: E(X)\\leq 0$ & $H_{0}: E(X)\\geq 0$ \\\\
+ $H_{a}: E(Dif)\\neq 0$ & $H_{a}: E(Dif) > 0$  & $H_{a}: E(Dif) < 0$  \\hline
+\\end{tabular}
+\\end{table}
+"
+tex2markdown(textable)
+```
+Las reglas para generar
