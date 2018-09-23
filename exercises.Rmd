@@ -103,7 +103,7 @@ p1<-ggplot(data = data.frame(x = c(0, 70)), aes(x)) +
   theme_bw()
 
 p2<-ggplot(data = data.frame(x = c(0, 110)), aes(x)) +
-  stat_function(fun = dchisq, args = list(df = 70),color="blue")+ylab("f(t)")+xlab("t")+
+  stat_function(fun = dchisq, args = list(df = 70),color="blue")+ylab("f(x)")+xlab("x")+
   stat_function(fun = dchisq, args = list(df = 35),color="green")+
   stat_function(fun = dchisq, args = list(df = 15),color="orange")+
   stat_function(fun = dchisq, args = list(df = 10),color="red")+
