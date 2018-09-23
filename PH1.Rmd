@@ -203,7 +203,7 @@ sample_dif3$Dif%>%t.test()%>%{c(.$conf.int[1],.$conf.int[2])}
 ```
 El intervalo de confianza esta por debajo de 0 indicando que efectivamente $E(Dif)<0$. Sin embargo la evidencia gráfica no nos deja tan convencidos.
 
-##Prueba de hipótesis
+#Prueba de hipótesis
 Ya que necesitamos una forma objetiva de tomar una decisión frente a la relación que pueda tener $E(Dif)$ con el valor de referencia $0$, desarrollaremos la prueba de hipótesis.
 
 Supongamos que nos interesa demostrar que el medicamento cambia la *glu* sin importar si logra un aumento o disminución. Es decir que nos enteriza demostrar que $E(Dif)\neq 0$. Entonces se plantea el siguiente sistema de hipótesis:
@@ -212,7 +212,7 @@ $$H_{a}: E(Dif) \neq 0$$
 $H_0$ y $H_a$ se conocen como hipótesis nula y alternativa respectivamente (mas adelante brindaremos mas detalles acerca de esto). 
 
 Ya que estamos hablando acerca del valor esperado, recordemos al estadístico $T$ cuya formula es: 
-$$T_{n-1}=\frac{\sqrt(n)\Big(\overline{Dif}-E(Dif)\Big)}{S}$$
+$$T_{n-1}=\frac{\sqrt{n}\Big(\overline{Dif}-E(Dif)\Big)}{S}$$
 Donde
 
 * $\overline{Dif}$ es el promedio calculado con la muestra.
@@ -274,7 +274,7 @@ Es decir, el hecho que el valor del estadístico $t$ observado se encuentre un u
 
 Pero que pensaríamos si el valor del estadístico observado fuera `r round(t_new,3)`? abría gente que pensaría que ese valor esta en una región de baja probabilidad pero para otras persona, esa región no tiene una probabilidad despreciable. En esta situación se hace difícil tomar una decisión acerca de la plausibilidad de los datos bajo el escenario de la hipótesis nula.
 
-###Limites de Aceptacion y Rechazo
+##Limites de Aceptacion y Rechazo
 
 Ya que juzgar si el estaditico de prueba observado (EPO de aque en adelante) se encuentra en una zona de alta o baja probabilidad se hace subjetivo, debemos establecer una regla objetiva para determinar si el EPO se encuentra en una zona de alta o baja probabilidad, es decir, si se acepta o se rechaza la hipotesis nula.
 
@@ -317,12 +317,12 @@ p2<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
 gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
 ```
 
-###Error tipo I
+##Error tipo I
 
 Una vez establecidos los limetes de aceptacion y rechazo, debemos caer en cuenta de la posibilidad de equivocarnos en nuestra desicion. Que error podriamos cometer al establecer esta regla de desicion? En primera instancia podriamos rechazar $H_{0}$ cuando esta es en realidad verdadera. Las zonas de baja probabilidad del estadistico $T$ que hemos delimitado con los cauntiles $t_{n-1,\alpha/2}$ y $t_{n-1,1-\alpha/2}$, acumulan en conjunto una probabilidad de $\alpha$, por lo general $\alpha$ es un numero pequeño, al rededor de $0.05$. Esto quiere decir que si $H_0$ es cierta, existe la posibilidad de observar EPO en la zona de rechazo, en concreto la probabilidad de observar esto es de $\alpha=0.05$. De esta forma, y asumiendo que $H_0$ es cierta, con esta regla de desicion la probabilidad de equivocarnos es $\alpha$. El error de rechazar $H_0$ cuando esta es verdadera se llama __Error Tipo I__ y $\alpha$ se conoce como __Nivel de significancia__ y es en realidad la probabilidad de cometer el error tipo I, claro, en el caso en que $H_0$ es verdadera.
 $$\alpha=P_{H_0}(Error~Tipo~I)$$
 
-###Vovliendo al ejemplo
+##Vovliendo al ejemplo
 
 Establescamos los limites de aceptacion y rechazo para el caso de nuestro estudio, asumiendo una probabilidad de error tipo I o nivel de significancia $\alpha$ de $0.05$. Debemos encontrar los cuantiles $t_{99,\alpha/2=0.025}$ y $t_{9,1-\alpha/2=0.975}$. Estos tienen los siguientes valores: $t_{99,0.025} =$ `r round(qt(0.025,99),3)` y $t_{99,0.975} =$ `r round(qt(0.975,99),3)`.
 
@@ -351,7 +351,7 @@ Para las muestras de los casos 2 y 3 el EPO cae en las zonas de rechazo y por en
 
 La interpretacion de estos resultados, es que al rechazar la hipotesis nula mostramos que, segun la informacion de la muestra, $E(Dif) \neq 0$ y por ende el tratamiento cambia de alguna forma (aun por determinar) la _glu_.
 
-###Como plantear sistemas de hipotesis
+##Como plantear sistemas de hipotesis
 En el ejemplo anterior, vimos que el sistema de hipotesis empleado fue:
 
 $$H_{0}: E(Dif)= 0$$
@@ -364,11 +364,131 @@ textable<-"
 \\begin{table}[]
 \\begin{tabular}{|l|l|l|}
  Caso 1                 & Caso 2               & Caso 3               \\\\ \\hline
- $H_{0}: E(Dif)=0$      & $H_{0}: E(X)\\leq 0$ & $H_{0}: E(X)\\geq 0$ \\\\
+ $H_{0}: E(Dif)=0$      & $H_{0}: E(Dif)\\leq 0$ & $H_{0}: E(Dif)\\geq 0$ \\\\
  $H_{a}: E(Dif)\\neq 0$ & $H_{a}: E(Dif) > 0$  & $H_{a}: E(Dif) < 0$  \\hline
 \\end{tabular}
 \\end{table}
 "
 tex2markdown(textable)
 ```
-Las reglas para generar
+Las reglas para generar los anteriores sistemas de hipotesis son simples:
+
+* Las hipotesis tratan de parametros como el $E(X)$ o $V(X)$. Un error comun es usar estimadores como $\overline{X}$ en el sistema de hipotesis.
+
+* En la hipotesis nula ($H_0$) siempre debe ir una igualadad o desigualdad 
+
+$$=~\leq~\geq$$
+
+* En la hipotesis alternativa ($H_a$) siempre debe ir una desigualdad estricta
+
+$$\neq~<~>$$
+
+* por ultimo debemos escojer un valor de referencia con el cual comparar el parametro. En este caso el valor de referencia usado es 0
+
+Como escojer cual de los tres sistemas de hipotesis es el adecuado? Eso depende del interes en la investigacion. Por ejemplo, si nos intereza demostrar que el medicamento aumenta la _glu_, entonces el sistema de hipotesis apropiado es el numero 2: $H_{0}: E(Dif)\leq 0$ vs $H_{a}: E(Dif) > 0$. 
+
+Si nos intereza demostrar que el medicamento disminuye la _glu_ entonces el sistema apropiado es el numero 3: $H_{0}: E(Dif)\geq 0$ vs $H_{a}: E(Dif) < 0$. 
+
+Si nos interesa mostrar que el medicamento cambia los niveles de _glu_, sin importar si el efecto es de disminucion o aumento, entonces el sistema de hipotesis apropiado es el numero 1: $H_{0}: E(Dif)=0$ vs $H_{a}: E(Dif)\neq0$. 
+
+Por lo general, y a no ser que se especifique lo contrario, la condicion que se quiera demostrar debe ir en la hipotesis alternativa.
+
+##Zonas de aceptacion y rechazo en funcion del sistema de hipotesis
+
+En el ejemplo del estudio metformina + glibenclamida discutimos los limites de aceptacion y rechazo de la hipotesis nula para el sistema de hipotesis $H_{0}: E(Dif)=0$ vs $H_{a}: E(Dif)\neq0$. Sin embargo, estos limites cambian para los sistemas numero 2 y 3.
+
+Para los efectos de esta discucion, nos concentraremos en pruebas de hipotesis que tratan del valor esperado y la varianza, es decir, los parametros a probar son $E(X)$ y $V(X)$ para una variable aleatoria $X$ cualquiera.
+
+De esa forma, los tres sitemas de hipotesis disponibles son los siguientes:
+```{r echo=FALSE, results = 'asis', message=FALSE}
+textable<-"
+\\begin{table}[]
+\\begin{tabular}{|l|l|l|}
+ Caso 1                 & Caso 2               & Caso 3               \\\\ \\hline
+ $H_{0}: \\delta=0$      & $H_{0}: \\delta\\leq 0$ & $H_{0}: \\delta\\geq 0$ \\\\
+ $H_{a}: \\delta\\neq 0$ & $H_{a}: \\delta > 0$  & $H_{a}: \\delta < 0$  \\hline
+\\end{tabular}
+\\end{table}
+"
+tex2markdown(textable)
+```
+
+Donde $\delta$ hace referencia a un parametro cualquiera ($E(X)$ o $V(X)$)
+
+Para el caso de $E(X)$ el estadistico de prueba que debemos usar es 
+
+$$T_{n-1}=\frac{\sqrt{n}\Big(\overline{X}-E(X)\Big)}{S}$$
+Como habiamos visto anteriormente, mientras que para $V(X)$ usaremos el estadistico chi cuadrado:
+
+$$\chi_{n-1}^{2}= \frac{(n-1)S^2}{V(X)}$$
+
+Notese que estos estadisticos son los mismos que usamos en la construccion de intervalos de confianza.
+
+```{r echo=F, fig.width=14, fig.height=4}
+p1<-ggplot(data = data.frame(x = c(-3, 3)), aes(x)) +
+  stat_function(fun = dt, args = list(df = 70),color="blue")+ylab("f(t)")+xlab("t")+
+  stat_function(fun = dt, args = list(df = 35),color="green")+
+  stat_function(fun = dt, args = list(df = 10),color="orange")+
+  stat_function(fun = dt, args = list(df = 5),color="red")+
+  annotate("text", x = rep(1.7,4), y = seq(.39,.31,length.out = 4), 
+           label = paste0("GL = ",c(70,35,10,5)) , size=4 , 
+           color=c("blue","green","orange","red"))+
+  theme_bw()
+
+p2<-ggplot(data = data.frame(x = c(0, 110)), aes(x)) +
+  stat_function(fun = dchisq, args = list(df = 70),color="blue")+ylab("f(x)")+xlab("x")+
+  stat_function(fun = dchisq, args = list(df = 35),color="green")+
+  stat_function(fun = dchisq, args = list(df = 15),color="orange")+
+  stat_function(fun = dchisq, args = list(df = 10),color="red")+
+  annotate("text", x = rep(60,4), y = seq(.09,.075,length.out = 4), 
+           label = paste0("GL = ",c(70,35,15,10)) , size=4 , 
+           color=c("blue","green","orange","red"))+
+  theme_bw()
+
+gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
+```
+
+## Zona de rechazo para el sistema $H_{0}: \delta=0$ vs $H_{a}: \delta \neq 0$
+
+Este caso ya lo conocemos, es el mismo tratado en el ejemplo. Este sistema de hipotesis induce una zona de rechazo compuesta por dos "colas". Fijado el nivel de significancia $\alpha$ los cuantiles $t_{n-1,\alpha/2}$ y $t_{n-1,1-\alpha/2}$ o los cuantiles $\chi^{2}_{n-1,\alpha/2}$ y $\chi^{2}_{n-1,1-\alpha/2}$ para $E(X)$ y $V(X)$ respectivamente, delimitan las zonas de rechazo como se puede ver a continuacion.
+
+```{r echo=F, fig.width=14, fig.height=4}
+p1<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
+  stat_function(fun = dt, args = list(df = 30))+ylab("f(t)")+
+  geom_segment(aes(x=qt(.975,gl),xend=qt(.975,gl),y=0,yend=dt(qt(.975,gl),gl)))+
+  geom_segment(aes(x=qt(.025,gl),xend=qt(.025,gl),y=0,yend=dt(qt(.025,gl),gl)))+
+  scale_x_continuous("t", round(c(-5,qt(1-.975,gl),0,qt(.975,gl),5),3), limits=c(-5,5))+
+  annotate("segment", x = c(-2.2,2.2,0), xend = c(-3.8,3.8,2), 
+           y = rep(0,3), yend = c(.16,.16,.35), colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(qt(.975,gl),5),
+                geom = "area",fill="red",alpha=0.5)+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(-5,qt(.025,gl)),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = c(-3.8,3.8,2.7), y = c(0.18,0.18,.37), 
+           label = c("Zona~de~rechazo~H[0]","Zona~de~rechazo~H[0]","Zona~de~aceptacion~H[0]"),parse=T , size=4 , fontface="bold")+
+  theme_bw()
+
+chigl<-60
+p2<-ggplot(data = data.frame(x = c(0,110)), aes(x)) +
+  stat_function(fun = dchisq, args = list(df = chigl),color="blue")+ylab("f(x)")+xlab("x")+
+  geom_segment(aes(x=qchisq(.975,chigl),xend=qchisq(.975,chigl),y=0,yend=dchisq(qchisq(.975,chigl),chigl)))+
+  geom_segment(aes(x=qchisq(.025,chigl),xend=qchisq(.025,chigl),y=0,yend=dchisq(qchisq(.025,chigl),chigl)))+
+  scale_x_continuous("t", round(c(-5,qchisq(1-.975,chigl),0,qchisq(.975,chigl),5),3), limits=c(-5,5))+
+  annotate("segment", x = c(-2.2,2.2,0), xend = c(-3.8,3.8,2), 
+           y = rep(0,3), yend = c(.16,.16,.35), colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  stat_function(fun = dchisq, args = list(df = chigl),
+                xlim = c(qchisq(.975,chigl),5),
+                geom = "area",fill="red",alpha=0.5)+
+  stat_function(fun = dchisq, args = list(df = chigl),
+                xlim = c(-5,qchisq(.025,chigl)),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = c(-3.8,3.8,2.7), y = c(0.18,0.18,.37), 
+           label = c("Zona~de~rechazo~H[0]","Zona~de~rechazo~H[0]","Zona~de~aceptacion~H[0]"),parse=T , size=4 , fontface="bold")+
+  theme_bw()
+
+
+
+gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
+```
