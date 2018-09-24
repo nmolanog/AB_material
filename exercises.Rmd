@@ -123,7 +123,7 @@ kable_styling(t1,"striped", position = "center")
 
 #Ejercicio 1
   
-El peso de 71 gallinas fue medido en kilogramos. A continuación presentamos el histograma de estos datos:
+El peso de 71 gallinas fue medido en gramos. A continuación presentamos el histograma de estos datos:
 
 ```{r , echo=F, fig.width=6, fig.height=4}
 ggplot(chickwts, aes(x=weight)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
