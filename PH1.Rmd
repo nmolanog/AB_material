@@ -276,9 +276,9 @@ Pero que pensaríamos si el valor del estadístico observado fuera `r round(t_ne
 
 ##Limites de Aceptacion y Rechazo
 
-Ya que juzgar si el estaditico de prueba observado (EPO de aque en adelante) se encuentra en una zona de alta o baja probabilidad se hace subjetivo, debemos establecer una regla objetiva para determinar si el EPO se encuentra en una zona de alta o baja probabilidad, es decir, si se acepta o se rechaza la hipotesis nula.
+Ya que juzgar si el estadístico de prueba observado (EPO de aque en adelante) se encuentra en una zona de alta o baja probabilidad se hace subjetivo, debemos establecer una regla objetiva para determinar si el EPO se encuentra en una zona de alta o baja probabilidad, es decir, si se acepta o se rechaza la hipótesis nula.
 
-Para esto, denuevo, usaremos los cuantiles de la distribucion $T$. Defineremos dos cuantiles que acumulen una cantidad de probabilidad deseable como $1-\alpha$ (esto se parece a algo!!) y EPOs por fuera de estos dos cuantiles seran considerados como evidencia en contra de la hipotesis nula. Por ejemplo, si $\alpha=0.05$ entonces $1-\alpha=0.95$ y , de nuevo, usaremos los cuantiles $t_{n-1,\alpha/2}$ y $t_{n-1,1-\alpha/2}$
+Para esto, de nuevo, usaremos los cuantiles de la distribución $T$. Definiremos dos cuantiles que acumulen una cantidad de probabilidad deseable como $1-\alpha$ (esto se parece a algo!!) y EPOs por fuera de estos dos cuantiles serán considerados como evidencia en contra de la hipótesis nula. Por ejemplo, si $\alpha=0.05$ entonces $1-\alpha=0.95$ y , de nuevo, usaremos los cuantiles $t_{n-1,\alpha/2}$ y $t_{n-1,1-\alpha/2}$
 ```{r, echo=F, fig.width=14, fig.height=4}
 gl<-30
 p1<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
@@ -319,12 +319,12 @@ gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
 
 ##Error tipo I
 
-Una vez establecidos los limetes de aceptacion y rechazo, debemos caer en cuenta de la posibilidad de equivocarnos en nuestra desicion. Que error podriamos cometer al establecer esta regla de desicion? En primera instancia podriamos rechazar $H_{0}$ cuando esta es en realidad verdadera. Las zonas de baja probabilidad del estadistico $T$ que hemos delimitado con los cauntiles $t_{n-1,\alpha/2}$ y $t_{n-1,1-\alpha/2}$, acumulan en conjunto una probabilidad de $\alpha$, por lo general $\alpha$ es un numero pequeño, al rededor de $0.05$. Esto quiere decir que si $H_0$ es cierta, existe la posibilidad de observar EPO en la zona de rechazo, en concreto la probabilidad de observar esto es de $\alpha=0.05$. De esta forma, y asumiendo que $H_0$ es cierta, con esta regla de desicion la probabilidad de equivocarnos es $\alpha$. El error de rechazar $H_0$ cuando esta es verdadera se llama __Error Tipo I__ y $\alpha$ se conoce como __Nivel de significancia__ y es en realidad la probabilidad de cometer el error tipo I, claro, en el caso en que $H_0$ es verdadera.
+Una vez establecidos los limites de aceptación y rechazo, debemos caer en cuenta de la posibilidad de equivocarnos en nuestra decisión. Que error podríamos cometer al establecer esta regla de decisión? En primera instancia podríamos rechazar $H_{0}$ cuando esta es en realidad verdadera. Las zonas de baja probabilidad del estadístico $T$ que hemos delimitado con los cauntiles $t_{n-1,\alpha/2}$ y $t_{n-1,1-\alpha/2}$, acumulan en conjunto una probabilidad de $\alpha$, por lo general $\alpha$ es un numero pequeño, al rededor de $0.05$. Esto quiere decir que si $H_0$ es cierta, existe la posibilidad de observar EPO en la zona de rechazo, en concreto la probabilidad de observar esto es de $\alpha=0.05$. De esta forma, y asumiendo que $H_0$ es cierta, con esta regla de decisión la probabilidad de equivocarnos es $\alpha$. El error de rechazar $H_0$ cuando esta es verdadera se llama __Error Tipo I__ y $\alpha$ se conoce como __Nivel de significancia__ y es en realidad la probabilidad de cometer el error tipo I, claro, en el caso en que $H_0$ es verdadera.
 $$\alpha=P_{H_0}(Error~Tipo~I)$$
 
 ##Vovliendo al ejemplo
 
-Establescamos los limites de aceptacion y rechazo para el caso de nuestro estudio, asumiendo una probabilidad de error tipo I o nivel de significancia $\alpha$ de $0.05$. Debemos encontrar los cuantiles $t_{99,\alpha/2=0.025}$ y $t_{9,1-\alpha/2=0.975}$. Estos tienen los siguientes valores: $t_{99,0.025} =$ `r round(qt(0.025,99),3)` y $t_{99,0.975} =$ `r round(qt(0.975,99),3)`.
+Establezcamos los limites de aceptación y rechazo para el caso de nuestro estudio, asumiendo una probabilidad de error tipo I o nivel de significancia $\alpha$ de $0.05$. Debemos encontrar los cuantiles $t_{99,\alpha/2=0.025}$ y $t_{9,1-\alpha/2=0.975}$. Estos tienen los siguientes valores: $t_{99,0.025} =$ `r round(qt(0.025,99),3)` y $t_{99,0.975} =$ `r round(qt(0.975,99),3)`.
 
 
 ```{r, echo=F, fig.width=6, fig.height=4}
@@ -347,17 +347,18 @@ ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
            label = paste0(c("s1: t= ","s3: t= "),round(t_toplot[-3],2)), size=4 , fontface="bold")+
   theme_bw()
 ```
-Para las muestras de los casos 2 y 3 el EPO cae en las zonas de rechazo y por ende $H_0: E(Dif)=0$ se rechaza y queda la hipotesis alternativa como unica opcion $H_a: E(Dif) \neq 0$. Para la muestra del caso 1, el EPO cae en la zona de aceptacion y no se puede rechazar $H_0: E(Dif)=0$.
+Para las muestras de los casos 2 y 3 el EPO cae en las zonas de rechazo y por ende $H_0: E(Dif)=0$ se rechaza y queda la hipótesis alternativa como única opción $H_a: E(Dif) \neq 0$. Para la muestra del caso 1, el EPO cae en la zona de aceptación y no se puede rechazar $H_0: E(Dif)=0$.
 
-La interpretacion de estos resultados, es que al rechazar la hipotesis nula mostramos que, segun la informacion de la muestra, $E(Dif) \neq 0$ y por ende el tratamiento cambia de alguna forma (aun por determinar) la _glu_.
+La interpretación de estos resultados, es que al rechazar la hipótesis nula mostramos que, según la información de la muestra, $E(Dif) \neq 0$ y por ende el tratamiento cambia de alguna forma (aun por determinar) la _glu_.
 
 ##Como plantear sistemas de hipotesis
-En el ejemplo anterior, vimos que el sistema de hipotesis empleado fue:
+
+En el ejemplo anterior, vimos que el sistema de hipótesis empleado fue:
 
 $$H_{0}: E(Dif)= 0$$
 $$H_{a}: E(Dif) \neq 0$$
 
-Pero existen 2 sistemas alternativos mas, para un total de 3 posibles sistemas de hipotesis:
+Pero existen 2 sistemas alternativos mas, para un total de 3 posibles sistemas de hipótesis:
 
 ```{r echo=FALSE, results = 'asis', message=FALSE}
 textable<-"
@@ -371,35 +372,35 @@ textable<-"
 "
 tex2markdown(textable)
 ```
-Las reglas para generar los anteriores sistemas de hipotesis son simples:
+Las reglas para generar los anteriores sistemas de hipótesis son simples:
 
-* Las hipotesis tratan de parametros como el $E(X)$ o $V(X)$. Un error comun es usar estimadores como $\overline{X}$ en el sistema de hipotesis.
+* Las hipótesis tratan de parámetros como el $E(X)$ o $V(X)$. Un error común es usar estimadores como $\overline{X}$ en el sistema de hipótesis.
 
-* En la hipotesis nula ($H_0$) siempre debe ir una igualadad o desigualdad 
+* En la hipótesis nula ($H_0$) siempre debe ir una igualdad o desigualdad 
 
 $$=~\leq~\geq$$
 
-* En la hipotesis alternativa ($H_a$) siempre debe ir una desigualdad estricta
+* En la hipótesis alternativa ($H_a$) siempre debe ir una desigualdad estricta
 
 $$\neq~<~>$$
 
-* por ultimo debemos escojer un valor de referencia con el cual comparar el parametro. En este caso el valor de referencia usado es 0
+* por ultimo debemos escoger un valor de referencia con el cual comparar el parámetro. En este caso el valor de referencia usado es 0
 
-Como escojer cual de los tres sistemas de hipotesis es el adecuado? Eso depende del interes en la investigacion. Por ejemplo, si nos intereza demostrar que el medicamento aumenta la _glu_, entonces el sistema de hipotesis apropiado es el numero 2: $H_{0}: E(Dif)\leq 0$ vs $H_{a}: E(Dif) > 0$. 
+Como escoger cual de los tres sistemas de hipótesis es el adecuado? Eso depende del interés en la investigación. Por ejemplo, si nos interesa demostrar que el medicamento aumenta la _glu_, entonces el sistema de hipótesis apropiado es el numero 2: $H_{0}: E(Dif)\leq 0$ vs $H_{a}: E(Dif) > 0$. 
 
-Si nos intereza demostrar que el medicamento disminuye la _glu_ entonces el sistema apropiado es el numero 3: $H_{0}: E(Dif)\geq 0$ vs $H_{a}: E(Dif) < 0$. 
+Si nos interesa demostrar que el medicamento disminuye la _glu_ entonces el sistema apropiado es el numero 3: $H_{0}: E(Dif)\geq 0$ vs $H_{a}: E(Dif) < 0$. 
 
-Si nos interesa mostrar que el medicamento cambia los niveles de _glu_, sin importar si el efecto es de disminucion o aumento, entonces el sistema de hipotesis apropiado es el numero 1: $H_{0}: E(Dif)=0$ vs $H_{a}: E(Dif)\neq0$. 
+Si nos interesa mostrar que el medicamento cambia los niveles de _glu_, sin importar si el efecto es de disminución o aumento, entonces el sistema de hipótesis apropiado es el numero 1: $H_{0}: E(Dif)=0$ vs $H_{a}: E(Dif)\neq0$. 
 
-Por lo general, y a no ser que se especifique lo contrario, la condicion que se quiera demostrar debe ir en la hipotesis alternativa.
+Por lo general, y a no ser que se especifique lo contrario, la condición que se quiera demostrar debe ir en la hipótesis alternativa.
 
-##Zonas de aceptacion y rechazo en funcion del sistema de hipotesis
+##Zonas de aceptación y rechazo en función del sistema de hipótesis
 
-En el ejemplo del estudio metformina + glibenclamida discutimos los limites de aceptacion y rechazo de la hipotesis nula para el sistema de hipotesis $H_{0}: E(Dif)=0$ vs $H_{a}: E(Dif)\neq0$. Sin embargo, estos limites cambian para los sistemas numero 2 y 3.
+En el ejemplo del estudio metformina + glibenclamida discutimos los limites de aceptación y rechazo de la hipótesis nula para el sistema de hipótesis $H_{0}: E(Dif)=0$ vs $H_{a}: E(Dif)\neq0$. Sin embargo, estos limites cambian para los sistemas numero 2 y 3.
 
-Para los efectos de esta discucion, nos concentraremos en pruebas de hipotesis que tratan del valor esperado y la varianza, es decir, los parametros a probar son $E(X)$ y $V(X)$ para una variable aleatoria $X$ cualquiera.
+Para los efectos de esta discusión, nos concentraremos en pruebas de hipótesis que tratan del valor esperado y la varianza, es decir, los parámetros a probar son $E(X)$ y $V(X)$ para una variable aleatoria $X$ cualquiera.
 
-De esa forma, los tres sitemas de hipotesis disponibles son los siguientes:
+De esa forma, los tres sistemas de hipótesis disponibles son los siguientes:
 ```{r echo=FALSE, results = 'asis', message=FALSE}
 textable<-"
 \\begin{table}[]
@@ -413,16 +414,16 @@ textable<-"
 tex2markdown(textable)
 ```
 
-Donde $\delta$ hace referencia a un parametro cualquiera ($E(X)$ o $V(X)$) y $c$ es un valor de referencia, como por ejemplo $0$ en el ejemplo anterior.
+Donde $\delta$ hace referencia a un parámetro cualquiera ($E(X)$ o $V(X)$) y $c$ es un valor de referencia, como por ejemplo $0$ en el ejemplo anterior.
 
-Para el caso de $E(X)$ el estadistico de prueba que debemos usar es 
+Para el caso de $E(X)$ el estadístico de prueba que debemos usar es 
 
 $$T_{n-1}=\frac{\sqrt{n}\Big(\overline{X}-E(X)\Big)}{S}$$
-Como habiamos visto anteriormente, mientras que para $V(X)$ usaremos el estadistico chi cuadrado:
+Como habíamos visto anteriormente, mientras que para $V(X)$ usaremos el estadístico chi cuadrado:
 
 $$\chi_{n-1}^{2}= \frac{(n-1)S^2}{V(X)}$$
 
-Notese que estos estadisticos son los mismos que usamos en la construccion de intervalos de confianza.
+Nótese que estos estadísticos son los mismos que usamos en la construcción de intervalos de confianza.
 
 ```{r echo=F, fig.width=14, fig.height=4}
 p1<-ggplot(data = data.frame(x = c(-3, 3)), aes(x)) +
@@ -450,7 +451,7 @@ gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
 
 ## Zona de rechazo para el sistema $H_{0}: \delta=c$ vs $H_{a}: \delta \neq c$
 
-Este caso ya lo conocemos, es el mismo tratado en el ejemplo. Este sistema de hipotesis induce una zona de rechazo compuesta por dos "colas". Fijado el nivel de significancia $\alpha$ los cuantiles $t_{n-1,\alpha/2}$ y $t_{n-1,1-\alpha/2}$ o los cuantiles $\chi^{2}_{n-1,\alpha/2}$ y $\chi^{2}_{n-1,1-\alpha/2}$ para $E(X)$ y $V(X)$ respectivamente, delimitan las zonas de rechazo como se puede ver a continuacion.
+Este caso ya lo conocemos, es el mismo tratado en el ejemplo. Este sistema de hipótesis induce una zona de rechazo compuesta por dos "colas". Fijado el nivel de significancia $\alpha$ los cuantiles $t_{n-1,\alpha/2}$ y $t_{n-1,1-\alpha/2}$ o los cuantiles $\chi^{2}_{n-1,\alpha/2}$ y $\chi^{2}_{n-1,1-\alpha/2}$ para $E(X)$ y $V(X)$ respectivamente, delimitan las zonas de rechazo como se puede ver a continuación.
 
 ```{r echo=F, fig.width=14, fig.height=4}
 p1<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
@@ -495,7 +496,7 @@ gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
 
 ## Zona de rechazo para el sistema $H_{0}: \delta \leq c$ vs $H_{a}: \delta > c$
 
-Este sistema de hipotesis induce una zona de rechazo compuesta por una "cola". Fijado el nivel de significancia $\alpha$ el cuantil $t_{n-1,1-\alpha}$ o $\chi^{2}_{n-1,1-\alpha}$ para $E(X)$ y $V(X)$ respectivamente, delimitan las zonas de rechazo como se puede ver a continuacion.
+Este sistema de hipótesis induce una zona de rechazo compuesta por una "cola". Fijado el nivel de significancia $\alpha$ el cuantil $t_{n-1,1-\alpha}$ o $\chi^{2}_{n-1,1-\alpha}$ para $E(X)$ y $V(X)$ respectivamente, delimitan las zonas de rechazo como se puede ver a continuación.
 
 ```{r echo=F, fig.width=14, fig.height=4}
 p1<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
@@ -528,11 +529,11 @@ p2<-ggplot(data = data.frame(x = c(0,60)), aes(x)) +
 gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
 ```
 
-Por que la zona de rechazo se encuentra a la derecha, en valores grandes de los estadisticos de prueba? La respuesta yace en las formulas de los estadisticos de prueba $T_{n-1}$ y $\chi_{n-1}^{2}$ y por supuesto en la hipotesis alternativa $H_{a}: \delta > c$. En ambas formulas de los estadisticos de prueba, valores de $E(X)$ 0 $V(X)$ mayores a $c$ se asocian con valores de los estadisticos de pruba grandes (es decir cituados a la derecha) en la distribucion de estos.
+Por que la zona de rechazo se encuentra a la derecha, en valores grandes de los estadísticos de prueba? La respuesta yace en las formulas de los estadísticos de prueba $T_{n-1}$ y $\chi_{n-1}^{2}$ y por supuesto en la hipótesis alternativa $H_{a}: \delta > c$. En ambas formulas de los estadísticos de prueba, valores de $E(X)$ 0 $V(X)$ mayores a $c$ se asocian con valores de los estadísticos de prueba grandes (es decir situados a la derecha) en la distribución de estos.
 
 ## Zona de rechazo para el sistema $H_{0}: \delta \geq c$ vs $H_{a}: \delta < c$
 
-Este sistema de hipotesis induce una zona de rechazo compuesta por una "cola". Fijado el nivel de significancia $\alpha$ el cuantil $t_{n-1,\alpha}$ o $\chi^{2}_{n-1,\alpha}$ para $E(X)$ y $V(X)$ respectivamente, delimitan las zonas de rechazo como se puede ver a continuacion.
+Este sistema de hipótesis induce una zona de rechazo compuesta por una "cola". Fijado el nivel de significancia $\alpha$ el cuantil $t_{n-1,\alpha}$ o $\chi^{2}_{n-1,\alpha}$ para $E(X)$ y $V(X)$ respectivamente, delimitan las zonas de rechazo como se puede ver a continuación.
 
 ```{r echo=F, fig.width=14, fig.height=4}
 p1<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
@@ -565,4 +566,46 @@ p2<-ggplot(data = data.frame(x = c(0,60)), aes(x)) +
 gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
 ```
 
-Por que la zona de rechazo se encuentra a la derecha, en valores pequeños de los estadisticos de prueba? La respuesta yace en las formulas de los estadisticos de prueba $T_{n-1}$ y $\chi_{n-1}^{2}$ y por supuesto en la hipotesis alternativa $H_{a}: \delta < c$. En ambas formulas de los estadisticos de prueba, valores de $E(X)$ o $V(X)$ menores a $c$ se asocian con valores de los estadisticos de pruba pequeños (es decir cituados a la izquierda) en la distribucion de estos.
+Por que la zona de rechazo se encuentra a la derecha, en valores pequeños de los estadísticos de prueba? La respuesta yace en las formulas de los estadísticos de prueba $T_{n-1}$ y $\chi_{n-1}^{2}$ y por supuesto en la hipótesis alternativa $H_{a}: \delta < c$. En ambas formulas de los estadísticos de prueba, valores de $E(X)$ o $V(X)$ menores a $c$ se asocian con valores de los estadísticos de prueba pequeños (es decir situados a la izquierda) en la distribución de estos.
+
+# Resumen
+
+A continuación resumimos los pasos necesarios que se deben ejecutar para realizar una prueba de hipótesis.
+
+1. Determine el parámetro sobre el cual se desea hacer la prueba de hipótesis (en nuestro caso nos limitaremos a trabajar con $E(X)$ o $V(X)$).
+2. Escoja el sistema de hipótesis apropiado de acuerdo al problema de interés:
+```{r echo=FALSE, results = 'asis', message=FALSE}
+textable<-"
+\\begin{table}[]
+\\begin{tabular}{|l|l|l|}
+ Caso 1                 & Caso 2               & Caso 3               \\\\ \\hline
+ $H_{0}: \\delta=c$      & $H_{0}: \\delta\\leq c$ & $H_{0}: \\delta\\geq c$ \\\\
+ $H_{a}: \\delta\\neq c$ & $H_{a}: \\delta > c$  & $H_{a}: \\delta < c$  \\hline
+\\end{tabular}
+\\end{table}
+"
+tex2markdown(textable)
+```
+Donde $\delta$ hace referencia a un parámetro cualquiera ($E(X)$ o $V(X)$) y $c$ es un valor de referencia.
+
+3. Fije el nivel de significancia $\alpha$.
+4. Dependiendo de el parámetro escogido en el paso 1, use el estadístico de prueba apropiado:
+
+$$para~E(X):~T_{n-1}=\frac{\sqrt{n}\Big(\overline{X}-E(X)\Big)}{S}~~~o~~~para~V(X):~\chi_{n-1}^{2}= \frac{(n-1)S^2}{V(X)}$$
+
+5. Dependiendo del sistema de hipótesis escogido en el paso dos  y el nivel de significancia $\alpha$ fijado en el paso 3, determine las zonas de aceptación y rechazo usando los cuantiles apropiados.
+6. Dependiendo del estadístico seleccionado en el paso 4, calcule el estadístico de prueba observado EPO con los datos de la muestra. Recuerde que para esto se debe reemplazar el parámetro con el valor de comparación:
+
+$$EPO~para~E(X):~\frac{\sqrt{n}\Big(\overline{x}-c\Big)}{S}~~~o~~~EPO~para~V(X):~\frac{(n-1)s^2}{c}$$
+
+7. Determine si el EPO calculado en el paso anterior cae o no en la zona de rechazo, para finalmente determinar si $H_0$ se puede o no rechazar.
+
+#Ejemplos
+
+A continuación presentaremos algunos ejemplos ilustrando el proceso de las pruebas de hipótesis.
+
+
+###Ejemplo 1
+
+
+
