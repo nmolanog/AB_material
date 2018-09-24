@@ -606,6 +606,79 @@ A continuación presentaremos algunos ejemplos ilustrando el proceso de las prue
 
 
 ###Ejemplo 1
+Un agricultor tiene un gallinero con 5000 gallinas. El afirma que para tener ganancias vendiéndolas como carne, las gallinas deben tener un valor esperado de peso mayor a $300g$. Con el fin de Probar si su población de gallinas cumple con este requerimiento, a extraído una muestra de 71 gallinas y las ha pesado. A continuación presentamos el histograma de estos datos:
+```{r , echo=F, fig.width=6, fig.height=4}
+ggplot(chickwts, aes(x=weight)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+```
 
+y presentamos algunas estadísticas descriptivas de estos datos:
 
+```{r , echo=F, fig.width=6, fig.height=4}
+chickwts$weight%>%summary
+```
+* El promedio de esta muestra es $\overline{X}=$ `r chickwts$weight%>%mean%>%round(3) `
+* La varianza estimada de esta muestra es $S^2=$ `r chickwts$weight%>%var%>%round(3) `
+
+Para esto usted dispone de la siguiente información:
+
+1. Plantee el sistema de hipótesis apropiado para este problema.
+2. Si se fija un nivel de significancia $\alpha=0.05$, haga la prueba de hipótesis y concluya si el agricultor obtendrá ganancias con sus gallinas.
+3. algunos cuantiles de la distribución $T$
+
+```{r echo=FALSE, results = 'asis'}
+alpha<-c(0.005,0.025,0.05,0.1)
+GL<-c(35,50,69,70,71,80,100)
+res<-outer(GL,c(alpha,rev(1-alpha)),function(x,y){round(qt(y,x),4)})
+colnames(res)<-paste0("qT_",c(alpha,rev(1-alpha)))
+res<-cbind(GL,res)
+
+res<-kable(res)
+kable_styling(res,"striped", position = "center")
+
+```
+
+4. algunos cuantiles de la distribución $\chi^2$
+
+```{r echo=FALSE, results = 'asis'}
+alpha<-c(0.005,0.025,0.05,0.1)
+GL<-c(35,50,69,70,71,80,100)
+res<-outer(GL,c(alpha,rev(1-alpha)),function(x,y){round(qchisq(y,x),4)})
+colnames(res)<-paste0("qChi_",c(alpha,rev(1-alpha)))
+res<-cbind(GL,res)
+
+res<-kable(res)
+kable_styling(res,"striped", position = "center")
+
+```
+
+####Solución:
+
+1. Del problema se identifica que el parámetro que se desea evaluar es $E(Peso)$ es decir el valor esperado del peso de las gallinas.
+2. Ya que se desea demostrar que $E(Peso) > 300g$ el sistema de hipótesis apropiado es 
+$$H_0: E(Peso)\leq 300$$
+$$H_0: E(Peso)> 300$$
+3. Para el valor esperado se debe usar el estadístico $T$.
+4. La zona de rechazo para este sistema de hipótesis es a una cola, a la derecha, por lo que el cuantil que delimita la zona de rechazo es $t_{n-1,1-\alpha}$, donde $n=71$, $1-\alpha=0.95$, es decir el cuantil $t_{70,0.95}$. De la tabla se puede observar que el valor de este cuantil es `r qt(.95,70)%>%round(4) `
+5. Con la información suministrada calculamos el estadístico de prueba:
+
+$$\frac{\sqrt{n}\Big(\overline{x}-c\Big)}{S}=\frac{\sqrt{71}\Big(261.31-300\Big)}{\sqrt{6095.503}}=-4.176$$
+6. Al comparar el EPO con el cuantil $t_{70,0.95}= `r qt(.95,70)%>%round(4) `$ observamos que el EPO cae en la zona de aceptación de $H_0$ por lo cual la hipótesis nula no se puede rechazar.
+```{r echo=F, fig.width=6, fig.height=4}
+gl_ej1<-70
+EPO_ej1<- -4.176
+ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
+  stat_function(fun = dt, args = list(df = gl_ej1))+ylab("f(t)")+
+  geom_segment(aes(x=qt(.95,gl_ej1),xend=qt(.95,gl_ej1),y=0,yend=dt(qt(.95,gl_ej1),gl_ej1)))+
+  scale_x_continuous("t", round(c(-5,EPO_ej1,qt(.95,gl_ej1),0,5),3), limits=c(-5,5))+
+  annotate("segment", x = c(2.2,-1.5,EPO_ej1), xend = c(3.8,2,EPO_ej1), 
+           y = rep(0,3), yend = c(.16,.32,.2), colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  stat_function(fun = dt, args = list(df = gl_ej1),
+                xlim = c(qt(.95,gl_ej1),5),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = c(3.8,2.7,EPO_ej1), y = c(0.18,.33,.22), 
+           label = c("Zona~de~rechazo~H[0]","Zona~de~aceptacion~H[0]","EPO"),parse=T , size=4 , fontface="bold")+
+  theme_bw()
+```
+
+7. Conclusión: el agricultor no obtendrá ganancia.
 
