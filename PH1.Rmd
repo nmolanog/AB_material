@@ -405,15 +405,15 @@ textable<-"
 \\begin{table}[]
 \\begin{tabular}{|l|l|l|}
  Caso 1                 & Caso 2               & Caso 3               \\\\ \\hline
- $H_{0}: \\delta=0$      & $H_{0}: \\delta\\leq 0$ & $H_{0}: \\delta\\geq 0$ \\\\
- $H_{a}: \\delta\\neq 0$ & $H_{a}: \\delta > 0$  & $H_{a}: \\delta < 0$  \\hline
+ $H_{0}: \\delta=c$      & $H_{0}: \\delta\\leq c$ & $H_{0}: \\delta\\geq c$ \\\\
+ $H_{a}: \\delta\\neq c$ & $H_{a}: \\delta > c$  & $H_{a}: \\delta < c$  \\hline
 \\end{tabular}
 \\end{table}
 "
 tex2markdown(textable)
 ```
 
-Donde $\delta$ hace referencia a un parametro cualquiera ($E(X)$ o $V(X)$)
+Donde $\delta$ hace referencia a un parametro cualquiera ($E(X)$ o $V(X)$) y $c$ es un valor de referencia, como por ejemplo $0$ en el ejemplo anterior.
 
 Para el caso de $E(X)$ el estadistico de prueba que debemos usar es 
 
@@ -448,7 +448,7 @@ p2<-ggplot(data = data.frame(x = c(0, 110)), aes(x)) +
 gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
 ```
 
-## Zona de rechazo para el sistema $H_{0}: \delta=0$ vs $H_{a}: \delta \neq 0$
+## Zona de rechazo para el sistema $H_{0}: \delta=c$ vs $H_{a}: \delta \neq c$
 
 Este caso ya lo conocemos, es el mismo tratado en el ejemplo. Este sistema de hipotesis induce una zona de rechazo compuesta por dos "colas". Fijado el nivel de significancia $\alpha$ los cuantiles $t_{n-1,\alpha/2}$ y $t_{n-1,1-\alpha/2}$ o los cuantiles $\chi^{2}_{n-1,\alpha/2}$ y $\chi^{2}_{n-1,1-\alpha/2}$ para $E(X)$ y $V(X)$ respectivamente, delimitan las zonas de rechazo como se puede ver a continuacion.
 
@@ -470,21 +470,21 @@ p1<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
            label = c("Zona~de~rechazo~H[0]","Zona~de~rechazo~H[0]","Zona~de~aceptacion~H[0]"),parse=T , size=4 , fontface="bold")+
   theme_bw()
 
-chigl<-60
-p2<-ggplot(data = data.frame(x = c(0,110)), aes(x)) +
-  stat_function(fun = dchisq, args = list(df = chigl),color="blue")+ylab("f(x)")+xlab("x")+
+chigl<-30
+p2<-ggplot(data = data.frame(x = c(0,60)), aes(x)) +
+  stat_function(fun = dchisq, args = list(df = chigl))+ylab("f(x)")+
   geom_segment(aes(x=qchisq(.975,chigl),xend=qchisq(.975,chigl),y=0,yend=dchisq(qchisq(.975,chigl),chigl)))+
   geom_segment(aes(x=qchisq(.025,chigl),xend=qchisq(.025,chigl),y=0,yend=dchisq(qchisq(.025,chigl),chigl)))+
-  scale_x_continuous("t", round(c(-5,qchisq(1-.975,chigl),0,qchisq(.975,chigl),5),3), limits=c(-5,5))+
-  annotate("segment", x = c(-2.2,2.2,0), xend = c(-3.8,3.8,2), 
-           y = rep(0,3), yend = c(.16,.16,.35), colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  scale_x_continuous("x", round(c(0,qchisq(1-.975,chigl),chigl,qchisq(.975,chigl),60),3), limits=c(0,60))+
+  annotate("segment", x = c(16,47.5,chigl), xend = c(9,50,44), 
+           y = rep(0,3), yend = c(.016,.016,.035), colour = "red", size=1, alpha=0.6, arrow=arrow())+
   stat_function(fun = dchisq, args = list(df = chigl),
-                xlim = c(qchisq(.975,chigl),5),
+                xlim = c(qchisq(.975,chigl),60),
                 geom = "area",fill="red",alpha=0.5)+
   stat_function(fun = dchisq, args = list(df = chigl),
-                xlim = c(-5,qchisq(.025,chigl)),
+                xlim = c(0,qchisq(.025,chigl)),
                 geom = "area",fill="red",alpha=0.5)+
-  annotate("text", x = c(-3.8,3.8,2.7), y = c(0.18,0.18,.37), 
+  annotate("text", x = c(9,50,44), y = c(.016,.016,.035)+.002, 
            label = c("Zona~de~rechazo~H[0]","Zona~de~rechazo~H[0]","Zona~de~aceptacion~H[0]"),parse=T , size=4 , fontface="bold")+
   theme_bw()
 
@@ -492,3 +492,77 @@ p2<-ggplot(data = data.frame(x = c(0,110)), aes(x)) +
 
 gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
 ```
+
+## Zona de rechazo para el sistema $H_{0}: \delta \leq c$ vs $H_{a}: \delta > c$
+
+Este sistema de hipotesis induce una zona de rechazo compuesta por una "cola". Fijado el nivel de significancia $\alpha$ el cuantil $t_{n-1,1-\alpha}$ o $\chi^{2}_{n-1,1-\alpha}$ para $E(X)$ y $V(X)$ respectivamente, delimitan las zonas de rechazo como se puede ver a continuacion.
+
+```{r echo=F, fig.width=14, fig.height=4}
+p1<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
+  stat_function(fun = dt, args = list(df = 30))+ylab("f(t)")+
+  geom_segment(aes(x=qt(.95,gl),xend=qt(.95,gl),y=0,yend=dt(qt(.95,gl),gl)))+
+  scale_x_continuous("t", round(c(-5,qt(.95,gl),0,5),3), limits=c(-5,5))+
+  annotate("segment", x = c(2.2,-1.5), xend = c(3.8,2), 
+           y = rep(0,2), yend = c(.16,.32), colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(qt(.95,gl),5),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = c(3.8,2.7), y = c(0.18,.33), 
+           label = c("Zona~de~rechazo~H[0]","Zona~de~aceptacion~H[0]"),parse=T , size=4 , fontface="bold")+
+  theme_bw()
+
+chigl<-30
+p2<-ggplot(data = data.frame(x = c(0,60)), aes(x)) +
+  stat_function(fun = dchisq, args = list(df = chigl))+ylab("f(x)")+
+  geom_segment(aes(x=qchisq(.95,chigl),xend=qchisq(.95,chigl),y=0,yend=dchisq(qchisq(.95,chigl),chigl)))+
+  scale_x_continuous("x", round(c(0,chigl,qchisq(.95,chigl),60),3), limits=c(0,60))+
+  annotate("segment", x = c(47.5,chigl), xend = c(50,44), 
+           y = rep(0,2), yend = c(.016,.035), colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  stat_function(fun = dchisq, args = list(df = chigl),
+                xlim = c(qchisq(.95,chigl),60),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = c(50,44), y = c(.016,.035)+.002, 
+           label = c("Zona~de~rechazo~H[0]","Zona~de~aceptacion~H[0]"),parse=T , size=4 , fontface="bold")+
+  theme_bw()
+
+gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
+```
+
+Por que la zona de rechazo se encuentra a la derecha, en valores grandes de los estadisticos de prueba? La respuesta yace en las formulas de los estadisticos de prueba $T_{n-1}$ y $\chi_{n-1}^{2}$ y por supuesto en la hipotesis alternativa $H_{a}: \delta > c$. En ambas formulas de los estadisticos de prueba, valores de $E(X)$ 0 $V(X)$ mayores a $c$ se asocian con valores de los estadisticos de pruba grandes (es decir cituados a la derecha) en la distribucion de estos.
+
+## Zona de rechazo para el sistema $H_{0}: \delta \geq c$ vs $H_{a}: \delta < c$
+
+Este sistema de hipotesis induce una zona de rechazo compuesta por una "cola". Fijado el nivel de significancia $\alpha$ el cuantil $t_{n-1,\alpha}$ o $\chi^{2}_{n-1,\alpha}$ para $E(X)$ y $V(X)$ respectivamente, delimitan las zonas de rechazo como se puede ver a continuacion.
+
+```{r echo=F, fig.width=14, fig.height=4}
+p1<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
+  stat_function(fun = dt, args = list(df = 30))+ylab("f(t)")+
+  geom_segment(aes(x=qt(.05,gl),xend=qt(.05,gl),y=0,yend=dt(qt(.05,gl),gl)))+
+  scale_x_continuous("t", round(c(-5,qt(.05,gl),0,5),3), limits=c(-5,5))+
+  annotate("segment", x = c(-2.2,0), xend = c(-3.8,2.2), 
+           y = rep(0,2), yend = c(.16,.32), colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(-5,qt(.05,gl)),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = c(-3.8,2.7), y = c(0.18,.33), 
+           label = c("Zona~de~rechazo~H[0]","Zona~de~aceptacion~H[0]"),parse=T , size=4 , fontface="bold")+
+  theme_bw()
+
+chigl<-30
+p2<-ggplot(data = data.frame(x = c(0,60)), aes(x)) +
+  stat_function(fun = dchisq, args = list(df = chigl))+ylab("f(x)")+
+  geom_segment(aes(x=qchisq(.05,chigl),xend=qchisq(.05,chigl),y=0,yend=dchisq(qchisq(.05,chigl),chigl)))+
+  scale_x_continuous("x", round(c(0,chigl,qchisq(.05,chigl),60),3), limits=c(0,60))+
+  annotate("segment", x = c(16,chigl), xend = c(9,44), 
+           y = rep(0,2), yend = c(.016,.035), colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  stat_function(fun = dchisq, args = list(df = chigl),
+                xlim = c(0,qchisq(.05,chigl)),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = c(9,44), y = c(.016,.035)+.002, 
+           label = c("Zona~de~rechazo~H[0]","Zona~de~aceptacion~H[0]"),parse=T , size=4 , fontface="bold")+
+  theme_bw()
+
+gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
+```
+
+Por que la zona de rechazo se encuentra a la derecha, en valores pequeños de los estadisticos de prueba? La respuesta yace en las formulas de los estadisticos de prueba $T_{n-1}$ y $\chi_{n-1}^{2}$ y por supuesto en la hipotesis alternativa $H_{a}: \delta < c$. En ambas formulas de los estadisticos de prueba, valores de $E(X)$ o $V(X)$ menores a $c$ se asocian con valores de los estadisticos de pruba pequeños (es decir cituados a la izquierda) en la distribucion de estos.
