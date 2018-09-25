@@ -682,3 +682,56 @@ ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
 
 7. Conclusión: el agricultor no obtendrá ganancia.
 
+#P-valor
+
+Hasta ahora hemos visto que para determinar si la hipotesis nula se rechaza o no en base a unos datos, debemos delimitar la zona de rechaso, calcular el EPO y verificar en donde se encuentra en relacion a la zona de rechazo. A continuacion presentarmos otra criterio para de determinar si se rechaza o no la hipotesis nula, el cual se basa en el uso del _p-valor_.
+
+Por simplicidad asumamos que el sistema de hipotesis que se estudiara es de la forma
+$$H_{0}: \delta \leq c~~ vs~~ H_{a}: \delta > c$$
+Recordemos que la zona de rechazo, para un nivel de significancia dado, tiene la siguiente forma:
+```{r echo=F, fig.width=6, fig.height=4}
+ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
+  stat_function(fun = dt, args = list(df = 30))+ylab("f(t)")+
+  geom_segment(aes(x=qt(.95,gl),xend=qt(.95,gl),y=0,yend=dt(qt(.95,gl),gl)))+
+  scale_x_continuous("t", round(c(-5,qt(.95,gl),0,5),3), limits=c(-5,5))+
+  annotate("segment", x = c(2.2,-1.5), xend = c(3.8,2), 
+           y = rep(0,2), yend = c(.16,.32), colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(qt(.95,gl),5),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = c(3.8,2.7), y = c(0.18,.33), 
+           label = c("Zona~de~rechazo~H[0]","Zona~de~aceptacion~H[0]"),parse=T , size=4 , fontface="bold")+
+  theme_bw()
+```
+En este caso el numero 1.66 seria el cuantil $1-\alpha$ para algun $\alpha$ en particular.
+En este contexto, el _p-valor_ se define como
+
+* "La probabilidad, bajo la funcion de densidad del estadistico de prueba que asume que la hipotesis nula es cierta, de observar valores mayores al EPO".
+
+Por ejemplo si el estadstico de prueba es la $T_{n-1}$ el _p-valor_ se define como:
+
+$$p-valor=P(T_{n-1}>EPO)$$
+Vamos un ejemplo. Suponga que $EPO= 1.5$ entonces:
+
+```{r echo=F, fig.width=6, fig.height=4}
+EPO<-1.5
+gl<-70
+ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
+  stat_function(fun = dt, args = list(df = 30))+ylab("f(t)")+
+  geom_segment(aes(x=EPO,xend=EPO,y=0,yend=dt(EPO,gl)))+
+  scale_x_continuous("t", round(c(-5,EPO,0,5),3), limits=c(-5,5))+
+  annotate("segment", x = c(2.2), xend = c(3.8), 
+           y = 0.025, yend = c(.16), colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(EPO,5),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = 3.8, y = c(0.18), 
+           label = paste0("p-valor= ",round(pt(EPO,gl,lower.tail = F),4)), size=4 , fontface="bold")+
+  theme_bw()
+```
+
+El p-valor puede ser usado para determinar si la hipotesis nula se rechaza o no con base a la siguiente regla:
+
+* Si $p-valor < \alpha$ entonces  La hipotesis nula es rechazada.
+
+Esto se debe a que si el $p-valor < \alpha$ eso quiere decir que el EPO ha caido en la zona de rechazo, de lo contrario, el EPO se encuentra en la zona de aceptacion, tal y como se puede observar en la siguiente figura:
