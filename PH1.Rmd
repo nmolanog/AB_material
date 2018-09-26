@@ -724,7 +724,7 @@ ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
            y = 0.025, yend = c(.16), colour = "red", size=1, alpha=0.6, arrow=arrow())+
   stat_function(fun = dt, args = list(df = gl),
                 xlim = c(EPO,5),
-                geom = "area",fill="red",alpha=0.5)+
+                geom = "area",fill="grey",alpha=0.5)+
   annotate("text", x = 3.8, y = c(0.18), 
            label = paste0("p-valor= ",round(pt(EPO,gl,lower.tail = F),4)), size=4 , fontface="bold")+
   theme_bw()
@@ -735,3 +735,48 @@ El p-valor puede ser usado para determinar si la hipotesis nula se rechaza o no 
 * Si $p-valor < \alpha$ entonces  La hipotesis nula es rechazada.
 
 Esto se debe a que si el $p-valor < \alpha$ eso quiere decir que el EPO ha caido en la zona de rechazo, de lo contrario, el EPO se encuentra en la zona de aceptacion, tal y como se puede observar en la siguiente figura:
+
+```{r echo=F, fig.width=14, fig.height=4}
+EPO<-1.1
+gl<-70
+p1<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
+  stat_function(fun = dt, args = list(df = 30))+ylab("f(t)")+
+  geom_segment(aes(x=EPO,xend=EPO,y=0,yend=dt(EPO,gl)))+
+  geom_segment(aes(x=qt(.95,gl),xend=qt(.95,gl),y=0,yend=dt(qt(.95,gl),gl)))+
+  scale_x_continuous("t", round(c(-5,EPO,0,5),3), limits=c(-5,5))+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(EPO,5),
+                geom = "area",fill="grey",alpha=0.5)+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(qt(.95,gl),5),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = 3.8, y = c(0.18), 
+           label = paste0("p-valor= ",round(pt(EPO,gl,lower.tail = F),4)), size=4 , fontface="bold")+
+    annotate("segment", x = c(-2,2.1), xend = c(EPO,qt(.95,gl)), 
+           y = c(.25,.25), yend = c(0,0), colour = "black", size=.5, alpha=0.6, arrow=arrow(angle=15))+
+    annotate("text", x = c(-2,2.1)+.02, y = c(.26,.26), 
+           label = c("EPO==1.1","t[1-alpha]==1.67"),parse=T , size=4 , fontface="bold")+
+  theme_bw()
+
+EPO2<-2.3
+gl<-70
+p2<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
+  stat_function(fun = dt, args = list(df = 30))+ylab("f(t)")+
+  geom_segment(aes(x=EPO2,xend=EPO2,y=0,yend=dt(EPO2,gl)))+
+  geom_segment(aes(x=qt(.95,gl),xend=qt(.95,gl),y=0,yend=dt(qt(.95,gl),gl)))+
+  scale_x_continuous("t", round(c(-5,EPO2,0,5),3), limits=c(-5,5))+
+    stat_function(fun = dt, args = list(df = gl),
+                xlim = c(qt(.95,gl),5),
+                geom = "area",fill="red",alpha=0.5)+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(EPO2,5),
+                geom = "area",fill="grey",alpha=0.5)+
+  annotate("text", x = 3.8, y = c(0.18), 
+           label = paste0("p-valor= ",round(pt(EPO2,gl,lower.tail = F),4)), size=4 , fontface="bold")+
+    annotate("segment", x = c(-2,2.1), xend = c(EPO2,qt(.95,gl)), 
+           y = c(.25,.25), yend = c(0,0), colour = "black", size=.5, alpha=0.6, arrow=arrow(angle=15))+
+    annotate("text", x = c(-2,2.1)+.02, y = c(.26,.26), 
+           label = c("EPO==2.3","t[1-alpha]"),parse=T , size=4 , fontface="bold")+
+  theme_bw()
+gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
+```
