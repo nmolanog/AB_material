@@ -1,0 +1,180 @@
+---
+title: "Ejercicios intervalos de pruebas de hipotesis"
+author: "Nicolás Molano Gonzalez"
+date: "18 de Septiembre de 2018"
+output: 
+  html_document:
+    fig_caption: true
+---
+```{r echo=F, message = FALSE, warning =F}
+library(datasets)
+library(tidyverse)
+library(kableExtra)
+library(knitr)
+library(MASS)
+library(boot)
+library(carData)   
+set.seed(200)
+```
+
+#Ejercicio 1
+
+Un agricultor tiene un gallinero con 5000 gallinas. El afirma que para tener ganancias vendiéndolas como carne, las gallinas deben tener un valor esperado de peso mayor a $250g$. Con el fin de Probar si su población de gallinas cumple con este requerimiento, a extraído una muestra de 71 gallinas y las ha pesado. A continuación presentamos el histograma de estos datos:
+```{r , echo=F, fig.width=6, fig.height=4}
+ggplot(chickwts, aes(x=weight)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+```
+
+y presentamos algunas estadísticas descriptivas de estos datos:
+
+```{r , echo=F, fig.width=6, fig.height=4}
+chickwts$weight%>%summary
+```
+* El promedio de esta muestra es $\overline{X}=$ `r chickwts$weight%>%mean%>%round(3) `
+* La varianza estimada de esta muestra es $S^2=$ `r chickwts$weight%>%var%>%round(3) `
+
+1. Plantee el sistema de hipótesis apropiado para este problema.
+2. Si se fija un nivel de significancia $\alpha=0.05$, haga la prueba de hipótesis y concluya si el agricultor obtendrá ganancias con sus gallinas.
+3. Si se fija un nivel de significancia $\alpha=0.1$, haga la prueba de hipótesis y concluya si el agricultor obtendrá ganancias con sus gallinas.
+
+A continuación se presentan algunos cuantiles de las distribuciones $T$ y $\chi^2$ posiblemente necesarios para resolver el ejercicio:
+
+```{r echo=FALSE, results = 'asis'}
+alpha<-c(0.005,0.025,0.05,0.1)
+GL<-c(35,50,69,70,71,80,100)
+res<-outer(GL,c(alpha,rev(1-alpha)),function(x,y){round(qt(y,x),4)})
+colnames(res)<-paste0("qT_",c(alpha,rev(1-alpha)))
+res<-cbind(GL,res)
+
+res<-kable(res)
+kable_styling(res,"striped", position = "center")
+
+```
+
+```{r echo=FALSE, results = 'asis'}
+alpha<-c(0.005,0.025,0.05,0.1)
+GL<-c(35,50,69,70,71,80,100)
+res<-outer(GL,c(alpha,rev(1-alpha)),function(x,y){round(qchisq(y,x),4)})
+colnames(res)<-paste0("qChi_",c(alpha,rev(1-alpha)))
+res<-cbind(GL,res)
+
+res<-kable(res)
+kable_styling(res,"striped", position = "center")
+
+```
+
+#Ejercicio 2
+En base a los datos del ejercicio anterior, suponga que ahora un comprador ofrece un precio bajo por las gallinas si se demuestra que el valor esperado del peso de las gallinas es inferior a $255g$. 
+1. Plantee el sistema de hipótesis apropiado para este problema.
+2. Si se fija un nivel de significancia $\alpha=0.05$, haga la prueba de hipótesis y concluya si el comprador podra pagar el precio bajo por las gallinas.
+
+#Ejercicio 3
+Un productor de prótesis ortopédicas está interesado en demostrar la calidad de su línea de producción. En particular desea demostrar la baja variabilidad del peso de un modelo prótesis para miembro inferior. Para esto el productor ha pesado 15 prótesis de la misma talla. El afirma que la varianza de su lote es menor a 100. 
+
+A continuación presentamos el histograma de estos datos:
+```{r , echo=F, fig.width=6, fig.height=4}
+prot_weight<-data.frame(weight=runif(15,470,515))
+ggplot(prot_weight, aes(x=weight)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+```
+
+y presentamos algunas estadísticas descriptivas de estos datos:
+
+```{r , echo=F, fig.width=6, fig.height=4}
+chickwts$weight%>%summary
+```
+
+* El promedio de esta muestra es $\overline{X}=$ `r prot_weight$weight%>%mean%>%round(3) `
+* La varianza estimada de esta muestra es $S^2=$ `r prot_weight$weight%>%var%>%round(3) `
+
+1. Plantee el sistema de hipótesis apropiado para este problema.
+2. Si se fija un nivel de significancia $\alpha=0.05$, haga la prueba de hipótesis y concluya si el productor tiene razón.
+3. Si se fija un nivel de significancia $\alpha=0.01$, haga la prueba de hipótesis y concluya si el productor tiene razón.
+
+A continuación se presentan algunos cuantiles de las distribuciones $T$ y $\chi^2$ posiblemente necesarios para resolver el ejercicio:
+
+```{r echo=FALSE, results = 'asis'}
+alpha<-c(0.005,0.025,0.05,0.1)
+GL<-c(10,13,14,15,16,20)
+res<-outer(GL,c(alpha,rev(1-alpha)),function(x,y){round(qt(y,x),4)})
+colnames(res)<-paste0("qT_",c(alpha,rev(1-alpha)))
+res<-cbind(GL,res)
+
+res<-kable(res)
+kable_styling(res,"striped", position = "center")
+
+```
+
+```{r echo=FALSE, results = 'asis'}
+alpha<-c(0.005,0.025,0.05,0.1)
+GL<-c(10,13,14,15,16,20)
+res<-outer(GL,c(alpha,rev(1-alpha)),function(x,y){round(qchisq(y,x),4)})
+colnames(res)<-paste0("qChi_",c(alpha,rev(1-alpha)))
+res<-cbind(GL,res)
+
+res<-kable(res)
+kable_styling(res,"striped", position = "center")
+
+```
+
+#Ejercicio 4
+
+El fabricante de prótesis ortopédicas del ejercicio anterior ha entrado en una licitación para vender su producto en un hospital. EL hospital demanda que el valor esperado del peso de las prótesis de miembro inferior este al rededor de $490g$. Valores esperados significativamente mayores o menores a $490g$ no pueden ser aceptados por la institución.
+
+Use los datos del ejercicio anterior para saber si el fabricante cumple con el requerimiento del hospital.
+
+#Ejercicio 5
+A continuación se presentan algunos datos de un estudio sobre parámetros fisicoquímicos de la orina en una muestra de 79 pacientes en un a UCI:
+
+```{r , echo=F, fig.width=18, fig.height=4, warning =F}
+p1<-ggplot(urine, aes(x=gravity)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+p2<-ggplot(urine, aes(x=ph )) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+p3<-ggplot(urine, aes(x=osmo)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+gridExtra::grid.arrange(grobs =list(p1,p2,p3),nrow=1,ncol=3)
+```
+
+A continuación presentamos algunas estadísticas descriptivas de estos datos:
+
+```{r , echo=F, fig.width=6, fig.height=4}
+urine[,2:4]%>%summary
+```
+```{r echo=FALSE, results = 'asis'}
+t2<-data.frame(promedio=round(apply(urine[,2:4],2,mean,na.rm =T),4),varianza=round(apply(urine[,2:4],2,var,na.rm =T),4))
+t2<-kable(t2)
+kable_styling(t2,"striped", position = "center")
+
+```
+Note que la variable $osmo$ tiene un dato faltante
+Se quiere comprobar la anormalidad de los parámetros fiscoquimicos de la orina de estos pacientes demostrando lo siguiente:
+
+* El valor esperado de la densidad de la orina (variable gravity) debe ser menor a 1020.
+* El valor esperado de pH de la orina debe ser diferente a 6.5
+* La valor esperado de osmolaridad de la orina debe ser mayor a 1000
+
+utilice pruebas de hipótesis para comprobar estos parámetros de anormalidad en estos pacientes, usando una probabilidad de error tipo 1 de 0.1.
+
+
+```{r echo=FALSE, results = 'asis'}
+alpha<-c(0.005,0.025,0.05,0.1)
+GL<-c(50,77,78,79,80,100)
+res<-outer(GL,c(alpha,rev(1-alpha)),function(x,y){round(qt(y,x),4)})
+colnames(res)<-paste0("qT_",c(alpha,rev(1-alpha)))
+res<-cbind(GL,res)
+
+res<-kable(res)
+kable_styling(res,"striped", position = "center")
+```
+
+#Ejercicio 6
+
+Se ha realizado un muestreo de 50 pacientes para saber si los pacientes de artritis reumatoide de un hospital sufren de sobrepeso, definido como tener un indice de masa corporal de superior a $25$.
+El sistema de hipótesis empleado es el siguiente: $H_0: E(IMC)\leq25~~vs~~H_a:E(IMC)>25$. La única información que se tiene del estudio es el p-valor obtenido, el cual tiene un valor de $0.0153$.
+
+* Si se fija un nivel de significancia de $0.1$ se rechaza $H_0$? a que conclusión se llega sobre estos pacientes?
+* Si se fija un nivel de significancia de $0.05$ se rechaza $H_0$? a que conclusión se llega sobre estos pacientes?
+* Si se fija un nivel de significancia de $0.01$ se rechaza $H_0$? a que conclusión se llega sobre estos pacientes?
+
+
+
+
+
+
+
