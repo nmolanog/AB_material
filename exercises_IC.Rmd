@@ -192,7 +192,7 @@ Bwt es el peso corporal y Hwt es el peso del corazón.
 Calcule los intervalos de confianza del 95% y del 99% para el valor esperado y la varianza teniendo en cuenta la siguiente información:
 
 ```{r echo=FALSE, results = 'asis'}
-t2<-data.frame(promedio=apply(cats[,2:3],2,mean),varianza=apply(cats[,2:3],2,var))
+t2<-data.frame(promedio=apply(cats[,2:3],2,mean),varianza=apply(cats[,2:3],2,var),n=apply(cats[,2:3],2,function(x){sum(!is.na(x))}))
 t2<-kable(t2)
 kable_styling(t2,"striped", position = "center")
 
@@ -247,7 +247,7 @@ urine[,2:4]%>%summary
 Calcule los intervalos de confianza del 90%, 95% y del 99% para el valor esperado y la varianza teniendo en cuenta la siguiente información:
 
 ```{r echo=FALSE, results = 'asis'}
-t2<-data.frame(promedio=round(apply(urine[,2:4],2,mean,na.rm =T),4),varianza=round(apply(urine[,2:4],2,var,na.rm =T),4))
+t2<-data.frame(promedio=round(apply(urine[,2:4],2,mean,na.rm =T),4),varianza=round(apply(urine[,2:4],2,var,na.rm =T),4),n=apply(urine[,2:4],2,function(x){sum(!is.na(x))}))
 t2<-kable(t2)
 kable_styling(t2,"striped", position = "center")
 
@@ -302,7 +302,7 @@ Ginzberg[,1:4]%>%summary
 Calcule los intervalos de confianza del 90%, 95% y del 99% para el valor esperado y la varianza teniendo en cuenta la siguiente información:
 
 ```{r echo=FALSE, results = 'asis'}
-t2<-data.frame(promedio=apply(Ginzberg[,1:4],2,mean),varianza=apply(Ginzberg[,1:4],2,var))
+t2<-data.frame(promedio=apply(Ginzberg[,1:4],2,mean),varianza=apply(Ginzberg[,1:4],2,var),n=apply(Ginzberg[,1:4],2,function(x){sum(!is.na(x))}))
 t2<-kable(t2)
 kable_styling(t2,"striped", position = "center")
 

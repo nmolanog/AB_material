@@ -137,7 +137,7 @@ A continuación presentamos algunas estadísticas descriptivas de estos datos:
 urine[,2:4]%>%summary
 ```
 ```{r echo=FALSE, results = 'asis'}
-t2<-data.frame(promedio=round(apply(urine[,2:4],2,mean,na.rm =T),4),varianza=round(apply(urine[,2:4],2,var,na.rm =T),4))
+t2<-data.frame(promedio=round(apply(urine[,2:4],2,mean,na.rm =T),4),varianza=round(apply(urine[,2:4],2,var,na.rm =T),4),n=apply(urine[,2:4],2,function(x){sum(!is.na(x))}))
 t2<-kable(t2)
 kable_styling(t2,"striped", position = "center")
 
