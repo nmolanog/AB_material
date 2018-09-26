@@ -247,7 +247,7 @@ urine[,2:4]%>%summary
 Calcule los intervalos de confianza del 90%, 95% y del 99% para el valor esperado y la varianza teniendo en cuenta la siguiente información:
 
 ```{r echo=FALSE, results = 'asis'}
-t2<-data.frame(promedio=apply(urine[,2:4],2,mean),varianza=apply(urine[,2:4],2,var))
+t2<-data.frame(promedio=round(apply(urine[,2:4],2,mean,na.rm =T),4),varianza=round(apply(urine[,2:4],2,var,na.rm =T),4))
 t2<-kable(t2)
 kable_styling(t2,"striped", position = "center")
 
