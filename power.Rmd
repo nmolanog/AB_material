@@ -1,0 +1,112 @@
+---
+title: "Potencia y tamaño de muestra"
+author: "Nicolás Molano Gonzalez"
+date: "18 de Septiembre de 2018"
+output: 
+  html_document:
+    fig_caption: true
+---
+```{r echo=F, message = FALSE, warning =F}
+rm(list=ls())
+list.of.packages <- c("pacman")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+library(pacman)
+p_load(tidyverse)
+p_load(kableExtra)
+p_load(knitr)
+p_load(ggbeeswarm)
+p_load(latex2exp)
+
+tex2markdown <- function(texstring) {
+  writeLines(text = texstring,
+             con = myfile <- tempfile(fileext = ".tex"))
+  texfile <- pandoc(input = myfile, format = "html")
+  cat(readLines(texfile), sep = "\n")
+  unlink(c(myfile, texfile))
+}
+set.seed(150)
+
+
+```
+En este documento estudiaremos como el tamaño de muestra afecta la probabilidad de cometer el error tipo II en pruebas de hipotesis. En primera instancia, recordemos que son los errores tipo I y II:
+
+```{r echo=FALSE, results = 'asis', message=FALSE}
+textable<-"
+\\begin{table}[]
+\\begin{tabular}{|l|l|l|}
+                        & True $H_0$    & True $H_a$    \\\\ \\hline
+ Guess  $H_0$           & True          & Error type II \\\\
+ Guess  $H_a$           & Error type I  & True          \\hline
+\\end{tabular}
+\\end{table}
+"
+tex2markdown(textable)
+```
+
+Para esta discucion, considere el ejemplo anterior del estudio de metformina + glibenclamida. En este estudio nos intereza demostrar que el medicamento disminuye los niveles de glucosa en sangre por lo cual la el valor esperado de $Dif= Post-Pre$ deberia ser menor a sero. El sistema de hipotesis apropiado es el siguiente:
+$$H_{0}: E(Dif)\geq 0$$
+$$H_{a}: E(Dif) < 0$$
+Ya que nos intereza estudiar $E(Dif)$, sabemos que su estimador es el promedio, denotado por $\overline{Dif}$. Adicionalmente sabemos que el promedio, como estimador tabien es una variable aleatoria y que 
+$$E(\overline{Dif})=E(Dif)~~y~~V(\overline{Dif})=V(Dif)/n$$
+Esto tiene impplicaciones en la calidad de la estimacion a medida que el tamaño de muestra aumenta como se ha discutido antes.
+```{r , echo=F, fig.width=6, fig.height=4}
+ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
+  stat_function(fun = dnorm, args = list(mean = 0,sd=4),color="blue")+ylab(TeX("$f(\\bar{Dif})$"))+xlab(TeX("$\\bar{Dif}$"))+
+  stat_function(fun = dnorm, args = list(mean = 0,sd=4/sqrt(5)),color="red")+
+  stat_function(fun = dnorm, args = list(mean = 0,sd=4/sqrt(25)),color="orange")+
+  stat_function(fun = dnorm, args = list(mean = 0,sd=4/sqrt(75)),color="green")+
+  annotate("text", x = rep(2.5,4), y = seq(.5,.76,length.out = 4), 
+           label = paste0("n = ",c(1,5,25,75)) , size=4 , 
+           color=c("blue","red","orange","green"))+
+  theme_bw()
+```
+
+Sin embargo, se desconoce el verdadero valor de $E(Dif)$ y por esta razon es que se desarrolla la teoria de intervalos de confianza y pruevas de hipotesis. Por un momento supongamos que $E(Dif)=-1.7$. Comparemos la distribucion de $\overline{Dif}$ bajo dos escenarios: el de la hipotesis nula y el supuesto anteriormente. Para efectos practicos asuma que el tamaño de la muestra es de $50$:
+
+```{r , echo=F, fig.width=6, fig.height=4}
+f1<-function(x,a,b,c,d){return(dnorm(x,a,b)-dnorm(x,c,d))}
+uniroot(f1, c(-2, 0), tol = 0.0001, a = 0,b=4/sqrt(50),c=-1.7,d=4/sqrt(50))$root->cross_point
+sd_dif<-4/sqrt(50)
+p1<-ggplot(data = data.frame(x = c(-4, 2.7)), aes(x)) +
+  stat_function(fun = dnorm, args = list(mean = 0,sd=sd_dif),color="red")+ylab(TeX("$f(\\bar{Dif})$"))+xlab(TeX("$\\bar{Dif}$"))+
+  stat_function(fun = dnorm, args = list(mean = -1.7,sd=sd_dif),color="blue")+
+  annotate("text", x = rep(2,2), y = seq(.5,.6,length.out = 2), 
+           label = paste0("E(Dif) = ",c(0,-1.7)) , size=4 , 
+           color=c("red","blue"))+
+  theme_bw()
+
+p1+stat_function(fun = dnorm, args = list(mean = 0,sd=4/sqrt(50)),
+                xlim = c(-2.5,cross_point),
+                geom = "area",fill="grey",alpha=0.5)+
+  stat_function(fun = dnorm, args = list(mean = -1.7,sd=4/sqrt(50)),
+                xlim = c(cross_point,1),
+                geom = "area",fill="grey",alpha=0.5)
+```
+
+Notese que existe una zona de posibles valores bajo ambas distribuciones (area gris). Si se observaran valores promedios de diferencias $Post-Pre$ en este rango, no sabriamos si vienen de una u otra distribucion.
+
+Se puede demostrar que existe una correspondencia entre la distribucion del estadistico $T_{n-1}$ y la distribucion de $\overline{Dif}$ bajo la hipotesis nula (de ahora en adelante $\overline{Dif}_{H_0}$), de tal forma que los cuantiles en la distribucion $T_{n-1}$ se relacionan con aquellos en la distribucion de $\overline{Dif}_{H_0}$. Asi que si fijamos una probabilidad de error tipo I, $\alpha=0.05$ la zona de rechazo equivalente en la distribucion de $\overline{Dif}_{H_0}$ es el segmento bajo el area roja:
+
+```{r , echo=F,warning =F, fig.width=6, fig.height=4}
+f1<-function(x,a,b,c,d){return(dnorm(x,a,b)-dnorm(x,c,d))}
+uniroot(f1, c(-2, 0), tol = 0.0001, a = 0,b=4/sqrt(50),c=-1.7,d=4/sqrt(50))$root->cross_point
+
+p1+geom_segment(aes(x=qnorm(.05,0,sd_dif),xend=qnorm(.05,0,sd_dif),y=0,yend=dnorm(qnorm(.05,0,sd_dif),0,sd_dif)))+
+    stat_function(fun = dnorm, args = list(mean = 0,sd=4/sqrt(50)),
+                xlim = c(qnorm(.05,0,sd_dif),-2.5),
+                geom = "area",fill="red",alpha=0.5)+
+      stat_function(fun = dnorm, args = list(mean = -1.7,sd=4/sqrt(50)),
+                xlim = c(qnorm(.05,0,sd_dif),1),
+                geom = "area",fill="orange",alpha=0.5)+
+annotate("segment", x = c(-1.4,-0.7), xend = c(-3.8,1.6), 
+           y = c(.005,.005), yend = c(.32,.32), colour = c("red","orange"), size=0.7, alpha=0.6, arrow=arrow(angle=15))+
+  annotate("text", x = c(-3.9,1.7), y = c(.32,.32)+.03, 
+           label =c(TeX("$\\alpha$"),TeX("$\\beta$"))  , size=4)
+```
+
+Por otra parte, el rango de valores en donde podriamos cometer el error tipo II es el  que se encuentra bajo el area naranja. $\beta=P(E.II)=$ `r round(pnorm(qnorm(.05,0,sd_dif),-1.7,sd_dif,lower.tail =F),3)`, que es la medida del area naranja.
+Note que $1-\beta$ es la probabilidad de observar valores en la zona de rechazo pero bajo un valor posible de la hipotesis alternativa. Esta probabilidad se denomina la _**POTENCIA**_ de la prueba.
+
+Cuales son los factores que afectan la potencia y por ende, la probabilidad de cometer el error tipo II?
+

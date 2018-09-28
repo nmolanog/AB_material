@@ -83,7 +83,7 @@ gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
 
 * Si $E(Dif)<0$ esto implicaría que existe un gran numero de pacientes para los cuales el medicamento produjo una disminución de *glu*. Aunque puedan existir pacientes para los cuales $Dif>0$, es decir que se produjo un aumento de *glu* después de aplicar el tratamiento, este porcentaje de pacientes seria mucho menor que el de aquellos en los que hubo una reducción (es decir $Dif<0$).
 
-* De forma similar sucedería con $E(Dif)<0$
+* De forma similar sucedería con $E(Dif)>0$
 
 Entonces, es claro que dependiendo del valor de $E(Dif)$ en relación al valor de comparación $0$, se podría concluir acerca de la eficacia del medicamento. Sin embargo, $E(Dif)$ es desconocido y la única forma que tenemos para aproximarnos a su verdadero valor es la información obtenida a partir de la muestra. A continuación presentamos tres muestras obtenidas de las tres posibles distribuciones anteriormente mostradas para $Dif$:
 
