@@ -17,7 +17,7 @@ p_load(kableExtra)
 p_load(knitr)
 p_load(ggbeeswarm)
 p_load(latex2exp)
-
+p_load(magick)
 tex2markdown <- function(texstring) {
   writeLines(text = texstring,
              con = myfile <- tempfile(fileext = ".tex"))
@@ -108,5 +108,24 @@ annotate("segment", x = c(-1.4,-0.7), xend = c(-3.8,1.6),
 Por otra parte, el rango de valores en donde podriamos cometer el error tipo II es el  que se encuentra bajo el area naranja. $\beta=P(E.II)=$ `r round(pnorm(qnorm(.05,0,sd_dif),-1.7,sd_dif,lower.tail =F),3)`, que es la medida del area naranja.
 Note que $1-\beta$ es la probabilidad de observar valores en la zona de rechazo pero bajo un valor posible de la hipotesis alternativa. Esta probabilidad se denomina la _**POTENCIA**_ de la prueba.
 
-Cuales son los factores que afectan la potencia y por ende, la probabilidad de cometer el error tipo II?
+Cuales son los factores que afectan la potencia y por ende, la probabilidad de cometer el error tipo II? Existen dos factores principales: 
+
+1. La magnitud de la diferencia entre el verdadero valor de $E(Dif)$ y el valor asumido en la hipotesis nula.
+2. El tamaño de la muestra.
+
+Como se puede apreciar en la siguiente animaciion, entre mayor sea la diferencia entre el verdadero valor ($H_a:~E(Dif)$) y el de la hipotesis nula ($H_0:~E(Dif)=0$), mayor sera la potencia de la prueba ($1-\beta$) y menor sera la probabilidad de cometer el error tipo 2 ($\beta$).
+
+```{r , echo=F,warning =F, fig.width=6, fig.height=4}
+gif1 <- image_read("power.gif") 
+gif1
+```
+
+Como ya vimos anteriormente, la varianza de $\overline{Dif}$ disminuye con el tamaño de muestra a razon de $1/\sqrt{n}$, de tal forma que la potencia de la prueaba aumenta a medida que aumenta el tamaño de la muestra, como se puede apreciar en la siguiente animacion:
+
+```{r , echo=F,warning =F, fig.width=6, fig.height=4}
+gif1 <- image_read("power2.gif") 
+gif1
+```
+
+De forma similar la varianza de la poblacion afecta la potencia. Podira usted intuir cual es la relacion entre la varianza de la poblacion y la potencia?
 
