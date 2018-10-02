@@ -18,6 +18,7 @@ p_load(knitr)
 p_load(ggbeeswarm)
 p_load(latex2exp)
 p_load(magick)
+p_load(pwr)
 tex2markdown <- function(texstring) {
   writeLines(text = texstring,
              con = myfile <- tempfile(fileext = ".tex"))
@@ -167,4 +168,42 @@ En la primera aproximación, nos basamos en información reportada en la literat
 
 En cuanto al valor del parámetro que se desa detectar, su valor por lo general estará asociado con efectos prácticos del problema de estudio que se desea abordar. Veamos un ejemplo.
 
+#Ejemplo
 
+En el contesto del estudio de metformina + glibenclamida, se quiere calcular un tamaño de muestra bajo los siguientes supuestos:
+
+* La varianza de la desviación estándar de la diferencia se encuentra al rededor de 15 unidades.
+* El nivel de significancia se fija en $\alpha=0.05$.
+* El rango de posibles diferencias que se quisieran detectar entre las mediciones pre y post es de 5 a 15 unidades.
+* Se desea hacer un estudio con una potencia de $1-\beta=0.8$.
+
+Con esta información el estadístico del proyecto a producido el siguiente gráfico:
+
+
+```{r , echo=F,warning =F, fig.width=6, fig.height=4}
+n<-seq(5,250,by=1)
+st_sd<-15
+st_dif<-c(5,7.5,10,15)
+
+st_dif%>%map(~pwr.t.test(n =n , d = ./st_sd, sig.level = 0.05, type = c("paired"))$power)->power_lst
+names(power_lst)<-letters[1:length(power_lst)]
+names(power_lst)%>%lapply(function(x){data.frame(power=power_lst[[x]],Dif=x,stringsAsFactors = F)})%>%reduce(rbind)->dat_long
+dat_long$Dif<-factor(dat_long$Dif,labels = st_dif)
+dat_long$n<-n
+
+dat_long%>%ggplot(aes(x=n,y=power,color=Dif))+
+  geom_line()+
+  geom_hline(yintercept=.8, linetype="dashed")+
+  theme_bw()
+
+```
+
+En el gráfico se presenta la potencia en función del tamaño de la muestra. A continuación mostramos algunos valores exactos para potencias al rededor de 0.8:
+
+```{r echo=FALSE, results = 'asis'}
+t1<-kable(dat_long%>%filter(power>0.8 & power<0.84))
+kable_styling(t1,"striped", position = "center")
+
+```
+
+Es claro que entre menor sea el valor de la diferencia que se quiere detectar mayor es el tamaño de muestra que se requiere para cumplir con los requerimientos. Por ejemplo, si el valor de la diferencia que se quiere detectar es de 15 unidades, bastaría con una muestra de 10 pacientes. Si el valor de la diferencia que se espera detectar es de 10 unidades, con 20 pacientes seria suficiente. Si el valor de la diferencia que se espera detectar es de 7.5 unidades, se requieren 34 pacientes y si se quisiera detectar una diferencia de solo 5 unidades 73 pacientes serian necesarios.
