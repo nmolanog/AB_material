@@ -88,3 +88,42 @@ print(p1)
 ani.pause()   
   }
 }, interval = 1.5, movie.name = 'power2.gif', ani.width = 600, ani.height = 400)
+
+
+rm(list=ls())
+library(animation)
+library(tidyverse)
+library(latex2exp)
+my.a<-1-seq(0.8,.999,length.out = 30)
+my.a<-c(my.a,rev(my.a))
+sd_dif<-4/sqrt(50)
+
+p1<-ggplot(data = data.frame(x = c(-4, 2.7)), aes(x)) +
+  stat_function(fun = dnorm, args = list(mean = 0,sd=sd_dif),color="red")+
+  stat_function(fun = dnorm, args = list(mean = -1.7,sd=sd_dif),color="blue")+
+  annotate("text", x = 1.7, y =dnorm(0,0,sd_dif)*8/10, 
+           label =  TeX('$H_a: E(Dif) = -1.7$'), size=4 ,color="blue")+
+  annotate("text", x = 1.7, y =dnorm(0,0,sd_dif)*9/10, 
+           label =  TeX('$H_0: E(Dif) = 0$'), size=4 ,color="red")+
+  ylab(TeX("$f(\\bar{Dif})$"))+xlab(TeX("$\\bar{Dif}$"))+
+  theme_bw()
+
+saveGIF({
+  ani.options(interval = .7, nmax = length(my.a))
+  ## use a loop to create images one by one
+  for (i in 1:ani.options('nmax')) {
+    p1+geom_segment(aes(x=qnorm(my.a[i],0,sd_dif),xend=qnorm(my.a[i],0,sd_dif),y=0,yend=max(dnorm(qnorm(my.a[i],0,sd_dif),0,sd_dif),dnorm(qnorm(my.a[i],0,sd_dif),-1.7,sd_dif))))+
+      annotate("text", x = 1.7, y =dnorm(0,0,sd_dif)*7/10, 
+               label = TeX(sprintf('$\\alpha = %.3f$', my.a[i])) , size=4)+
+      annotate("text", x = 1.7, y =dnorm(0,0,sd_dif)*6/10, 
+               label = TeX(sprintf('$\\beta = %.3f$', pnorm(qnorm(my.a[i],0,sd_dif),-1.7,sd_dif,lower.tail = F))) , size=4)+
+      annotate("text", x = 1.7, y =dnorm(0,0,sd_dif)*5/10, 
+               label = TeX(sprintf('$1-\\beta = %.3f$', pnorm(qnorm(my.a[i],0,sd_dif),-1.7,sd_dif,lower.tail = T))) , size=4)+
+      stat_function(fun = dnorm, args = list(mean = -1.7,sd=sd_dif),
+                    xlim = c(qnorm(my.a[i],0,sd_dif),2),
+                    geom = "area",fill="orange",alpha=0.5)->p2
+    print(p2)
+    ani.pause()   ## pause for a while ('interval')
+  }
+}, interval = 1.2, movie.name = 'power3.gif', ani.width = 600, ani.height = 400)
+

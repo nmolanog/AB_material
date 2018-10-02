@@ -29,7 +29,7 @@ set.seed(150)
 
 
 ```
-En este documento estudiaremos como el tamaño de muestra afecta la probabilidad de cometer el error tipo II en pruebas de hipotesis. En primera instancia, recordemos que son los errores tipo I y II:
+En este documento estudiaremos como el tamaño de muestra afecta la probabilidad de cometer el error tipo II en pruebas de hipótesis. En primera instancia, recordemos que son los errores tipo I y II:
 
 ```{r echo=FALSE, results = 'asis', message=FALSE}
 textable<-"
@@ -47,9 +47,11 @@ tex2markdown(textable)
 Para esta discucion, considere el ejemplo anterior del estudio de metformina + glibenclamida. En este estudio nos intereza demostrar que el medicamento disminuye los niveles de glucosa en sangre por lo cual la el valor esperado de $Dif= Post-Pre$ deberia ser menor a sero. El sistema de hipotesis apropiado es el siguiente:
 $$H_{0}: E(Dif)\geq 0$$
 $$H_{a}: E(Dif) < 0$$
-Ya que nos intereza estudiar $E(Dif)$, sabemos que su estimador es el promedio, denotado por $\overline{Dif}$. Adicionalmente sabemos que el promedio, como estimador tabien es una variable aleatoria y que 
+Ya que nos interesa estudiar $E(Dif)$, sabemos que su estimador es el promedio, denotado por $\overline{Dif}$. Adicionalmente sabemos que el promedio, como estimador también es una variable aleatoria y que 
 $$E(\overline{Dif})=E(Dif)~~y~~V(\overline{Dif})=V(Dif)/n$$
-Esto tiene impplicaciones en la calidad de la estimacion a medida que el tamaño de muestra aumenta como se ha discutido antes.
+
+Esto tiene implicaciones en la calidad de la estimación a medida que el tamaño de muestra aumenta como se ha discutido antes.
+
 ```{r , echo=F, fig.width=6, fig.height=4}
 ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
   stat_function(fun = dnorm, args = list(mean = 0,sd=4),color="blue")+ylab(TeX("$f(\\bar{Dif})$"))+xlab(TeX("$\\bar{Dif}$"))+
@@ -62,7 +64,7 @@ ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
   theme_bw()
 ```
 
-Sin embargo, se desconoce el verdadero valor de $E(Dif)$ y por esta razon es que se desarrolla la teoria de intervalos de confianza y pruevas de hipotesis. Por un momento supongamos que $E(Dif)=-1.7$. Comparemos la distribucion de $\overline{Dif}$ bajo dos escenarios: el de la hipotesis nula y el supuesto anteriormente. Para efectos practicos asuma que el tamaño de la muestra es de $50$:
+Sin embargo, se desconoce el verdadero valor de $E(Dif)$ y por esta razón es que se desarrolla la teoría de intervalos de confianza y pruebas de hipótesis. Por un momento supongamos que $E(Dif)=-1.7$. Comparemos la distribución de $\overline{Dif}$ bajo dos escenarios: el de la hipótesis nula y el supuesto anteriormente. Para efectos prácticos asuma que el tamaño de la muestra es de $50$:
 
 ```{r , echo=F, fig.width=6, fig.height=4}
 f1<-function(x,a,b,c,d){return(dnorm(x,a,b)-dnorm(x,c,d))}
@@ -84,9 +86,9 @@ p1+stat_function(fun = dnorm, args = list(mean = 0,sd=4/sqrt(50)),
                 geom = "area",fill="grey",alpha=0.5)
 ```
 
-Notese que existe una zona de posibles valores bajo ambas distribuciones (area gris). Si se observaran valores promedios de diferencias $Post-Pre$ en este rango, no sabriamos si vienen de una u otra distribucion.
+Nótese que existe una zona de posibles valores bajo ambas distribuciones (área gris). Si se observaran valores promedios de diferencias $Post-Pre$ en este rango, no sabríamos si vienen de una u otra distribución.
 
-Se puede demostrar que existe una correspondencia entre la distribucion del estadistico $T_{n-1}$ y la distribucion de $\overline{Dif}$ bajo la hipotesis nula (de ahora en adelante $\overline{Dif}_{H_0}$), de tal forma que los cuantiles en la distribucion $T_{n-1}$ se relacionan con aquellos en la distribucion de $\overline{Dif}_{H_0}$. Asi que si fijamos una probabilidad de error tipo I, $\alpha=0.05$ la zona de rechazo equivalente en la distribucion de $\overline{Dif}_{H_0}$ es el segmento bajo el area roja:
+Se puede demostrar que existe una correspondencia entre la distribución del estadístico $T_{n-1}$ y la distribución de $\overline{Dif}$ bajo la hipótesis nula (de ahora en adelante $\overline{Dif}_{H_0}$), de tal forma que los cuantiles en la distribución $T_{n-1}$ se relacionan con aquellos en la distribución de $\overline{Dif}_{H_0}$. Así que si fijamos una probabilidad de error tipo I, $\alpha=0.05$ la zona de rechazo equivalente en la distribución de $\overline{Dif}_{H_0}$ es el segmento bajo el área roja:
 
 ```{r , echo=F,warning =F, fig.width=6, fig.height=4}
 f1<-function(x,a,b,c,d){return(dnorm(x,a,b)-dnorm(x,c,d))}
@@ -105,27 +107,64 @@ annotate("segment", x = c(-1.4,-0.7), xend = c(-3.8,1.6),
            label =c(TeX("$\\alpha$"),TeX("$\\beta$"))  , size=4)
 ```
 
-Por otra parte, el rango de valores en donde podriamos cometer el error tipo II es el  que se encuentra bajo el area naranja. $\beta=P(E.II)=$ `r round(pnorm(qnorm(.05,0,sd_dif),-1.7,sd_dif,lower.tail =F),3)`, que es la medida del area naranja.
-Note que $1-\beta$ es la probabilidad de observar valores en la zona de rechazo pero bajo un valor posible de la hipotesis alternativa. Esta probabilidad se denomina la _**POTENCIA**_ de la prueba.
+Por otra parte, el rango de valores en donde podríamos cometer el error tipo II es el  que se encuentra bajo el área naranja. $\beta=P(E.II)=$ `r round(pnorm(qnorm(.05,0,sd_dif),-1.7,sd_dif,lower.tail =F),3)`, que es la medida del área naranja.
+Note que $1-\beta$ es la probabilidad de observar valores en la zona de rechazo pero bajo un valor posible de la hipótesis alternativa. Esta probabilidad se denomina la _**POTENCIA**_ de la prueba.
 
 Cuales son los factores que afectan la potencia y por ende, la probabilidad de cometer el error tipo II? Existen dos factores principales: 
 
-1. La magnitud de la diferencia entre el verdadero valor de $E(Dif)$ y el valor asumido en la hipotesis nula.
+1. La magnitud de la diferencia entre el verdadero valor de $E(Dif)$ y el valor asumido en la hipótesis nula.
 2. El tamaño de la muestra.
 
-Como se puede apreciar en la siguiente animaciion, entre mayor sea la diferencia entre el verdadero valor ($H_a:~E(Dif)$) y el de la hipotesis nula ($H_0:~E(Dif)=0$), mayor sera la potencia de la prueba ($1-\beta$) y menor sera la probabilidad de cometer el error tipo 2 ($\beta$).
+Como se puede apreciar en la siguiente animación, entre mayor sea la diferencia entre el verdadero valor ($H_a:~E(Dif)$) y el de la hipótesis nula ($H_0:~E(Dif)=0$), mayor sera la potencia de la prueba ($1-\beta$) y menor sera la probabilidad de cometer el error tipo 2 ($\beta$).
 
 ```{r , echo=F,warning =F, fig.width=6, fig.height=4}
 gif1 <- image_read("power.gif") 
 gif1
 ```
 
-Como ya vimos anteriormente, la varianza de $\overline{Dif}$ disminuye con el tamaño de muestra a razon de $1/\sqrt{n}$, de tal forma que la potencia de la prueaba aumenta a medida que aumenta el tamaño de la muestra, como se puede apreciar en la siguiente animacion:
+Como ya vimos anteriormente, la varianza de $\overline{Dif}$ disminuye con el tamaño de muestra a razón de $1/\sqrt{n}$, de tal forma que la potencia de la prueba aumenta a medida que aumenta el tamaño de la muestra, como se puede apreciar en la siguiente animación:
 
 ```{r , echo=F,warning =F, fig.width=6, fig.height=4}
-gif1 <- image_read("power2.gif") 
-gif1
+gif2 <- image_read("power2.gif") 
+gif2
 ```
 
-De forma similar la varianza de la poblacion afecta la potencia. Podira usted intuir cual es la relacion entre la varianza de la poblacion y la potencia?
+De forma similar la varianza de la población afecta la potencia. Podría usted intuir cual es la relación entre la varianza de la población y la potencia?
+
+# Relación entre el error tipo I y el error tipo II
+
+Ahora discutiremos la relación existente entre los dos tipos de errores, en particular, la imposibilidad de disminuir los dos tipos de error simultáneamente. En primera instancia veamos que sucede con el error tipo II si disminuimos el error tipo I:
+
+```{r , echo=F,warning =F, fig.width=6, fig.height=4}
+gif3 <- image_read("power3.gif") 
+gif3
+```
+
+Se puede apreciar que al disminuir el error tipo I ($\alpha$), el error tipo II ($\beta$) aumenta y de forma reciproca si se disminuye $\beta$, $\alpha$ debe aumentar, fijando el tamaño de muestra.
+
+#Resumen
+
+La potencia de la prueba definida como la probabilidad de no cometer el error tipo II, es decir la probabilidad de rechazar la hipótesis nula cuando esta debe ser rechazada, se ve afectada por múltiples factores:
+
+* La magnitud de la diferencia entre el valor del parámetro en la hipótesis nula y el verdadero valor del parámetro en la población (hipótesis alternativa).
+* El tamaño de la muestra
+* La varianza poblacional
+* El nivel de significancia fijado (probabilidad de error tipo I, $\alpha$)
+
+En la practica la potencia se usa para determinar el tamaño de muestra necesaria para detectar un valor de un parámetro dado. Esto implica que se deben conocer varios elementos de la variable que se estudia, en particular dos:
+
+* El valor del parámetro que se espera detectar
+* El valor de la varianza en la población
+
+Estos dos parámetros son claves ya que definen las formas y ubicaciones de las funciones de densidad de los estimadores bajo la hipótesis nula y la alternativa, haciendo posible determinar el tamaño de muestra apropiado para alcanzar una potencia dada.
+
+Sin embargo, en la practica, muchas veces es difícil conocer, sobre todo la varianza de la población, mas aun cuando estamos haciendo un muestreo, precisamente para conocer atributos de la población, entre ellos la varianza. Este problema, se puede principalmente de dos formas:
+
+1. Un valor aproximado de la varianza puede ser obtenido a partir de estudios previos.
+2. El valor aproximado de la varianza puede ser obtenido a través de una muestra piloto.
+
+En la primera aproximación, nos basamos en información reportada en la literatura para tener una idea de la magnitud de la varianza en la población. En la segunda aproximación, que se usa por lo general cuando no se dispone de información auxiliar, se realiza un pequeño estudio piloto para tener una primera estimación de la magnitud de la varianza poblacional. 
+
+En cuanto al valor del parámetro que se desa detectar, su valor por lo general estará asociado con efectos prácticos del problema de estudio que se desea abordar. Veamos un ejemplo.
+
 
