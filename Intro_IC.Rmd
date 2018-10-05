@@ -92,4 +92,91 @@ ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
 
 Los números $L$ y $U$ resultan ser los cuantiles $t_{n-1,\alpha/2}$ y $t_{n-1,\alpha/2}$.
 
-Nótese que para el caso de $E(X)$ la expresión a la que deseamos llegar es  $P(L \leq E(X) \leq U)=1-\alpha$ y que la expresión que tenemos hasta el momento es $P\left(t_{n-1,\alpha/2} \leq \frac{\sqrt{n}\big(\overline{X}-E(X)\big)}{S} \leq t_{n-1,\alpha/2}\right)=1-\alpha$.
+Nótese que para el caso de $E(X)$ la expresión a la que deseamos llegar es  $P(L \leq E(X) \leq U)=1-\alpha$ y que la expresión que tenemos hasta el momento es $P\left(t_{n-1,\alpha/2} \leq \frac{\sqrt{n}\big(\overline{X}-E(X)\big)}{S} \leq t_{n-1,\alpha/2}\right)=1-\alpha$. Haciendo algunas manipulaciones algebraicas se puede demostrar que:
+$$P\left(t_{n-1,\alpha/2} \leq \frac{\sqrt{n}\big(\overline{X}-E(X)\big)}{S} \leq t_{n-1,\alpha/2}\right) =P\left(\bar{X}-t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}} \leq E(X) \leq \bar{X}-t_{n-1,\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}\right)=1-\alpha$$
+
+Que ha sucedido? se ha logrado lo imposible? hemos encontrado los números $L$ y $U$ tal que $P(L \leq E(X) \leq U)=1-\alpha$, donde  
+$$L=\bar{X}-t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}$$
+$$U=\bar{X}-t_{n-1,\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}$$
+
+Nótese que $L$ y $U$ son números calculados con información de la muestra y usando los cuantiles apropiados $t_{n-1,\frac{\alpha}{2}}$ y $t_{n-1,1-\frac{\alpha}{2}}$.
+
+Eso quiere decir que la probabilidad de que $E(X)$ se encuentre $L$ y $U$ es de $1-\alpha$? La respuesta es un rotundo **NO**. La probabilidad calculada es sobre la distribución $T_{n-1}$ y no sobre el parámetro $E(X)$. La interpretación clásica que se le da a la probabilidad $1-\alpha$ es la siguiente:
+
+* $1-\alpha$ es la probabilidad de que al sacar una muestra y construir el intervalo de $1-\alpha$ de confianza, el verdadero parámetro (en este caso $E(X)$) se encuentre en el.
+
+$1-\alpha$ se puede interpretar como la probabilidad de obtener una "buena" muestra, en el sentido que al calcular el intervalo de confianza el verdadero parámetro se encuentre ahí.
+El ejemplo tradicional que se presenta para explicar esto, es imaginar que uno pudiera sacar 100 muestras y que con cada muestra se calculan los intervalos de confianza. Suponiendo que por ejemplo, $\alpha=0.05$ entonces los intervalos poseen un nivel de confianza del 95%. Entonces se espera que el verdadero valor del parámetro se encuentre contenido en 95 de los 100 intervalos construidos.
+
+```{r , echo=F, fig.width=14, fig.height=4}
+n<-25
+my_mu<-80
+my_sd<-10
+sample_list<-list()
+
+for (i in 1:100) {
+  sample_list[[i]]<-rnorm(n,my_mu,my_sd)
+}
+ttest_list<-sample_list%>%map(t.test)
+ttest_list%>%sapply( function(x){c(x$conf.int[1],x$estimate,x$conf.int[2])})%>%t(.)->ci_df
+data.frame(1:100,ci_df)->ci_df
+colnames(ci_df)<-c("Sample","LCI","mean","UCI")
+ci_df%>%mutate(out=factor(ifelse(LCI<my_mu & UCI >my_mu,0,1)))->ci_df
+
+
+ci_df%>%ggplot(aes(x=Sample,y=mean,color=out))+geom_point()+
+  geom_errorbar(aes(ymin=LCI, ymax=UCI),width=.1)+
+  geom_hline(yintercept=my_mu, linetype="dashed", 
+             color = "blue", size=1)+
+  scale_color_brewer(palette="Dark2")+
+  theme_bw()
+```
+
+##Ejemplo
+
+A continuación se presentan algunos datos de un estudio sobre pH de la orina en una muestra de 79 pacientes en un a UCI:
+
+```{r , echo=F, fig.width=18, fig.height=4, warning =F}
+p1<-ggplot(urine, aes(x=gravity)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+p2<-ggplot(urine, aes(x=ph )) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+p3<-ggplot(urine, aes(x=osmo)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+gridExtra::grid.arrange(grobs =list(p1,p2,p3),nrow=1,ncol=3)
+```
+
+A continuación presentamos algunas estadísticas descriptivas de estos datos:
+
+```{r , echo=F, fig.width=6, fig.height=4}
+urine[,2:4]%>%summary
+```
+```{r echo=FALSE, results = 'asis'}
+t2<-data.frame(promedio=round(apply(urine[,2:4],2,mean,na.rm =T),4),varianza=round(apply(urine[,2:4],2,var,na.rm =T),4),n=apply(urine[,2:4],2,function(x){sum(!is.na(x))}))
+t2<-kable(t2)
+kable_styling(t2,"striped", position = "center")
+
+```
+Note que la variable $osmo$ tiene un dato faltante. Calcularemos el intervalo de confianza al 95% para el valor esperado del pH de la orina.
+
+En la tabla anterior tenemos toda la información necesaria para calcular el IC, salvo los cuantiles de la distribución $T_{n-1}$. A continuación presentamos una tabla con algunos cuantiles para diferentes grados de libertad:
+
+```{r echo=FALSE, results = 'asis'}
+alpha<-c(0.005,0.025,0.05,0.1)
+GL<-c(50,77,78,79,80,100)
+res<-outer(GL,c(alpha,rev(1-alpha)),function(x,y){round(qt(y,x),4)})
+colnames(res)<-paste0("qT_",c(alpha,rev(1-alpha)))
+res<-cbind(GL,res)
+
+res<-kable(res)
+kable_styling(res,"striped", position = "center")
+```
+
+Ya que el tamaño de muestra es 79, los grados de libertad que debemos usar son $n-1=79-1=78$. Como el nivel de confianza es $1-\alpha=0.95$ eso implica que $\alpha=0.05$ y los cuantiles que debemos usar son $\alpha/2=0.025$ y $1-\alpha/2=0.975$. en la tabla vemos que sus valores son $t_{78,0.05}=$ `r qt(0.025,78)%>%round(3) ` y $t_{78,0.975}=$ `r qt(0.975,78)%>%round(3)`. Ahora tenemos toda la información para calcular el IC al 95%:
+
+$$L=\bar{X}-t_{78,0.975}\times\frac{S}{\sqrt{79}}=6.03-1.99\times \frac{\sqrt{0.52}}{\sqrt{79}}=5.87$$
+$$U=\bar{X}-t_{78,0.025}\times\frac{S}{\sqrt{79}}=6.03-(-1.99)\times \frac{\sqrt{0.52}}{\sqrt{79}}=6.03$$
+
+
+
+
+
+
+
