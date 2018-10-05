@@ -24,13 +24,13 @@ En este documento presentamos la teoría y motivación detrás de los intervalos
 EL punto de partida es la construcción de la siguiente expresionismo:
 
 $$P(L \leq \delta \leq U)=1-\alpha$$
-Donde $\delta$ es un parámetro poblacional, como por ejemplo, el valor esperado $E(X)$ o la varianza $V(X)$. Que hay detrás de esta expresión? Básicamente, esta expresión dice lo siguiente:
+Donde $\delta$ es un parámetro poblacional, como por ejemplo, el valor esperado $E(X)$ o la varianza $V(X)$. ¿Qué hay detrás de esta expresión? Básicamente, esta expresión dice lo siguiente:
 
 * La probabilidad de que el parámetro $\delta$ se encuentre entre dos numero $L$ y $U$ es de $1-\alpha$. 
 
 Por ejemplo, si $\alpha=0.05$ estaríamos diciendo que la probabilidad de encontrar al parámetro $\delta$  entre los números $L$ y $U$ es de $1-\alpha=1-0.05=0.95$.
 
-Sin embargo, esto no es posible, ya que el paramento poblacional $\delta$ no es una variable aleatoria, carece de función de densidad y por ende, no podemos calcular probabilidades sobre el. Los estadísticos decimos que $\delta$ es un parámetro fijo y desconocido, no una variable aleatoria.
+Sin embargo, esto no es posible, ya que el parámetro poblacional $\delta$ no es una variable aleatoria, carece de función de densidad y por ende, no podemos calcular probabilidades sobre el. Los estadísticos decimos que $\delta$ es un parámetro fijo y desconocido, no una variable aleatoria.
 
 A pesar de esta imposibilidad técnica, existe una aproximación para llegar a una expresión de este estilo. A continuación presentaremos, como ejemplo el IC para el valor esperado.
 
@@ -48,10 +48,10 @@ Donde:
 * $S$ es la desviación estándar calculada con la muestra.
 * $E(X)$ es el valor esperado de la variable aleatoria $X$.
 
-Esta cantidad, atribuida a varios autores, popularizada por Ronald Fisher quien le puso el nombre actual de "_T de Student_" debido a un articulo científico publicado en biometrika en 1908, escrito por William Sealy Gosset bajo el seudónimo de "_Student_", tiene ciertas propiedades sumamente interesantes. Primero nótese que las cantidades involucradas en esta formula son obtenidas de datos muéstrales salvo $E(X)$, que es un parámetro desconocido y que por lo general se quiere estimar. Es decir que si tuviéramos los datos de una muestra, no podríamos calcular el estadístico $T_{n-1}$ ya que nos haría falta conocer el valor de $E(X)$. A pesar de la imposibilidad de poder calcular esta cantidad con datos de una muestra, si se sabe algo mucho mas interesante del estadístico $T_{n-1}$: Se conoce su función de densidad (bajo ciertos supuestos acerca de la funcion de densidad de $X$) y esta no depende del valor que tenga $E(X)$. A continuación presentamos su formula:
+Esta cantidad, atribuida a varios autores, popularizada por Ronald Fisher quien le puso el nombre actual de "_T de Student_" debido a un articulo científico publicado en _Biometrika_ en 1908, escrito por William Sealy Gosset bajo el seudónimo de "_Student_", tiene ciertas propiedades sumamente interesantes. Primero nótese que las cantidades involucradas en esta fórmula son obtenidas de datos muestrales salvo $E(X)$, que es un parámetro desconocido y que por lo general se quiere estimar. Es decir que si tuviéramos los datos de una muestra, no podríamos calcular el estadístico $T_{n-1}$ ya que nos haría falta conocer el valor de $E(X)$. A pesar de la imposibilidad de poder calcular esta cantidad con datos de una muestra, sí se sabe algo mucho mas interesante del estadístico $T_{n-1}$: se conoce su función de densidad (bajo ciertos supuestos acerca de la función de densidad de $X$) y esta no depende del valor que tenga $E(X)$. A continuación presentamos su fórmula:
 
 $$f(t) = \frac{\Gamma\Big(\frac{n}{2}\Big)} {\sqrt{(n-1)\pi}\,\Gamma\big(\frac{n-1}{2}\big)} \left(1+\frac{t^2}{n-1} \right)^{\!-\frac{n}{2}}$$
-Es una formula un poco complicada, lo importante es notar que esta formula depende de exclusivamente de $t$ y de $n-1$, es decir que esta función de densidad tiene un único parámetro que es $n-1$ y que se denomina **_grados de libertad_**. Veamos como cambia la función de densidad con diferentes grados de libertad:
+Es una fórmula un poco complicada, lo importante es notar que esta fórmula depende de exclusivamente de $t$ y de $n-1$, es decir que esta función de densidad tiene un único parámetro que es $n-1$ y que se denomina **_grados de libertad_**. Veamos como cambia la función de densidad con diferentes grados de libertad:
 
 ```{r , echo=F, fig.width=6, fig.height=4}
 ggplot(data = data.frame(x = c(-3, 3)), aes(x)) +
@@ -65,10 +65,10 @@ ggplot(data = data.frame(x = c(-3, 3)), aes(x)) +
   theme_bw()
 ```
 
-Se puede demostrar que $E(T_{n-1})=0$ y que $V(T_{n-1})=\frac{n-1}{n-3}$. Este estadístico $T_{n-1}$ nos deja muy cerca de lo que inicialmente se quería pues, es posible encontrar dos números $L$ y $U$ tal que:
+Se puede demostrar que $E(T_{n-1})=0$ y que $V(T_{n-1})=\frac{n-1}{n-3}$. Este estadístico $T_{n-1}$ nos deja muy cerca de lo que inicialmente se quería, pues es posible encontrar dos números $L$ y $U$ tal que:
 
 $$P(L \leq T_{n-1} \leq U)=P\left(L \leq \frac{\sqrt{n}\big(\overline{X}-E(X)\big)}{S} \leq U\right)=1-\alpha$$
-Por que es posible encontrar estos números $L$ y $U$? porque $T_{n-1}$ tiene una función de densidad conocida, y podemos hallar un par de números, entre los cuales existe una probabilidad (es decir un área bajo la curva) de $1-\alpha$:
+¿Por qué es posible encontrar estos números $L$ y $U$? Porque $T_{n-1}$ tiene una función de densidad conocida, y podemos hallar un par de números, entre los cuales existe una probabilidad (es decir un área bajo la curva) de $1-\alpha$:
 
 ```{r , echo=F, fig.width=6, fig.height=4}
 gl<-30
@@ -95,13 +95,13 @@ Los números $L$ y $U$ resultan ser los cuantiles $t_{n-1,\alpha/2}$ y $t_{n-1,\
 Nótese que para el caso de $E(X)$ la expresión a la que deseamos llegar es  $P(L \leq E(X) \leq U)=1-\alpha$ y que la expresión que tenemos hasta el momento es $P\left(t_{n-1,\alpha/2} \leq \frac{\sqrt{n}\big(\overline{X}-E(X)\big)}{S} \leq t_{n-1,\alpha/2}\right)=1-\alpha$. Haciendo algunas manipulaciones algebraicas se puede demostrar que:
 $$P\left(t_{n-1,\alpha/2} \leq \frac{\sqrt{n}\big(\overline{X}-E(X)\big)}{S} \leq t_{n-1,\alpha/2}\right) =P\left(\bar{X}-t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}} \leq E(X) \leq \bar{X}-t_{n-1,\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}\right)=1-\alpha$$
 
-Que ha sucedido? se ha logrado lo imposible? hemos encontrado los números $L$ y $U$ tal que $P(L \leq E(X) \leq U)=1-\alpha$, donde  
+¿Qué ha sucedido? ¿Se ha logrado lo imposible? Hemos encontrado los números $L$ y $U$ tal que $P(L \leq E(X) \leq U)=1-\alpha$, donde:  
 $$L=\bar{X}-t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}$$
 $$U=\bar{X}-t_{n-1,\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}$$
 
 Nótese que $L$ y $U$ son números calculados con información de la muestra y usando los cuantiles apropiados $t_{n-1,\frac{\alpha}{2}}$ y $t_{n-1,1-\frac{\alpha}{2}}$.
 
-Eso quiere decir que la probabilidad de que $E(X)$ se encuentre $L$ y $U$ es de $1-\alpha$? La respuesta es un rotundo **NO**. La probabilidad calculada es sobre la distribución $T_{n-1}$ y no sobre el parámetro $E(X)$. La interpretación clásica que se le da a la probabilidad $1-\alpha$ es la siguiente:
+¿Eso quiere decir que la probabilidad de que $E(X)$ se encuentre $L$ y $U$ es de $1-\alpha$? La respuesta es un rotundo **NO**. La probabilidad calculada es sobre la distribución $T_{n-1}$ y no sobre el parámetro $E(X)$. La interpretación clásica que se le da a la probabilidad $1-\alpha$ es la siguiente:
 
 * $1-\alpha$ es la probabilidad de que al sacar una muestra y construir el intervalo de $1-\alpha$ de confianza, el verdadero parámetro (en este caso $E(X)$) se encuentre en el.
 
@@ -169,7 +169,7 @@ res<-kable(res)
 kable_styling(res,"striped", position = "center")
 ```
 
-Ya que el tamaño de muestra es 79, los grados de libertad que debemos usar son $n-1=79-1=78$. Como el nivel de confianza es $1-\alpha=0.95$ eso implica que $\alpha=0.05$ y los cuantiles que debemos usar son $\alpha/2=0.025$ y $1-\alpha/2=0.975$. en la tabla vemos que sus valores son $t_{78,0.05}=$ `r qt(0.025,78)%>%round(3) ` y $t_{78,0.975}=$ `r qt(0.975,78)%>%round(3)`. Ahora tenemos toda la información para calcular el IC al 95%:
+Ya que el tamaño de muestra es 79, los grados de libertad que debemos usar son $n-1=79-1=78$. Como el nivel de confianza es $1-\alpha=0.95$ eso implica que $\alpha=0.05$ y los cuantiles que debemos usar son $\alpha/2=0.025$ y $1-\alpha/2=0.975$. En la tabla vemos que sus valores son $t_{78,0.05}=$ `r qt(0.025,78)%>%round(3) ` y $t_{78,0.975}=$ `r qt(0.975,78)%>%round(3)`. Ahora tenemos toda la información para calcular el IC al 95%:
 
 $$L=\bar{X}-t_{78,0.975}\times\frac{S}{\sqrt{79}}=6.03-1.99\times \frac{\sqrt{0.52}}{\sqrt{79}}=5.87$$
 $$U=\bar{X}-t_{78,0.025}\times\frac{S}{\sqrt{79}}=6.03-(-1.99)\times \frac{\sqrt{0.52}}{\sqrt{79}}=6.03$$
