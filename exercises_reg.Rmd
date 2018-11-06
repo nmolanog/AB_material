@@ -1,0 +1,78 @@
+---
+title: "Ejercicios de regresion"
+author: "Nicolás Molano Gonzalez"
+date: "6 de Noviembre de 2018"
+output: 
+  html_document:
+    fig_caption: true
+---
+```{r echo=F, message = FALSE, warning =F}
+library(pacman)
+library(tidyverse)
+p_load(MASS)
+p_load(datasets)
+p_load("HSAUR")
+p_load("car")
+```
+
+#Ejercicio 1
+Un estudiante de veterinaria ha hecho un estudio sobre la relacion entre el peso corporal (Bwt por sus siglas en inlges) y el peso del corazon (Hwt). Para esto se midieron las variables Bwt, Hwt (ambas en kg) y el sexo de 144 gatos. A continuaion se presentan las estadisticas descriptivas de las tres variables 
+```{r , echo=F}
+data("cats")
+cats%>%summary
+```
+
+Para estudiar la relacion entre Hwt y Bwt, se plantea el siguiente modelo de regresion:
+$$E(Hwt|Bwt=x)=\beta_0+\beta_1x$$
+A continuacion se presentan los resultados de ajustar el modelo de regresion:
+```{r , echo=F, fig.width=6, fig.height=4}
+cats%>%ggplot(aes(x=Bwt,y=Hwt)) + geom_point()+
+  geom_smooth(method = "lm",formula=y~x,se = F)+
+  scale_x_continuous(limits=c(0,4))+theme_bw()
+```
+```{r , echo=F}
+m0_cats<-lm(Hwt~Bwt,data=cats)
+summary(m0_cats)
+```
+A continuacion se presentan las pruebas de hipotesis para validar los supuestos del modelo:
+```{r , echo=F}
+m0_cats%>%{data.frame(Info="p-value",Shapiro.Wilk=shapiro.test(residuals(.))$p.value,Non_constant_Variance=ncvTest(.)$p)}
+```
+En base a la informacion anterior responda las siguientes preguntas:
+
+1. Cual es el valor estimado del intercepto?
+2. Interprete el valor estimado del intercepto.
+3. En base a la informacion dada, se puede rechazar la hipotesis nula $H_0:\beta_0=0$? Que implicaciones tiene este resultado?
+4. Cual es el valor estimado de la pendiente?
+5. Interprete el valor estimado de la pendiente.
+6. En base a la informacion dada, se puede rechazar la hipotesis nula $H_0:\beta_1=0$?
+7. En base a la respuesta de la pregunta anterior, existe una relacion entre Hwt y Bwt?
+8. Que estadistico se usa para cuantificar la magnitud de la asociacion entre Hwt y Bwt?
+9. Cual es el valor del estadistico $R^2$?
+10. Interprete el valor del estadistico $R^2$.
+11. Se cumple el supuesto de normalidad condicional?
+12. Se cumple el supuesto de homocedasticidad?
+
+En segunda instancia se ajusta el siguiente modelo:
+$$E(Hwt|Bwt=x)=\beta_0+\beta_1(x-\overline{Bwt})=\beta_0+\beta_1(x-2.724)$$
+Donde $\overline{Bwt}=2.724$ es el promedio de Bwt observado. El grafico de dispersion se ve ahora asi:
+```{r , echo=F, fig.width=6, fig.height=4}
+cats%>%ggplot(aes(x=Bwt-2.724,y=Hwt)) + geom_point()+
+  geom_smooth(method = "lm",formula=y~x,se = F)+
+  xlab("Bwt-2.724")+
+  geom_vline(xintercept=0, colour=1)+theme_bw()
+```
+
+A continuacion se presentan los resultados de ajustar el segundo modelo de regresion:
+```{r , echo=F}
+m1_cats<-lm(Hwt~I(Bwt-2.724),data=cats)
+summary(m1_cats)
+```
+
+A continuacion se presentan las pruebas de hipotesis para validar los supuestos del segundo modelo:
+```{r , echo=F}
+m1_cats%>%{data.frame(Info="p-value",Shapiro.Wilk=shapiro.test(residuals(.))$p.value,Non_constant_Variance=ncvTest(.)$p)}
+```
+
+* Que valores de los estimadores cambiaron con respecto al primer modelo?
+* Como se interpreta ahora el parametro $\beta_0$?
