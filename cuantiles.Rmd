@@ -1,0 +1,81 @@
+---
+title: "Funciones de Densidad y Cuantiles"
+author: "Nicolás Molano Gonzalez"
+date: "07 de Marzo de 2019"
+output: 
+  html_document:
+    fig_caption: true
+---
+```{r echo=F, message = FALSE, warning =F}
+library(datasets)
+library(tidyverse)
+library(kableExtra)
+library(knitr)
+library(MASS)
+library(boot)
+library(carData)   
+
+set.seed(150)
+```
+
+#Funciones de Densidad y Variables Aleatorias.
+
+En clase vimos como ejemplo el siguiente grafico
+
+```{r echo=FALSE, results = 'asis'}
+p1<-ggplot(data = data.frame(weight = c(30, 110)), aes(weight)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = 70, sd = 12),color=1) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = 55, sd = 8),color=2) +
+  ylab("f(weight)") + scale_x_continuous(breaks=seq(30,110, by=5)) + 
+  annotate("text", x = c(65,80), y = c(.04,.03), 
+           label = c("Female","Male") , size=4 , 
+           color=c("red","black"))+
+  theme_bw()
+p1
+```
+
+De donde se concluye que por ejemplo, los hombres pesan en general mas que las mujeres y que los pesos de los hombres son mas variables que los pesos de las mujeres. Estas curvas se denominan funciones de densidad y representan la forma en que se distribuyen los diferentes valores de una variable en una poblacion, en este caso la variable es el peso y las poblaciones son los diferentes sexos.
+
+Estas curvas se usan para calcular probabilidades. Los conjuntos a los cuales medimos probabilidades son segmentos de recta definidos como $x\leq 5$, $x< 4$, $x \ge 10$, $x>15$, $2<x <10$, $-3\leq x <15$, etc. Usted deberia comprender como se representan estas desigualdades en el conjunto de los numeros reales (ver <https://www.fca.unl.edu.ar/Limite/1.2%20Intervalo.htm>). 
+
+Por ejemplo, calcularemos la probabilidad de observar pesos entre 50 y 70 en ambos sexos:
+
+```{r echo=FALSE, results = 'asis'}
+xrange<-c(50,70)
+p11<-p1+geom_segment(aes(x=xrange,xend=xrange,y=0,yend=dnorm(c(50,70),55,8)),linetype=2)+
+  stat_function(fun = dnorm, args = list(mean = 55,sd=8),
+                xlim = c(50,70),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("segment", x = c(55), xend = c(40), 
+           y = c(0.03), yend = c(.04), colour = "red", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 38, y = .044, 
+           label = "P(list(50 <Weight)<70)==0.746",parse=T , size=3 , fontface="bold")
+p12<-p1+geom_segment(aes(x=c(50,70),xend=c(50,70),y=0,yend=dnorm(c(50,70),70,12)),linetype=2)+
+  stat_function(fun = dnorm, args = list(mean = 70,sd=12),
+                xlim = c(50,70),
+                geom = "area",fill="grey",alpha=0.5)+
+  annotate("segment", x = c(62.5), xend = c(75), 
+           y = c(0.015), yend = c(.04), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 80, y = .044, 
+           label = "P(list(50 <Weight)<70)==0.452",parse=T , size=3 , fontface="bold")
+gridExtra::grid.arrange(grobs =list(p11,p12),nrow=2,ncol=1)
+```
+
+Las areas bajo la curva se calculan mediante la operacion integracion (ver <http://hyperphysics.phy-astr.gsu.edu/hbasees/integ.html>).
+
+Sea $f_F(x)$ la funcion de densidad del peso de las mujeres y $f_M(x)$ la funcion de densidad del peso de los hombres. Estas funciones tienen las siguientes formulas:
+
+$$f_F(x)=\frac{1}{\sqrt{2\pi8^2}}exp\left(\frac{-(x-55)^2}{8^2}\right)$$
+$$f_M(x)=\frac{1}{\sqrt{2\pi12^2}}exp\left(\frac{-(x-70)^2}{12^2}\right)$$
+Estas son solo funciones matematicas como por ejemplo $f(x)=10+15x$ o$f(x)=x^2$.
+
+Ahora, definimos las variables aleatorias $W_F$ y $W_M$ como los pesos de hombres y mujeres respectivamente. Entonces 
+$$P(50<W_F<70)=\int_{50}^{70}f_F(x)dx=0.746$$
+$$P(50<W_M<70)=\int_{50}^{70}f_M(x)dx=0.452$$
+Donde $P(50<W_F<70)$ y $P(50<W_M<70)$ denotan simplmente la probabilidad de observar pesos entre 50 y 70 para mujeres y hombres respectivamente.
+
+El termino variable aleatoria (nombradas con letras mayusculas como $W_F$ y $W_m$) simplemente hace referencia a una variable, la cual posee un rango de posibles valores y una funcion de densidad asociada.
+
+Notese que, segun lo dicho anteriormente, la probabilidad de observar pesos entre 50 y 70 es menor en los hombres, lo caul se asocia a una mayor variablidad de los pesos en este grupo, en comparacion con las mujreres.
+
+Otro tipo de calculos son por ejemplo $P(W_F < 45)$ o $P(W_M>90)$
