@@ -31,7 +31,7 @@ p1<-ggplot(data = data.frame(x = c(-5, 2.7)), aes(x)) +
 theme_bw()
 
 saveGIF({
-  ani.options(interval = 1.2, nmax = length(my.mu))
+  ani.options(interval = 0.2, nmax = length(my.mu))
   ## use a loop to create images one by one
   for (i in 1:ani.options('nmax')) {
     p1+stat_function(fun = dnorm, args = list(mean = my.mu[i],sd=sd_dif),color="blue")+
@@ -50,7 +50,7 @@ saveGIF({
     print(p2)
     ani.pause()   ## pause for a while ('interval')
   }
-}, interval = 1.2, movie.name = 'power.gif', ani.width = 600, ani.height = 400)
+}, interval = 0.05, movie.name = 'power.gif', ani.width = 600, ani.height = 400)
 
 
 rm(list=ls())
@@ -62,7 +62,7 @@ n<-c(n,rev(n))
 sd_dif<-40
 
 saveGIF({
-  ani.options(interval = 1.5, nmax = length(n))
+  ani.options(interval = 0.2, nmax = length(n))
   ## use a loop to create images one by one
   for (i in 1:ani.options('nmax')) {
 p1<-ggplot(data = data.frame(x = c(-6, 4)), aes(x)) +xlim(-6, 4)+
@@ -87,7 +87,7 @@ p1<-ggplot(data = data.frame(x = c(-6, 4)), aes(x)) +xlim(-6, 4)+
 print(p1)
 ani.pause()   
   }
-}, interval = 1.5, movie.name = 'power2.gif', ani.width = 600, ani.height = 400)
+}, interval = 0.05, movie.name = 'power2.gif', ani.width = 600, ani.height = 400)
 
 
 rm(list=ls())
@@ -109,7 +109,7 @@ p1<-ggplot(data = data.frame(x = c(-4, 2.7)), aes(x)) +
   theme_bw()
 
 saveGIF({
-  ani.options(interval = .7, nmax = length(my.a))
+  ani.options(interval = .2, nmax = length(my.a))
   ## use a loop to create images one by one
   for (i in 1:ani.options('nmax')) {
     p1+geom_segment(aes(x=qnorm(my.a[i],0,sd_dif),xend=qnorm(my.a[i],0,sd_dif),y=0,yend=max(dnorm(qnorm(my.a[i],0,sd_dif),0,sd_dif),dnorm(qnorm(my.a[i],0,sd_dif),-1.7,sd_dif))))+
@@ -125,5 +125,5 @@ saveGIF({
     print(p2)
     ani.pause()   ## pause for a while ('interval')
   }
-}, interval = 1.2, movie.name = 'power3.gif', ani.width = 600, ani.height = 400)
+}, interval = 0.05, movie.name = 'power3.gif', ani.width = 600, ani.height = 400)
 
