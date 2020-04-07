@@ -1,0 +1,96 @@
+---
+title: "Probabilidad"
+author: "Nicolás Molano Gonzalez"
+date: "7 de Abril de 2020"
+output: 
+  html_document:
+  fig_caption: true
+---
+```{r echo=F, message = FALSE, warning =F}
+rm(list=ls())
+list.of.packages <- c("pacman")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+library(pacman)
+p_load(tidyverse)
+p_load(kableExtra)
+p_load(knitr)
+p_load(ggbeeswarm)
+p_load(latex2exp)
+p_load(epitab)
+p_load(plotrix)
+
+tex2markdown <- function(texstring) {
+  writeLines(text = texstring,
+             con = myfile <- tempfile(fileext = ".tex"))
+  texfile <- pandoc(input = myfile, format = "html")
+  cat(readLines(texfile), sep = "\n")
+  unlink(c(myfile, texfile))
+}
+set.seed(150)
+
+```
+```{r echo=FALSE, results = 'asis'}
+ca_ctr_r<-.3
+
+n<-250
+nCA<-round(n*ca_ctr_r)
+z0<-data.frame(status=c(rep("CA",nCA),rep("CTR",n-nCA)))
+z0$exposition<-NA
+exp_CA<-.45
+exp_CTR<-.19
+
+z0[z0$status %in% "CA","exposition"]<-ifelse(runif(nCA)<exp_CA,"yes","no")
+z0[z0$status %in% "CTR","exposition"]<-ifelse(runif(n-nCA)<exp_CA,"yes","no")
+
+z0$exposition<-factor(z0$exposition,levels = c("yes","no"))
+```
+# Introduccion
+En este documento estudiaremos los conceptos basicos de probabilidad. Para empezar, consideremos un ejemplo, se han recopilado uns datos de un estudio de casos y controles, `r nCA` casos y `r n-nCA` controles, para un total de `r n` individuos. Se han estudiado a estos indivduos para ver si habian estado expuestos a un agente toxico de interes para los investigadores. A continuacion presentamos un breve resumen de los datos.
+
+```{r , echo=F, fig.width=6, fig.height=4}
+summary(z0)
+```
+
+Para visualizar mejor la informacion, construiremos una table de contingencia para las dos variables:
+```{r echo=FALSE, results = 'asis'}
+res<-kable(t(table(z0)%>%addmargins))
+#res<-kable(t(table(z0)))
+kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_above(c("exposition","status"=2," "))
+```
+
+Al rededor de esta tabla de contingencia podemos hacernos varias preguntas como por ejemplo:
+
+* Cual es la probabilidad de ser un caso? 
+
+* Cual es la probabilidad de estar expuesto?
+
+* Cual es la probabilidad de ser un caso o ser un no expuesto?
+
+* Cual es la probabilidad de ser un control y no estar expuesto simultaneamente?
+
+* Dado que se es un caso, cual es la probabilidad de estar expuesto?
+
+Para responder estas preguntas de manera metodica se han desarrollado los axiomas de probabilidad.
+
+# Axiomas de probabilidad
+
+Los aximoas de probabilidad son las reglas que nos permitiran calcular probabilidades bajo ciertas condiciones y de manera segura, evitando recurrir a la intuicion. La probabilidad es una medida que se aplica a conjuntos (denominados eventos en la practica). Por tanto el lenguaje en el que se encuentran codificados estos axiomas se base en el lenguaje de teoria de conjuntos, el cual repasaremos a continaucion.
+
+## Teoria de conjuntos
+
+Un conjunto se define por sus elementos, por ejemplo los estudiantes del curso A (Ana, Juan, Pedro, Laura, Silvia) y los estudaintes del curso B (Carlos, Diana):
+
+```{r , echo=F,warning =F, fig.width=6, fig.height=6}
+#axes=FALSE,
+plot(NULL,xlim=c(-10,14),ylim=c(-11,11),axes=F,xlab="",ylab="")
+draw.circle(0,0,9,nv=1000,lty=1,lwd=1,border="blue")
+draw.circle(10,9,2.5,nv=1000,lty=1,lwd=1,border="red")
+df_curso<-data.frame(name=c("Ana","Juan","Pedro","Laura","Silvia","Carlos","Diana"),x=c(-5,0,5,6,-3,10,10),y=c(2,-5,5,0,7,10,7.9))
+text(df_curso$x,df_curso$y,df_curso$name)
+text(-7.8,7,"A",col="blue",cex=1.5)
+text(13.8,10,"B",col="red",cex=1.5)
+
+
+```
+
