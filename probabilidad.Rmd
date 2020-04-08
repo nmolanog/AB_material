@@ -20,7 +20,7 @@ p_load(ggbeeswarm)
 p_load(latex2exp)
 p_load(epitab)
 p_load(plotrix)
-
+p_load(graphics)
 set.seed(150)
 
 ```
@@ -68,26 +68,25 @@ Al rededor de esta tabla de contingencia podemos hacernos varias preguntas como 
 
 * Dado que se es un caso, cual es la probabilidad de estar expuesto?
 
-Para responder estas preguntas de manera metodica se han desarrollado los axiomas de probabilidad.
+Para responder estas preguntas de manera metodica se han desarrollado los axiomas de probabilidad. Estos axiomas son las reglas que nos permitiran calcular probabilidades bajo ciertas condiciones y de manera segura, evitando recurrir a la intuicion. La probabilidad es una medida que se aplica a conjuntos (denominados eventos en la practica). Por tanto el lenguaje en el que se encuentran codificados estos axiomas se base en el lenguaje de teoria de conjuntos, el cual repasaremos a continaucion.
 
-# Axiomas de probabilidad
-
-Los aximoas de probabilidad son las reglas que nos permitiran calcular probabilidades bajo ciertas condiciones y de manera segura, evitando recurrir a la intuicion. La probabilidad es una medida que se aplica a conjuntos (denominados eventos en la practica). Por tanto el lenguaje en el que se encuentran codificados estos axiomas se base en el lenguaje de teoria de conjuntos, el cual repasaremos a continaucion.
-
-## Teoria de conjuntos
+# Teoria de conjuntos
 
 Un conjunto se define por sus elementos, por ejemplo los estudiantes del curso A (Ana, Juan, Pedro, Laura, Silvia) y los estudaintes del curso B (Carlos, Diana):
 
 ```{r TCexample,echo=F,warning =F, fig.width=6, fig.height=6, fig.cap="Ejemplos sobre conjuntos"}
-plot(NULL,xlim=c(-10,14),ylim=c(-11,11),axes=F,xlab="",ylab="")
+plot(NULL,xlim=c(-10,15),ylim=c(-11,12.5),axes=F,xlab="",ylab="")
+rect(-10,-11,15,12)
 draw.circle(0,0,9,nv=1000,lty=1,lwd=1,border="blue")
 draw.circle(10,9,2.5,nv=1000,lty=1,lwd=1,border="red")
-draw.circle(4.25,1.75,2.7,nv=1000,lty=1,lwd=1,border="black")
+draw.circle(4.25,1.75,2.7,nv=1000,lty=1,lwd=1,border=3)
 df_curso<-data.frame(name=c("Ana","laura","Pedro","Juan","Silvia","Carlos","Diana"),x=c(-5,0,4.5,4.2,-3,10,10),y=c(2,-5,3.5,0,7,10,7.9))
 text(df_curso$x,df_curso$y,df_curso$name)
 text(-7.8,7,"A",col="blue",cex=1.5)
 text(13.8,10,"B",col="red",cex=1.5)
-text(2.5,5,"C",col=1,cex=1.5)
+text(2.5,5,"C",col=3,cex=1.5)
+text(-10,12.7,"U",col=1,cex=1.5)
+
 ```
 
 En el lenguaje de teoria de conjuntos existen dos relaciones fundamentales:
@@ -110,3 +109,140 @@ Afirmaciones incorrectas sobre la figura \@ref(fig:TCexample) son:
 * $C \in A$
 
 La forma de expresar que un elemento no pertenece a un conjunto, como por ejemplo, "Ana no pertenece a C", es mediante el simbolo $\notin$, de tal forma que $Ana \notin C$. De manera similar, para expresar que un conjunto no esta incluido en otro ("B no esta incluido en A") se usa el simbolo $B \not\subset A$, ver figura \@ref(fig:TCexample).
+
+En la figura \@ref(fig:TCexample) los conjuntos se presentan de manera **grafica**, sin embargo existen otras formas de notacion de los conjuntos. A continuacion presentamos la notacion **extensiva**:
+
+* $A=\{Ana,laura,Pedro,Juan,Silvia\}$
+
+* $B=\{Carlos,Diana\}$
+
+* $C=\{Pedro,Juan\}$
+
+En esta notacion se usan los corchetes $\{\}$ como analogo del laso en la representacion grafica, y dentro de estos, se listan de manera **extensiva** los elementos del conjunto separados por ",".
+
+Existe otra forma de definir conjuntos, denominada la definicion por **comprencion**, veamos un ejemplo: "C es el conjunto de personas en el conjunto A *tal que* esas personas son hombres." Aqui, se usa una condicion, que define la pertenencia de elementos a un conjunto. Esta es la forma mas comun de definir conjuntos y es la que adoptaremos regularmente en este texto.
+
+La definicion por extencion siempre comprende 2 partes. Veamos nuestro ejemplo: C es el conjunto
+
+1. de personas en el conjunto A
+
+2. *tal que* esas personas son hombres.
+
+La primera parte hace referencia al conjunto de referencia, sobre el cual se aplicara una condicion logica, la segunda parte de la definicion. 
+
+Bajo esta forma de definir conjuntos, existe un concepto fundamental, el del conjunto universo:
+
+* El universo es el conjunto que contiene a todos los posibles elementos. 
+
+En la figura \@ref(fig:TCexample) el universo se representa por el conjunto $U$.
+
+La forma en que se define un conjunto por compresion sigue el siguiente patron:
+
+$$T=\{x \in U | Cond(x)\}$$
+Su interpretacion es la siguiente: T es el conjunto ($T=\{ \}$) de los elementos del universo ($x \in U$), tal que ($|$), esos elementos cumplen una condicion determinada ($Cond(x)$).
+
+Por ejemplo, considerese el conjunto de los numeros entero como el universo: $\mathbb{Z}=\{...,-2,-1,0,1,2,...\}$, entonces, el conjunto de los numeros positivos se difinira como
+
+$$Positivos=\{x \in \mathbb{Z} | x > 0 \}$$
+
+
+
+## Operaciones de conjuntos
+
+a continuacion presentaremos las tres operaciones basicas de conjuntos: La _**Union**_ ,la  _**Interseccion**_ y el _**Complemento**_.
+
+### Union
+La union de dos conjuntos da como resultado un nuevo conjunto que contiene todos los elementos de los dos conjuntos unidos. Consideremos dos conjuntos $A$ y $B$ cualquiera incluidos en un conjunto universo $U$. Entonces, la Union entre $A$ y $B$ se define como:
+
+$$A \cup B =\{x \in U | x \in A \; ó \; x \in B\}$$
+La interpretacion de la anterior formula es asi: La Union entre $A$ y $B$ ($A \cup B$), es el conjunto ($=\{\}$) de los elementos en el universo ($x \in U$), tal que ($|$), esos elementos pertenecen al conjunto $A$ **ó** pertenecen al conjunto $B$ ($x \in A \; ó \; x \in B$).
+ 
+ Veamos un ejempo, en el universo de la figura \@ref(fig:TCexample), $B \cup C=\{Carlos, Diana,Pedro, Juan\}$.
+ 
+ Veamos otro ejemplo en la figura \@ref(fig:TCexample2)
+
+```{r TCexample2,echo=F,warning =F, fig.width=6, fig.height=6, fig.cap="Ejemplo 2 sobre conjuntos"}
+plot(NULL,xlim=c(-10,10),ylim=c(-7,8),axes=F,xlab="",ylab="")
+rect(-10,-7,10,7)
+draw.circle(-3,0,5,nv=1000,lty=1,lwd=1,border="blue")
+draw.circle(3,0,5,nv=1000,lty=1,lwd=1,border="red")
+df_ex2<-data.frame(name=c("a","b","c","d","e","f","g"),x=c(-5,-3,0,0,3.5,5,7.5),y=c(2,-2,-2,2.5,-3,2.8,-5))
+text(df_ex2$x,df_ex2$y,df_ex2$name)
+text(-10,7.5,"U")
+text(-7,4,"Z",col=4)
+text(7,4,"W",col = 2)
+```
+
+En la figura se puede apreciar que $Z\cup W =\{a,b,c,d,e,f\}$
+
+### Interseccion
+La Interseccion de dos conjuntos da como resultado un nuevo conjunto que contiene todos los elementos que se encuentran simultaneamente en ambos conjuntos. Consideremos dos conjuntos $A$ y $B$ cualquiera incluidos en un conjunto universo $U$. Entonces, la Interseccion entre $A$ y $B$ se define como:
+
+$$A \cap B =\{x \in U | x \in A \; y \; x \in B\}$$
+La interpretacion de la anterior formula es asi: La Interseccion entre $A$ y $B$ ($A \cap B$), es el conjunto ($=\{\}$) de los elementos en el universo ($x \in U$), tal que ($|$), esos elementos pertenecen al conjunto $A$ **y** pertenecen al conjunto $B$ simultaneamente ($x \in A \; ó \; x \in B$).
+
+Veamos un ejempo, en el universo de la figura \@ref(fig:TCexample2) se puede apreciar que $Z\cap W =\{c,d\}$, ya que los elementos c y d son los unicos que se encuentran simultaneamente en mabos conjuntos.
+
+### Complemento
+
+En las dos operaciones anteriores, vimos que las condiciones logicas que definen los conjuntos son "ó" e "y". Para la defincion del complemento la palabra clave sera el "no". Consideremos un conjunto $A$ cualquiera incluido en un conjunto universo $U$. Entonces el complemento del conjunto A se define como 
+$$A^c=\{x \in U | x \notin A\}$$
+
+La interpretacion de la anterior formula es asi: El complemento del conjunto A ($A^c$) es el conjunto ($=\{\}$) de los elementos del universo ($x \in U$), tal que ($|$), esos elementos **no** pertenecen a el conjunto A ($x \notin A$).
+$A^c$ Es simeplemente el conjunto de todos aquellos elementos que **no** pertenecen a el conjunto A.
+
+Por ejemplo, en la figura \@ref(fig:TCexample2), $Z^c=\{f,e,g\}$. De manera similar $W^c=\{a,b,g\}$.
+
+Ejercicio:
+cual es el complemento del complemento del conjunto $Z$  en la figura \@ref(fig:TCexample2)?
+Dedusca de esto que en general para cualquier conjunto $A$, $(A^c)^c=?$
+
+### Conmutatividad
+
+Se puede demostrar que lo siguiente se cumple:
+$$A\cup B= B\cup A$$
+$$A\cap B= B \cap A$$
+Es decir que no importa el orden de los conjuntos en la union y la interseccion.
+
+## El conjunto Vacio $\phi$
+
+Si el conjunto $U$ es el conjunto universo, para el cual cualquier elemento pertenece a el, quien ser aentonces el complemento del universo, es decir $U^c$?. Segun la definicion de complemento, tendriamos que:
+
+$$U^c=\{x \in U | x \notin U\}$$
+Es decir, que $U^c$ es el conjuno de aquellos elementos que simultaneamente estan y a la vez no estan en el universo. Esto en logica se conoce como una contradiccion, por lo cual no exite ningun elemento que pertenesca a $U^c$, por tanto el conjunto $U^c$ es vacio.
+Este vacio suele representarse de forma extensiva como $U^c=\{\}$. De aqui en adelante denotaremos al conjunto vacio mediante la letra griega $\phi$ (phi).
+
+El conjunto vacio tiene algunas propiedades, que presentamos a continuacion. Considere un conjunto $A$ cualquiera, incluido en un Universo $U$. Entonces:
+
+* $\phi \subset A$
+
+* $\phi \cup A=A$
+
+* $\phi \cap A= \phi$
+
+##Propiedades generales de las operaciones de conjuntos
+A continuacion listamos algunas propieades generales que se surgen a partir de las definiciones de la _**Union**_ ,la  _**Interseccion**_ y el _**Complemento**_. Para esto considere dos conjuntos $A$ y $B$ cualquiera, incluidos en el universo $U$.
+
+* $A \cup U =U$
+
+* $A \cap U =A$
+
+* Si $A \subset B$ entonces $A \cup B =B$ y $A \cap B =B$
+
+* $A \cup A^c =U$
+
+* $A \cap A^C= \phi$
+
+## Aplicaciones practicas de las operaciones de conjuntos
+
+La discucion de las operaciones de conjuntos hecha hasta el momento es abstractay bastante general, y la mayoria de los estudiantes duda de la importancia de estos conceptos en la practica. Por esta razon, mostraremos a continuacion la utlidad de estos conceptos en problemas de investigacion. Para esto retomaremos el ejemplo con el que se inicio este documento y lo reproduciomos nuevamente para facilidad de lectura.
+
+Se han recopilado uns datos de un estudio de casos y controles, `r nCA` casos y `r n-nCA` controles, para un total de `r n` individuos. Se han estudiado a estos indivduos para ver si habian estado expuestos a un agente toxico de interes para los investigadores. La informacion recopilada se resume en la siguiente tabla de contingencia:
+
+```{r conttablv2, echo=FALSE}
+res<-kable(t(table(z0)%>%addmargins),caption="Tabla de contingencia status vs exposition")
+kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_above(c("exposition","status"=2," "))
+# res<-t(table(z0)%>%addmargins)
+# knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
+```
+
