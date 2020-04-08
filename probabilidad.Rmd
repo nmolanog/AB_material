@@ -2,11 +2,12 @@
 title: "Probabilidad"
 author: "Nicolás Molano Gonzalez"
 date: "7 de Abril de 2020"
-output: 
-  html_document:
-  fig_caption: true
+output:
+  bookdown::html_document2: default
 ---
 ```{r echo=F, message = FALSE, warning =F}
+###see https://bookdown.org/yihui/rmarkdown-cookbook/cross-ref.html for cross reference
+###see https://bookdown.org/yihui/bookdown/internationalization.html for _bookdown.yml
 rm(list=ls())
 list.of.packages <- c("pacman")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
@@ -20,16 +21,11 @@ p_load(latex2exp)
 p_load(epitab)
 p_load(plotrix)
 
-tex2markdown <- function(texstring) {
-  writeLines(text = texstring,
-             con = myfile <- tempfile(fileext = ".tex"))
-  texfile <- pandoc(input = myfile, format = "html")
-  cat(readLines(texfile), sep = "\n")
-  unlink(c(myfile, texfile))
-}
 set.seed(150)
 
 ```
+
+
 ```{r echo=FALSE, results = 'asis'}
 ca_ctr_r<-.3
 
@@ -52,11 +48,12 @@ En este documento estudiaremos los conceptos basicos de probabilidad. Para empez
 summary(z0)
 ```
 
-Para visualizar mejor la informacion, construiremos una table de contingencia para las dos variables:
-```{r echo=FALSE, results = 'asis'}
-res<-kable(t(table(z0)%>%addmargins))
-#res<-kable(t(table(z0)))
+Para visualizar mejor la informacion, construiremos una table de contingencia para las dos variables ver tabla \@ref(tab:conttabl)
+```{r conttabl, echo=FALSE}
+res<-kable(t(table(z0)%>%addmargins),caption="Tabla de contingencia status vs exposition")
 kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_above(c("exposition","status"=2," "))
+# res<-t(table(z0)%>%addmargins)
+# knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
 ```
 
 Al rededor de esta tabla de contingencia podemos hacernos varias preguntas como por ejemplo:
@@ -81,16 +78,35 @@ Los aximoas de probabilidad son las reglas que nos permitiran calcular probabili
 
 Un conjunto se define por sus elementos, por ejemplo los estudiantes del curso A (Ana, Juan, Pedro, Laura, Silvia) y los estudaintes del curso B (Carlos, Diana):
 
-```{r , echo=F,warning =F, fig.width=6, fig.height=6}
-#axes=FALSE,
+```{r TCexample,echo=F,warning =F, fig.width=6, fig.height=6, fig.cap="Ejemplos sobre conjuntos"}
 plot(NULL,xlim=c(-10,14),ylim=c(-11,11),axes=F,xlab="",ylab="")
 draw.circle(0,0,9,nv=1000,lty=1,lwd=1,border="blue")
 draw.circle(10,9,2.5,nv=1000,lty=1,lwd=1,border="red")
-df_curso<-data.frame(name=c("Ana","Juan","Pedro","Laura","Silvia","Carlos","Diana"),x=c(-5,0,5,6,-3,10,10),y=c(2,-5,5,0,7,10,7.9))
+draw.circle(4.25,1.75,2.7,nv=1000,lty=1,lwd=1,border="black")
+df_curso<-data.frame(name=c("Ana","laura","Pedro","Juan","Silvia","Carlos","Diana"),x=c(-5,0,4.5,4.2,-3,10,10),y=c(2,-5,3.5,0,7,10,7.9))
 text(df_curso$x,df_curso$y,df_curso$name)
 text(-7.8,7,"A",col="blue",cex=1.5)
 text(13.8,10,"B",col="red",cex=1.5)
-
-
+text(2.5,5,"C",col=1,cex=1.5)
 ```
 
+En el lenguaje de teoria de conjuntos existen dos relaciones fundamentales:
+
+* La pertenencia $\in$
+* La contencia $\subset$
+
+Los elementos pertenecen a conjuntos (por ejemplo $Silvia \in A$), los conjuntos estan contenidos en otros conjuntos ($C \subset A$). Es incorrecto decir que que Carlos esta contenido en el conjunto B, ya que Carlos es un elemento y no un conjunto. Tambien es incorrecto decir que $C\in A$ ya que C es un subconjunto de A y no un elemento (ver figura en la figura \@ref(fig:TCexample)). En resumen, afirmaciones correctas sobre la figura \@ref(fig:TCexample) son:
+
+* $Ana \in A$
+
+* $Carlos \in B$
+
+* $C \subset A$
+
+Afirmaciones incorrectas sobre la figura \@ref(fig:TCexample) son:
+
+* $Ana \subset A$
+
+* $C \in A$
+
+La forma de expresar que un elemento no pertenece a un conjunto, como por ejemplo, "Ana no pertenece a C", es mediante el simbolo $\notin$, de tal forma que $Ana \notin C$. De manera similar, para expresar que un conjunto no esta incluido en otro ("B no esta incluido en A") se usa el simbolo $B \not\subset A$, ver figura \@ref(fig:TCexample).
