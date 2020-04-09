@@ -290,3 +290,62 @@ Este conjunto es el de aquellas personas que no estan enfermas (CTR) y que adici
 
 Ahora que ya repazamos el lenguaje de teoria de conjuntos, podemos empezar nuestro abordaje de los axiomas de probabilidad que nos permitiran hacer calculos probabilisticos.
 
+## El universo
+
+Nuestra discucion de los axiomas de probabilidad empiezan con la definicion del universo. Para nosotros el universo es el conjunto de todos los posibles resultados en nuestro objeto de estudio. Por ejemplo, si se estudia el lansamiento de una moneda, los posibles resultados son *cara* o *sello*, luego el universo es el conjunto $U=\{cara,sello\}$. Si estudimos el lansamiento de un dado, el conjunto de posibles resultados es $U=\{1,2,3,4,5,6\}$. Estos ejemplos son triviales y poco practicos, para nuestro ejemplo del estudio de casos y controles cual seria el conjunto universo? seria el conjunto de las 250 personas involucradas en el estudio (ver tabla \@ref(tab:conttablrep)).
+
+## La medida de probabilidad
+
+Nuestro objeto de estudio en este documento es la probabilidad, y es hora de definarla de manera concreta: La probabilidad es una medida que se aplica a conjuntos. Que se quiere decir con esto? basicamente que el objeto de medida de la probabilidad son los conjuntos. Analogamente el objeto de medida de una bascula es un objeto fisico, el objeto de medida del pH son soluciones, el objeto de medida de una prueba diagnostica son pacientes, etc. Ya sabemos a que objetos podemos aplicar la medida de probabilidad, son embargo aun no hemos respondido la pregunta: ¿Que significa la medida de probabilidad?, ¿Que significa una probailidad del 50% o del 70%?, para responder a esta pregunta vease ref.
+
+## Axiomas
+Los Axiomas de probabilidad determinan las propiedades y el comportamiento de la probobilidad. 
+
+### Axioma 1
+\begin{equation}
+Si \; A \subseteq U \Rightarrow 0\le P(A) \le 1 (\#eq:A1)
+\end{equation}
+
+
+El formula \@ref(eq:A1) establece que la medida de probabilidad se aplica a subconjuntos en algun conjunto universo $U$ y que su resultado es un numero real entre 0 y 1. La interepretacion de la formula \@ref(eq:A1) es la siguiente:
+
+Si $A$ es un subconjunto del universo $U$, el cual podria llegar a ser el mismo universo ($A \subseteq U$), entonces ($\Rightarrow$), la medida de probabilidad de $A$ ($P(A)$), es un numero real entre 0 y 1 ($0\le P(A) \le 1$).
+Este axioma se considera como la definicion de medida de probabilidad.
+
+Nota: en esta discucion las probabilidades son numeros entre 0 y 1. Para algunos es mas comodo hablar de probabilidades entre 0 y 100%. Se sugiere hacer los calculos con probabilidades entre 0 y 1 ya que son mas simples. Para pasar de la escala $0-100$ a la escala $0-1$, basta con dividir por 100 a las proabilidades en escala $0-100$.
+
+### Axioma 2
+\begin{equation}
+P(U)=1 (\#eq:A2)
+\end{equation}
+
+Este axioma establece que la medida de probabilidad del conjunto universo es 1. Veamos por que esto tiene sentido: supongamos que $U=\{cara,sello\}$, y que nuestro objeto de estudio es lanzar una moneda y obsrvar que lado cae hacia arriba. Decir que $P(U)=1$, implica que al lanzar la moneda observaremos algun posible resultado en $U$, cara o sello, observar algo diferente seria imposible y por tanto la probabilidad de observar alguno de los dos resultados (cara o sello) es 1.
+
+### Axioma 3
+\begin{equation}
+Si \; A \subseteq U \Rightarrow P(A^c) = 1- P(A) (\#eq:A3)
+\end{equation}
+
+La interepretacion de esta formula es la siguiente: Si $A$ es un subconjunto del universo $U$, el cual podria llegar a ser el mismo universo ($A \subseteq U$), entonces ($\Rightarrow$), la medida de probabilidad del complemento de A ($P(A^c)$) es 1 menos la probabilidad del mismo conjunto ($1- P(A)$). Este axioma establece que la medida de probabilidad de un conjunto complemento es 1 menos la probabilidad del mismo conjunto. Veamos un ejemplo:
+
+Suponga que en una poblacion, el porcentage de mugeres es del 40%, es decir que $P(Femenino)=0.4$. En este contexto que seria $Femenino^c$? Seria simplemente el conjunto de las persona que no son mujeres, es decir los hombres, luego $Femenino^c= Masculino$ y segun la formula \@ref(eq:A3), $P(Femenino^c)=P(Masculino)=1-P(Femenino)=1-0.4=0.6$, lo cual tiene sentido.
+
+Esta nocion de complemento es sumamente util al resolver ejercicios de probobilidad. Vemaos otro ejemplo: En una poblacion dada, la probabilidad de desarrollar cancer es del 5%. Esto quiere decir que existe un conjunto que llamaremos $Ca$, el cual es el conjunto de personas con cancer y por tanto $P(Ca)=0.05$ (5%/100=0.05). Esto implica, segun la formula \@ref(eq:A3), que $P(Ca^c)=1-0.05=0.95$, $Ca^c$ es el complemento del conjunto de personas con cancer, es decir el conjunto de personas sanas, luego en esta poblacion, la probabilidad de no tener cancer es del 95%
+
+Siempre que nos den la probabilidad de un conjunto (o evento, como tambien se suele llamar), automaticamente aplicando la formula \@ref(eq:A3), podemos obtener la probabilidad de su complemento. Si conocemos la probabilidad de las mujeres, conocemos tambien la de los hombres. Si conocemos la probabilidad de estar enfermo, automaticamente conocemos la probabilidad de estar sano.
+
+### Axioma 4
+
+\begin{equation}
+Si \; A,B \subseteq U \; | \; A \cap B = \phi \Rightarrow P(A \cup B) = P(A)+P(B) (\#eq:A4)
+\end{equation}
+
+La interepretacion de esta formula es la siguiente:  Si $A$ y $B$ son subconjuntos del universo $U$ ( $A,B \subseteq U$), tal que ($|$) la interseccion de $A$ y $B$ es vacia ($A \cap B = \phi$), entonces ($\Rightarrow$), la probabilidad de la union de $A$ y $B$ se puede calcular como la suma de las probabilidades de $A$ y $B$ ($P(A \cup B) = P(A)+P(B)$)
+
+Este axioma es uno de los mas importantes de todos. A continuacion explicaremos su utilidad. Supongamos que una poblacion (es decir conjunto universo $U$) de 1000 personas, 450 son mujeres. si seleccionaramos una persona al azar, cual seria la probabilidad de que la persona fuera mujer? Supongamos que la probabilidad de ser seleccionado es la misma para cualquier a de las 1000 personas y por ende esta probabilidad es $1/1000$. Consideremos conjuntos  de un unico elemento, cada una de las 1000 personas. Es claro que estos conjuntos son disyuntos entre si (es decir la interseccion es vacia). Si cojemos todos los conjuntos de personas mujeres y los unimos obtendriamos el conjunto de las mujeres. Aplicando la formula \@ref(eq:A4) la probabilidad de este conjunto seria la suma de las probabilidades individuales de cada conjunto, lo cual corresponde a $450 \times 1/1000=0.45$.
+
+Este axioma justifica el calculo de probabilidades aplicando la regla de contar el numero de casos que cumplen la condicion dividiendo por el numero total de casos en la pobalcion (Esto sin embargo, solo es balido si se asume que cada individuo tiene la misma probabilidad de ocurrencia).
+
+En el ejemplo de los casos y controles de la tabla tabla \@ref(tab:conttablrep), la probabilidad de ser expuesto al agente toxico en esa poblacion seria de $\frac{104}{250}=0.416$
+
+veamos otro ejemplo.
