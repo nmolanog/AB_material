@@ -50,6 +50,7 @@ summary(z0)
 
 Para visualizar mejor la informacion, construiremos una table de contingencia para las dos variables ver tabla \@ref(tab:conttabl)
 ```{r conttabl, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
 res<-kable(t(table(z0)%>%addmargins),caption="Tabla de contingencia status vs exposition")
 kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_above(c("exposition","status"=2," "))
 # res<-t(table(z0)%>%addmargins)
@@ -239,10 +240,53 @@ La discucion de las operaciones de conjuntos hecha hasta el momento es abstracta
 
 Se han recopilado uns datos de un estudio de casos y controles, `r nCA` casos y `r n-nCA` controles, para un total de `r n` individuos. Se han estudiado a estos indivduos para ver si habian estado expuestos a un agente toxico de interes para los investigadores. La informacion recopilada se resume en la siguiente tabla de contingencia:
 
-```{r conttablv2, echo=FALSE}
+```{r conttablrep, echo=FALSE}
 res<-kable(t(table(z0)%>%addmargins),caption="Tabla de contingencia status vs exposition")
 kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_above(c("exposition","status"=2," "))
 # res<-t(table(z0)%>%addmargins)
 # knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
 ```
+
+En este caso, la variable exposicion con categorias "CA" y "CTR", realemnte indexan la pertenecia de individuos a dos conjuntos: el de los casos (CA) y el de los controles (CTR). De tal forma que en la tabla \@ref(tab:conttablrep) podemos saber cuantas personas hay en el conjunto CA y en el conjunto CTR. Segun la tabla podemos ver que hay 75 personas en el conjunto "CA" y 175 en el conjunto "CTR". 
+
+De manera similar, la variable "exposition" con categorias "yes" y "no" indexan la pertencia de cada sujeto de el estudio a los conjunto de exposicion y no exposicion respectivamente. Teneindo esto en cuenta, podriamos pensar por ejemplo en:
+
+$$CA \cup yes$$
+
+Es decir, la union entre el conjunto de casos y el conjunto de personas expuestas. Cuantas personas hay en este conjunto? La respuesta puede ser deducida a partir de la siguiente visualizacion:
+
+<div class = "row">
+<div class = "col-md-6">
+```{r conttablrep1, echo=FALSE}
+res<-kable(t(table(z0)),caption="CA unido \"yes\"")
+kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_above(c("exposition","status"=2))%>%
+  column_spec(2,background = "green")%>%
+  row_spec(1,background = "green")
+# res<-t(table(z0)%>%addmargins)
+# knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
+```
+</div>
+<div class = "col-md-6">
+```{r CAUyesfig,echo=F,warning =F, fig.width=4, fig.height=4, fig.cap="Visualizacion de CA y yes en conjuntos"}
+plot(NULL,xlim=c(-10,10),ylim=c(-7,8),axes=F,xlab="",ylab="")
+rect(-10,-7,10,7)
+draw.circle(-3,0,5,nv=1000,lty=1,lwd=1,border="blue")
+draw.circle(3,0,5,nv=1000,lty=1,lwd=1,border="red")
+df_ex3<-data.frame(name=c(46,29,75),x=c(-3.9,0,3.9),y=c(0,0,0))
+text(df_ex3$x,df_ex3$y,df_ex3$name)
+text(-7,4,"CA",col=4)
+text(7,4,"yes",col = 2)
+```
+</div>
+
+El numero de personas en $CA \cup yes$ es $46+29+75=150$ `r 46+29+75`.
+
+Que interpretacion tiene $CA \cup yes$ desde el punto de vista practico? son las personas enfermas (CA) o que han estado expuestas (yes) al agente toxico de estudio. Veamos otro ejemplo:
+
+$$CTR \cap no$$
+Este conjunto es el de aquellas personas que no estan enfermas (CTR) y que adicionalmente no han tenido exposicion al agente toxico de estudio (no). Cuantas personas hay en este conjunto? de la tabla \@ref(tab:conttablrep) se puede apreciar que son 100 personas.
+
+# Axiomas de probabilidad
+
+Ahora que ya repazamos el lenguaje de teoria de conjuntos, podemos empezar nuestro abordaje de los axiomas de probabilidad que nos permitiran hacer calculos probabilisticos.
 
