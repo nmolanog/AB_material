@@ -342,7 +342,12 @@ Si \; A,B \subseteq U \; | \; A \cap B = \phi \Rightarrow P(A \cup B) = P(A)+P(B
 
 La interepretacion de esta formula es la siguiente:  Si $A$ y $B$ son subconjuntos del universo $U$ ( $A,B \subseteq U$), tal que ($|$) la interseccion de $A$ y $B$ es vacia ($A \cap B = \phi$), entonces ($\Rightarrow$), la probabilidad de la union de $A$ y $B$ se puede calcular como la suma de las probabilidades de $A$ y $B$ ($P(A \cup B) = P(A)+P(B)$)
 
-Este axioma es uno de los mas importantes de todos. A continuacion explicaremos su utilidad. Supongamos que una poblacion (es decir conjunto universo $U$) de 1000 personas, 450 son mujeres. si seleccionaramos una persona al azar, cual seria la probabilidad de que la persona fuera mujer? Supongamos que la probabilidad de ser seleccionado es la misma para cualquier a de las 1000 personas y por ende esta probabilidad es $1/1000$. Consideremos conjuntos  de un unico elemento, cada una de las 1000 personas. Es claro que estos conjuntos son disyuntos entre si (es decir la interseccion es vacia). Si cojemos todos los conjuntos de personas mujeres y los unimos obtendriamos el conjunto de las mujeres. Aplicando la formula \@ref(eq:A4) la probabilidad de este conjunto seria la suma de las probabilidades individuales de cada conjunto, lo cual corresponde a $450 \times 1/1000=0.45$.
+Este axioma es uno de los mas importantes de todos. A continuacion explicaremos su utilidad. Supongamos que una poblacion (es decir conjunto universo $U$) de 16 personas, 7 son mujeres. Si seleccionaramos una persona al azar, cual seria la probabilidad de que la persona fuera mujer? Supongamos que la probabilidad de ser seleccionado es la misma para cualquiera de las 16 personas y por ende esta probabilidad es $1/16$. Consideremos conjuntos  de un unico elemento, cada una de las 16 personas. Es claro que estos conjuntos son disyuntos entre si (es decir la interseccion es vacia). Si cojemos todos los conjuntos de personas mujeres y los unimos obtendriamos el conjunto de las mujeres. Aplicando la formula \@ref(eq:A4) la probabilidad de este conjunto seria la suma de las probabilidades individuales de cada conjunto, lo cual corresponde a $7 \times 1/16=0.4375$ (ver figura \@ref(fig:A4image))).
+
+```{r A4image,echo=F,warning =F, fig.width=4, fig.height=4, fig.cap="Ejemplo aximoa 4"}
+knitr::include_graphics("grafico_A4.png")
+
+```
 
 Este axioma justifica el calculo de probabilidades aplicando la regla de contar el numero de casos que cumplen la condicion dividiendo por el numero total de casos en la pobalcion (Esto sin embargo, solo es balido si se asume que cada individuo tiene la misma probabilidad de ocurrencia).
 
