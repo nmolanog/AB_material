@@ -74,7 +74,7 @@ Para responder estas preguntas de manera metodica se han desarrollado los axioma
 # Teoria de conjuntos
 
 Un conjunto se define por sus elementos, por ejemplo los estudiantes del curso A (Ana, Juan, Pedro, Laura, Silvia) y los estudaintes del curso B (Carlos, Diana):
-
+<center>
 ```{r TCexample,echo=F,warning =F, fig.width=6, fig.height=6, fig.cap="Ejemplos sobre conjuntos"}
 plot(NULL,xlim=c(-10,15),ylim=c(-11,12.5),axes=F,xlab="",ylab="")
 rect(-10,-11,15,12)
@@ -89,6 +89,7 @@ text(2.5,5,"C",col=3,cex=1.5)
 text(-10,12.7,"U",col=1,cex=1.5)
 
 ```
+</center>
 
 En el lenguaje de teoria de conjuntos existen dos relaciones fundamentales:
 
@@ -161,7 +162,7 @@ La interpretacion de la anterior formula es asi: La Union entre $A$ y $B$ ($A \c
  Veamos un ejempo, en el universo de la figura \@ref(fig:TCexample), $B \cup C=\{Carlos, Diana,Pedro, Juan\}$.
  
  Veamos otro ejemplo en la figura \@ref(fig:TCexample2)
-
+<center>
 ```{r TCexample2,echo=F,warning =F, fig.width=6, fig.height=6, fig.cap="Ejemplo 2 sobre conjuntos"}
 plot(NULL,xlim=c(-10,10),ylim=c(-7,8),axes=F,xlab="",ylab="")
 rect(-10,-7,10,7)
@@ -173,6 +174,7 @@ text(-10,7.5,"U")
 text(-7,4,"Z",col=4)
 text(7,4,"W",col = 2)
 ```
+</center>
 
 En la figura se puede apreciar que $Z\cup W =\{a,b,c,d,e,f\}$
 
@@ -353,4 +355,78 @@ Este axioma justifica el calculo de probabilidades aplicando la regla de contar 
 
 En el ejemplo de los casos y controles de la tabla tabla \@ref(tab:conttablrep), la probabilidad de ser expuesto al agente toxico en esa poblacion seria de $\frac{104}{250}=0.416$
 
-veamos otro ejemplo.
+```{r echo=FALSE, results = 'asis'}
+N<-1000
+v1_nc<-3
+v2_nc<-2
+
+v1_props<-c(.24,.35,1-(.24+.35))
+names(v1_props)<-LETTERS[1:length(v1_props)]
+v2_given_v1probs<-matrix(c(.1,.9,
+                           .3,.7,
+                           .18,1-.18),byrow =T,ncol = 2)
+colnames(v2_given_v1probs)<-c("R","S")
+rownames(v2_given_v1probs)<-names(v1_props)
+
+N*v1_props%>%round(1)->v1_n
+
+z1<-data.frame(v1=rep(names(v1_props),v1_n),v2=NA)
+
+for(i in names(v1_props)){
+  z1[z1$v1 %in% i,"v2"]<-sample(colnames(v2_given_v1probs),v1_n[i],T,v2_given_v1probs[i,])
+}
+z1$v2<-factor(z1$v2)
+```
+Veamos otro ejemplo. Una empreza con tres fabricas produce protesis ortopedicas. Se ha realizado un estudio en donde se han extraido `r N` protesis de un lote de produccion de las tres fabricas y se ha determinado si las protesis superan (S) o reprueban (R) una prueba de control de calidad. En la tabla \@ref(tab:conttablz1) se presentan los resultados de dicho estudio.
+```{r conttablz1, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+res<-kable(t(table(z1)%>%addmargins),caption="Tabla de contingencia Fabrica vs Falla")
+kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_above(c("Falla","Fabrica"=3," "))
+# res<-t(table(z0)%>%addmargins)
+# knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
+```
+
+Cual es la probabilidad de que una protesis provenga de la fabrica A? Segun la tabla \@ref(tab:conttablz1), el numero de protesis producidas en la fabrica A es de `r table(z1$v1)["A"]` y el numero total de protesis es de `r N`, luego la probabilidad de que una protesis provenga de la fabrica A es de `r table(z1$v1)["A"]/N`.
+
+Cuel sera la probabilidad de que una protesis provenga de la fabrica B y halla superado la prueba de control de calidad? En terminos de conjuntos, se nos esta preguntando por $P(B \cap S)$. Notese que hasta el momento no hay ninguna regla de probabilidad que hable de intersecciones. Sin embargo, como conocemnos el numero de elementos en el conjunto $B \cap S$,`r  t(table(z1))["S","B"] `, podemos calcular esta probabilidad como $P(B \cap S)=\frac{281}{1000}=$ `r  t(table(z1))["S","B"]/N ` usando la regla \@ref(eq:A4).
+
+Cual es la probabilidad de que una protesis probenga de la fabrica A o C? Esta pregunta se puede traducir en terminos de lenguaje de teoria de conjuntos como $P(A \cup C)$. Notece que $A \cup C =\phi$, es decir, no hay protesis que hallan sido fabricadas simultaneamente en las dos fabricas, por tanto, aplicando la formula \@ref(eq:A4), $P(A \cup C)= P(A)+P(C)=\frac{200}{1000}+\frac{400}{1000}=600/1000= 0.6$.
+
+### Axioma 5
+
+\begin{equation}
+Si \; A,B \subseteq U \Rightarrow P(A \cup B) = P(A)+P(B)-P(A \cap B) (\#eq:A5)
+\end{equation}
+
+La interepretacion de esta formula es la siguiente:  Si $A$ y $B$ son subconjuntos del universo $U$ ( $A,B \subseteq U$), entonces ($\Rightarrow$), la probabilidad de la union de $A$ y $B$ se puede calcular como la suma de las probabilidades de $A$ y $B$ menos la probabilidad de la interseccion ($P(A \cup B) = P(A)+P(B)-P(A \cap B)$)
+
+Esta regla se puede deducir de la formula \@ref(eq:A4). Notese que $A\cup B = (A|B) \cup (A\cap B) \cup (B|A)$ en donde $A|B$ es el conjunto de los elementos que estan en $A$ pero no en $B$. En notacion de teoria de conjuntos seria $A|B=\{x \in U | x \in A \; y  \, x \notin B\}$, tambien puede demostrarse que $A|B= A \cap B^c$. ver figura \@ref(fig:A5image). 
+
+<center>
+```{r A5image,echo=F,warning =F, fig.width=4, fig.height=4, fig.cap="Derivacion regla 5"}
+knitr::include_graphics("grafico_A5.png")
+```
+</center>
+
+Notese que $(A|B) \cup (A\cap B) \cup (B|A)$ es una union disyunta (es decir que los tres conjuntos tienen interseccionos mutuas vacias). Por tanto la regla \@ref(eq:A4) se puede aplicar y $P(A\cup B)= P(A|B) + P(A\cap B) + P(B|A)$. Por otra parte notese que $P(A)= P(A|B) + P(A\cap B)$ luego $P(A|B)= P(A) - P(A\cap B)$. De manera similar $P(B)= P(A\cap B) + P(B|A)$ y por tanto $P(B|A)=P(B)-P(A\cap B) $. De tal forma que
+
+$$P(A\cup B)= P(A|B) + P(A\cap B) + P(B|A)$$
+$$=P(A) - P(A\cap B)+P(A\cap B)+P(B)-P(A\cap B)$$
+$$=P(A)+P(B)-P(A \cap B)$$
+
+En conclucion, viendo la figura \@ref(fig:A5image), se puede ver que si se suma $P(A)+P(B)$ se esta sumando dos veces el pedazo $P(A\cap B)$ por tanto lo restamos una vez $P(A\cap B)$, obteniendo la formula \@ref(eq:A5).
+
+Veamos como se palica esta regla en un caso practico. Retomemos el ejemplo de las fabricas de protesis ortopedicas.
+
+```{r conttablz1rep, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+res<-kable(t(table(z1)%>%addmargins),caption="Tabla de contingencia Fabrica vs Falla")
+kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_above(c("Falla","Fabrica"=3," "))
+# res<-t(table(z0)%>%addmargins)
+# knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
+```
+
+cual es la probabilidad de que una protesis halla sido fabricada en la fabrica A o que la protesis halla reprobado la prueba? En terminos de notacion de teoria de conjuntos, se nos esta preguntando por $P(A \cup R)$. Segun la regla \@ref(eq:A5) tenemos que 
+$$P(A \cup R)=P(A)+P(R)-P(A \cap R)$$
+$$=\frac{200}{1000}+\frac{201}{1000}+\frac{21}{1000}$$
+ver tabla \@ref(tab:conttablz1rep)
