@@ -400,7 +400,7 @@ Si \; A,B \subseteq U \Rightarrow P(A \cup B) = P(A)+P(B)-P(A \cap B) (\#eq:A5)
 
 La interepretacion de esta formula es la siguiente:  Si $A$ y $B$ son subconjuntos del universo $U$ ( $A,B \subseteq U$), entonces ($\Rightarrow$), la probabilidad de la union de $A$ y $B$ se puede calcular como la suma de las probabilidades de $A$ y $B$ menos la probabilidad de la interseccion ($P(A \cup B) = P(A)+P(B)-P(A \cap B)$)
 
-Esta regla se puede deducir de la formula \@ref(eq:A4). Notese que $A\cup B = (A|B) \cup (A\cap B) \cup (B|A)$ en donde $A|B$ es el conjunto de los elementos que estan en $A$ pero no en $B$. En notacion de teoria de conjuntos seria $A|B=\{x \in U | x \in A \; y  \, x \notin B\}$, tambien puede demostrarse que $A|B= A \cap B^c$. ver figura \@ref(fig:A5image). 
+Esta regla se puede deducir de la formula \@ref(eq:A4). Notese que $A\cup B = (A / B) \cup (A\cap B) \cup (B/A)$ en donde $/$ es el conjunto de los elementos que estan en $A$ pero no en $B$. En notacion de teoria de conjuntos seria $A/B=\{x \in U | x \in A \; y  \, x \notin B\}$, tambien puede demostrarse que $A/B= A \cap B^c$. ver figura \@ref(fig:A5image). 
 
 <center>
 ```{r A5image,echo=F,warning =F, fig.width=4, fig.height=4, fig.cap="Derivacion regla 5"}
@@ -408,9 +408,9 @@ knitr::include_graphics("grafico_A5.png")
 ```
 </center>
 
-Notese que $(A|B) \cup (A\cap B) \cup (B|A)$ es una union disyunta (es decir que los tres conjuntos tienen interseccionos mutuas vacias). Por tanto la regla \@ref(eq:A4) se puede aplicar y $P(A\cup B)= P(A|B) + P(A\cap B) + P(B|A)$. Por otra parte notese que $P(A)= P(A|B) + P(A\cap B)$ luego $P(A|B)= P(A) - P(A\cap B)$. De manera similar $P(B)= P(A\cap B) + P(B|A)$ y por tanto $P(B|A)=P(B)-P(A\cap B) $. De tal forma que
+Notese que $(A/B) \cup (A\cap B) \cup (B/A)$ es una union disyunta (es decir que los tres conjuntos tienen interseccionos mutuas vacias). Por tanto la regla \@ref(eq:A4) se puede aplicar y $P(A\cup B)= P(A/B) + P(A\cap B) + P(B/A)$. Por otra parte notese que $P(A)= P(A/B) + P(A\cap B)$ luego $P(A/B)= P(A) - P(A\cap B)$. De manera similar $P(B)= P(A\cap B) + P(B/A)$ y por tanto $P(B/A)=P(B)-P(A\cap B) $. De tal forma que
 
-$$P(A\cup B)= P(A|B) + P(A\cap B) + P(B|A)$$
+$$P(A\cup B)= P(A/B) + P(A\cap B) + P(B/A)$$
 $$=P(A) - P(A\cap B)+P(A\cap B)+P(B)-P(A\cap B)$$
 $$=P(A)+P(B)-P(A \cap B)$$
 
@@ -428,5 +428,28 @@ kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_a
 
 cual es la probabilidad de que una protesis halla sido fabricada en la fabrica A o que la protesis halla reprobado la prueba? En terminos de notacion de teoria de conjuntos, se nos esta preguntando por $P(A \cup R)$. Segun la regla \@ref(eq:A5) tenemos que 
 $$P(A \cup R)=P(A)+P(R)-P(A \cap R)$$
-$$=\frac{200}{1000}+\frac{201}{1000}+\frac{21}{1000}$$
+$$=\frac{200}{1000}+\frac{201}{1000}-\frac{21}{1000}=\frac{380}{1000}=0.38$$
 ver tabla \@ref(tab:conttablz1rep)
+
+### Axioma 6: Probabilidad condicional
+
+\begin{equation}
+Si \; A,B \subseteq U \Rightarrow P(A|B) =\frac{P(A \cap B)}{P(B)} (\#eq:A6)
+\end{equation}
+
+Esta regla define el concepto de probabilidad condicional $P(A|B)$ (diferente de $A/B$ diferencia de conjuntos). $P(A|B)$ se lee como "La probabilidad de $A$ dado el conjunto $B$". Este concepto es util ya que permite restringir el analisis de una probabilidad, que normalmente ocurriria en el context del conjunto universo, a un conjunto mas reducido. Veamos un ejemplo. 
+
+La probabilidad de desarrollar artritis reumatoide ($AR$) en la poblacion general es del 3% ( $P(AR)=0.03$ ) pero en mujeres ($F$), es mas alta, del 6%. Esto querria decir que $P(AR | F)=0.06$, ya que la probabilidad $P(AR)$ se quiere evaluar no en la poblacion general, si no en el grupo exclusivo de mujeres. A la probabilidad $P(AR)=0.03$, se suele denopminar una **probabilidad marginal**, haciendo enfacis en que el evento en consideracion no es condicionado por ningun otro.
+
+Veamos un ejemplo del claculo de una probabilidad condicional. Teneindo en cuenta la informacion de la tabla \@ref(tab:conttablz1rep), cual es la probabilidad de que una protesis reprobara la prueba dado que fue construida en la fabrica $A$?
+
+La probabilidad en mencion es $P(R|A)$ y segun la formula \@ref(eq:A6) su calculo es $P(R|A)=\frac{P(R \cap A)}{P(A)}$. Segun la tabla, $P(R \cap A)=\frac{21}{1000}$ y $P(A)=\frac{200}{1000}$ luego 
+
+$$P(R|A)=\frac{P(R \cap A)}{P(A)}=\frac{\frac{21}{1000}}{\frac{200}{1000}}=\frac{21}{200}=0.105$$
+Es decir que la probabilidad de que una protesis construida en la fabrica $A$ falle la prueba es del 10.5%
+
+### Axioma 7: independencia de eventos
+
+\begin{equation}
+Si \; A,B \subseteq U, \; son \; independientes \;  \iff P(A \cap B) =P(A)P(B) (\#eq:A7)
+\end{equation}
