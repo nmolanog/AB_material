@@ -470,5 +470,60 @@ Consideremos dos eventos: el conjunto de pacientes con sindrome del tunel carpia
 
 Otro uso de esta regla es para realizar calculos de experimentos como el siguiente: Se sabe que al lanzar una moneda, la probabilidad de que caiga cara ($C$) es de 0.5 y por consiguiente la probabilidad de que caiga sello ($S$) es 0.5 (que regla justifica este resultado?). Si se lanza la moneda 2 veces cual es la probabilidad de que se obtenga cara en el primer lanzamiento y cara en el segundo lansamiento? asumiendo que el evento de salir cara en el segundo resultado es **independiente** del evento salir cara en el primer resultado, la probabilidad de cara, cara es $P(CC)=P(C)P(C)=0.5\times 0.5=0.25$.
 
+El ultimo uso que discutiremos de esta regla es el siguiente: en un estudio se evalua el habito de fumar, caracterisado por fumar ($F$) o no fumar ($NF$) y su relacion con el genero (femenino $Fem$ y masculino $Mas$) a una poblacion de $1000$ personas. Los resultados del estudio se presentan en la tabla \@ref(tab:conttablindep). Se desea determinar si el habito de fumar es independiente del genero femenino.
 
+```{r echo=FALSE, results = 'asis'}
+N<-1000
+v1_nc<-2
+v2_nc<-2
 
+v1_props<-c(0.2,0.8)
+names(v1_props)<-c("F","NF")
+v2_props<-c(0.4,0.6)
+names(v1_props)<-c("Mas","Fem")
+
+prop_tbl<-outer(v1_props,v2_props)
+
+count_tbl<-prop_tbl*N
+colnames(count_tbl)<-c("F","NF")
+```
+```{r conttablindep, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+res<-kable(t(count_tbl),caption="Tabla de contingencia Genero vs habito de fumar")
+kable_styling(res,"striped", position = "center",full_width = F)
+# res<-t(table(z0)%>%addmargins)
+# knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
+```
+
+Podemos responder a esta pregunta usando la regla  \@ref(eq:A7). Si efectivamente el genero femenino es independiente del habito de fumar, entonces se cumpliria la siguiente igualdad.
+
+$$P(Fem \cap F)=P(Fem)P(F)$$
+
+Verifiquemos si este es el caso. de la tabla  \@ref(tab:conttablindep) la probabilidad $P(Fem \cap F)=\frac{320}{1000}=$ `r 320/1000`. por otra parte, $P(Fem)=\frac{320+480}{1000}=$ `r (320+480)/1000` y $P(F)=\frac{80+320}{1000}=$ `r (320+80)/1000`, finalmente podemos observar que
+
+$$P(Fem \cap F)=P(Fem)P(F)$$
+$$0.32=0.8 \times 0.4$$
+
+Verificandose la regla \@ref(eq:A7) y concluyendo que el habito de fumar es independiente del genero femenino.
+
+Veamos otro ejemplo, esta vez en el estudio del control de calidad de las proteicas ortepedicas, reproducimos la tabla nuevamente por facilidad de lectura.
+
+```{r conttablz1rep2, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+res<-kable(t(table(z1)%>%addmargins),caption="Tabla de contingencia Fabrica vs Falla")
+kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_above(c("Falla","Fabrica"=3," "))
+# res<-t(table(z0)%>%addmargins)
+# knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
+```
+
+La pregunta en esta ocacion es si el evento de reprobar la prueba es independeinte del evento en que la protesis fue producida en la fabrica B. De nuevo, si estos eventos fueran independientes, entonces se cumpliria
+
+$$P(R \cap B)=P(R)P(B)$$
+
+Verifiquemos si la igualdad se cumple con los datos de la tabla \@ref(tab:conttablz1rep2): 
+
+* $P(R \cap B)=\frac{119}{1000}=$ `r 119/1000`
+* $P(R)=\frac{201}{1000}=$ `r 201/1000` y $P(B)=\frac{400}{1000}=$ `r 400/1000`
+* $P(R) \times P(B)= 0.201 \times 0.4=$ `r .201*.4`
+
+ya que la igualdad no se cumple (`r 119/1000` $\neq$ `r .201*.4`), se concluye que los eventos no son independientes. De hecho, la probabilidad $P(R|B)=\frac{119}{400}=$  `r 119/400` es mayor a la probabilidad marginal $P(R)=0.201$.
