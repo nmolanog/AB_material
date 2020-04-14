@@ -21,6 +21,7 @@ p_load(latex2exp)
 p_load(epitab)
 p_load(plotrix)
 p_load(graphics)
+p_load(latex2exp)
 set.seed(150)
 
 ```
@@ -527,3 +528,107 @@ Verifiquemos si la igualdad se cumple con los datos de la tabla \@ref(tab:contta
 * $P(R) \times P(B)= 0.201 \times 0.4=$ `r .201*.4`
 
 ya que la igualdad no se cumple (`r 119/1000` $\neq$ `r .201*.4`), se concluye que los eventos no son independientes. De hecho, la probabilidad $P(R|B)=\frac{119}{400}=$  `r 119/400` es mayor a la probabilidad marginal $P(R)=0.201$.
+
+### Axioma 8
+
+\begin{equation}
+Si \; A,B \subseteq U \Rightarrow P(A \cap B) = P(B|A)P(A)=P(A|B)P(B) (\#eq:A8)
+\end{equation}
+
+Esta regla da la formula para calcular la probabilidad de una interseccion sin importar si los eventos son o no independientes. Esta formula surge de la regla \@ref(eq:A6), puede usted corrovorarlo?
+
+Veamos algunos ejemplos del uso de esta regla. La probabilidad de desarrollar artritis reumatoide ($AR$) en mujeres es del 6% y el porcentage de mujeres (F) en la poblacion general es del 47%. Calcule cual es el porcentage de mujeres con AR.
+
+Solucion: el 6% reportado corresponde a $P(AR|F)=0.06$ y $P(F)=0.47$. El porcentage de mujeres con AR es $P(AR \cap F)$, luego aplicando la regla \@ref(eq:A8) se tiene que 
+
+$$P(AR \cap F)=P(AR|F)P(F)=0.06\times 0.47=0.0282$$
+
+Es decir que en la poblacion general el porcentage de mujeres con artritis reumatoide es del 2.82%.
+
+### Axioma 9
+
+\begin{equation}
+Si \; A,B \subseteq U \Rightarrow P(A|B) =\frac{P(B | A)P(A)}{P(B)} (\#eq:A9)
+\end{equation}
+
+Esta regla surge de las formulas \@ref(eq:A6) y \@ref(eq:A8) puede usted corrovorarlo? Veamos un ejemplo de su aplicacion.
+
+La probabilidad de desarrollar artritis reumatoide ($AR$) en mujeres es del 6% y el porcentage de mujeres (F) en la poblacion general es del 47%. Tambien se sabe que la probabilidad de desarrollar AR en la poblacion general es del 4%. Si se se tiene AR, cual es la probabilidad de ser una mujer?
+
+Solucion: el 6% reportado corresponde a $P(AR|F)=0.06$, el 47% corresponde a $P(F)=0.47$ y el 4% corresponde a $P(AR)=0.04$. Si se se tiene AR, la probabilidad de ser una mujer corresponde a $P(F|AR)$, aplicando la regla \@ref(eq:A9):
+
+$$P(F|AR)=\frac{P(AR|F)P(F)}{P(AR)}=\frac{0.06\times 0.47}{0.04}=0.705$$
+Es decir que si se tiene AR la rpobabilidad de ser mujer es del 70.5%.
+
+### Axioma 10: probabilidad total
+
+Para esta regla nesecitamos introducir primero el conepto de particion en teoria de conjuntos.
+
+#### Particion
+Se denomina particion a un grupo k de conjuntos $A_1,A_2,...,A_k$ si y solamente si satisfacen las dos siguientes propiedades:
+
+1. Para cualquier par de conjuntos $A_i,A_j$ donde $i\neq j$ se tiene que $A_i \cap A_j= \phi$
+2. La union de ls k conjuntos produce el universo, esto es $A_1 \cup A_2 \cup ... \cup A_k=U$
+
+Es decir que una particion es un grupo de conjuntos disyuntos cuya union es todo el universo. ver figura \@ref(fig:partition)
+
+```{r partition,echo=F,warning =F, fig.width=6, fig.height=6, fig.cap="Ejemplo de particion con 7 conjuntos"}
+plot(NULL,xlim=c(-10,15),ylim=c(-11,12.5),axes=F,xlab="",ylab="")
+rect(-10,-11,15,12,lwd=1.5)
+segments(-10,0,5,0)
+segments(5,-11,5,12)
+segments(-5,-11,-5,0)
+segments(0,0,0,12)
+segments(5,6,15,6)
+segments(11,-11,11,6)
+
+text(-9.8,12.9,"U",col=1,cex=1.5)
+text(-5,7,expression('A'[1]),col=1,cex=1.5)
+text(2.5,6,expression('A'[2]),col=1,cex=1.5)
+text(10,9.5,expression('A'[3]),col=1,cex=1.5)
+text(13,-2.5,expression('A'[4]),col=1,cex=1.5)
+text((5+11)/2,-2.5,expression('A'[5]),col=1,cex=1.5)
+text(0,-5,expression('A'[6]),col=1,cex=1.5)
+text(-7.5,-5,expression('A'[7]),col=1,cex=1.5)
+```
+Las particiones mas simples son aquellas generadas por un conjunto y su complemento. Note que $A$ Y $A^c$ generan una particion pues $A\cap A^c= \phi$ y $A \cup A^C=U$. Es decir que los conjuntos de enfermos y su complemento (los sanos) forman una particion, el conjunto de los hombres y su complemento (las mujeres) forman una particion.
+
+ahora que entendemos que es una particon poder presentar la regla 10:
+
+$$Si \; A_1,A_2,...,A_k \;es \;una \; particion \; y \; B\subseteq U \Rightarrow $$
+\begin{equation}
+P(B) =P(B|A_1)P(A_1)+P(B|A_2)P(A_2)+...+P(B|A_k)P(A_k) (\#eq:A10)
+\end{equation}
+
+
+```{r ptotal,echo=F,warning =F, fig.width=6, fig.height=6, fig.cap="Ejemplo de particion con 7 conjuntos"}
+plot(NULL,xlim=c(-10,15),ylim=c(-11,12.5),axes=F,xlab="",ylab="")
+rect(-10,-11,15,12,lwd=1.5)
+segments(-10,0,5,0)
+segments(5,-11,5,12)
+segments(-3,-11,-3,0)
+
+segments(5,2,15,2)
+
+
+draw.ellipse(2.5,0,11,8,border=2)
+
+text(-9.8,12.9,"U",col=1,cex=1.5)
+
+text(-7,8,expression('A'[1]),col=1,cex=1.5)
+text(10,9.5,expression('A'[2]),col=1,cex=1.5)
+text(10,-8,expression('A'[3]),col=1,cex=1.5)
+text(-1,-9.7,expression('A'[4]),col=1,cex=1.5)
+text(-8,-6,expression('A'[5]),col=1,cex=1.5)
+
+text(0,10,"B",col=2,cex=1.5)
+
+text(-.5,4,TeX("$A_1 \\bigcap B$"),col=4,cex=1.2)
+text(7.2,4,TeX("$A_2 \\bigcap B$"),col=4,cex=1.2)
+text(7.2,-4,TeX("$A_3 \\bigcap B$"),col=4,cex=1.2)
+text(-.6,-3,TeX("$A_4 \\bigcap B$"),col=4,cex=1.2)
+text(-5.5,-2.5,TeX("$A_5 \\bigcap B$"),col=4,cex=1.2)
+
+
+```
+
