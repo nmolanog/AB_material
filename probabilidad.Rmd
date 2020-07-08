@@ -224,7 +224,8 @@ El conjunto vacio tiene algunas propiedades, que presentamos a continuacion. Con
 
 * $\phi \cap A= \phi$
 
-##Propiedades generales de las operaciones de conjuntos
+## Propiedades generales de las operaciones de conjuntos
+
 A continuacion listamos algunas propieades generales que se surgen a partir de las definiciones de la _**Union**_ ,la  _**Interseccion**_ y el _**Complemento**_. Para esto considere dos conjuntos $A$ y $B$ cualquiera, incluidos en el universo $U$.
 
 * $A \cup U =U$
@@ -631,4 +632,64 @@ text(-5.5,-2.5,TeX("$A_5 \\bigcap B$"),col=4,cex=1.2)
 
 
 ```
+
+Veamos un ejemplo: en un estudio de prueba diagnostica para cancer, la probabilidad de que el test de positivo en enfermos es del 87.5% mientras que la probabilidad de que el test de positivo en sanos es del 3%. Tambien se sabe que la probabilidad de desarrollar el cancer es del 2%. Cual es la probabilidad de observar el test+ en la poblacion general? 
+
+Primero traduscamos la informacion dada en terminos de probabilidades de conjuntos: 
+
+* "la probabilidad de que el test de positivo en enfermos es del 87.5%". Esto se puede escribir como
+
+$$P(T+|CA)=0.875$$
+Donde $T+$ es el conjunto de las personas con test positivo y $CA$ es el conjunto de las personas enfermas con cancer.
+
+* "la probabilidad de que el test de positivo en sanos es del 3%". Esto se puede escribir como
+
+$$P(T+|CA^c)=0.03$$
+Donde $T+$ es el conjunto de las personas con test positivo y $CA^c$ es el complemento de las personas enfermas con cancer, es decir, las personas sanas.
+
+* "la probabilidad de desarrollar el cancer es del 2%":
+
+$$P(CA)=0.02$$
+
+Notese que de esto se deduce que $P(CA^c)=1-0.02=0.98$, es decir el 98% de la poblacion esta sana.
+
+* Finalmente, "Cual es la probabilidad de observar el test+ en la poblacion general?" equivale a 
+
+$$P(T+)=?$$
+Es lo que debemos calcular.
+
+En la figura \@ref(fig:ptotale1) se presenta una representacion grafica del problema.
+
+```{r ptotale1,echo=F,warning =F, fig.width=5, fig.height=4, fig.cap="Representacion grafica del ejemplo prueba diganostica en cancer"}
+plot(NULL,xlim=c(-10,15),ylim=c(-11,15.5),axes=F,xlab="",ylab="")
+rect(-10,-11,15,12,lwd=1.5)
+
+segments(5,-11,5,12)
+draw.ellipse(2.5,0,11,8,border=2)
+text(-5,13.7,expression("CA"^"c"),col=1,cex=1.5)
+text(10.5,13.6,"CA",col=1,cex=1.5)
+text(-5,9,"T+",col=2,cex=1.5)
+
+```
+
+
+usando la regla \@ref(eq:A10) podemos calcular $P(T+)$:
+
+$$P(T+)=P(T+|CA)P(CA)+P(T+|CA^c)P(CA^c)=$$
+$$P(T+)=(0.875 \times 0.02)+(0.03 \times 0.98)=0.0469$$
+Veamos otro ejemplo. Una empresa productora de protesis ortopedicas posee tres fabricas (F1,F2 y F3). Las cuotas de produccion de las fabricas 1 y 3 es del 45% y 15% respectivamente. La probabilidad de producir una protesis defectuosa en cada una de las fabricas es del 2%, 3% y 5% respectivamente. Bajo este sistema de produccion interesa saber cual sera la probabilidad total de produccion de protesis defectuosas.
+
+Solucion: empesaremos por traducir la informacion a probabilidades de conjuntos.
+
+* "Las cuotas de produccion de las fabricas 1 y 3 es del 45% y 15% respectivamente". Esto implica que $P(F1)=0.45$ y $P(F3)=0.15$. con base en esta informacion es claro que $P(F2)=1-(P(F1)+P(F3))=1-0.45-0.15=0.4$ (que regla justifica este calculo?)
+
+* "La probabilidad de producir una protesis defectuosa en cada una de las fabricas es del 2%, 3% y 5% respectivamente". Sea $D$ el evento en el que una protesis es defectuosa. Entonces la informacion dada corresponde a $P(D|F1)=0.02$, $P(D|F2)=0.03$ y $P(D|F3)=0.05$
+
+* "Bajo este sistema de produccion interesa saber cual sera la probabilidad total de produccion de protesis defectuosas." Es decir debemos calcular $P(D)$.
+
+usando la regla \@ref(eq:A10) podemos calcular $P(D)$:
+
+$$P(D)=P(D|F1)P(F1)+P(D|F2)P(F2)+P(D|F3)P(F3)=$$
+$$P(D)=(0.02 \times 0.45)+(0.03 \times 0.4)+(0.05 \times 0.15)=0.0285$$
+Es decir que con el sistema de produccion usando las tres fabricas, la probabilidad de producir una protesis defectuosa es del 2.85%.
 
