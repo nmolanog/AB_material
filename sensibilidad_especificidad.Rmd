@@ -1,0 +1,70 @@
+---
+title: "Analisis de pruebas diagnosticas"
+author: "Nicolás Molano González"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  bookdown::html_document2: default
+---
+```{r echo=F, message = FALSE, warning =F}
+###see https://bookdown.org/yihui/rmarkdown-cookbook/cross-ref.html for cross reference
+###see https://bookdown.org/yihui/bookdown/internationalization.html for _bookdown.yml
+rm(list=ls())
+list.of.packages <- c("pacman")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+library(pacman)
+p_load(tidyverse)
+p_load(kableExtra)
+p_load(knitr)
+p_load(ggbeeswarm)
+p_load(latex2exp)
+p_load(epitab)
+p_load(epiR)
+p_load(pROC)
+p_load(plotrix)
+p_load(graphics)
+p_load(latex2exp)
+set.seed(150)
+```
+
+# Introducción
+En este documento estudiaremos el analisis de pruebas diagnosticas, con enfasis en los significados probabilisticos de medidas como la sensibilidad y especificidad entre otros. Empezaremos nuestra discucion con un ejemplo.
+
+## Prueba diagnostica para cancer
+
+```{r echo=FALSE, results = 'asis',message = FALSE, warning =F}
+disp<-rnorm(744,9,2)
+disn<-rnorm(842,5,2)
+
+z0<-data.frame(score=c(disp,disn),Dis=c(rep("Dis+",length(disp)),rep("Dis-",length(disn))))
+mroc<-roc(z0[,"Dis"],z0[,"score"])
+best_coords<-coords(mroc, "best", ret=c("threshold", "specificity", "sensitivity"))
+z0$Test<-factor(ifelse(z0$score<best_coords$threshold,"Test-","Test+"))
+
+z0$Dis<-relevel(z0$Dis,ref="Dis+")
+z0$Test<-relevel(z0$Test,ref="Test+")
+z0<-data.frame(Id=1:nrow(z0),Dis=z0$Dis,Test=z0$Test,Score=z0$score)
+```
+
+
+Un estudainte de doctorado ha propuesto que la precencia de cierta molecula en la sangre es un buen predictor de la presencia de cancer en los pacientes. Para comprobar su hipotesis, el estudiante a desarrollado un experimento en el cual ha tomado muestras de sangre para `r length(disp)` enfermos de cancer (Dis+) y `r length(disn)` sujetos sanos (Dis-). En estas muestras de sangre el estudiante a corrido una prueba especializada de laboratorio para determinar la presencia (Test+) o ausencia (Test-) de la molecula en la sangre.
+
+El Estudiante sujiere que este estudio es importante ya que determinar la presencia o ausencia de la molecula (prueba que denominaremos como prueba diagnostica) es mucho mas economico, rapido y menos invasivo que las pruebas convencionales que se utilisan para diagnosticar el cancer (conjunto de pruebas que se asumen diagnostican la enfermedad sin error y que denominaremos como el estandar de oro). De tal forma que si los resultados de la prueba diagnostica son similares a los del estandar de oro, esta nueva prueba diagnostica podria usarse en ves del estandar de oro reduciondo costos, aumentando la velocidad de las pruebas y evitandole incomodidades al paciente.
+
+A continuacion presentamos una parte de la tabla de datos correspondiente a este experimento (tabla \@ref(tab:pdtab)):
+
+```{r pdtab, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+res<-kable(z0[sample(1:nrow(z0),10,replace =T),1:3],caption="Tabla de datos para el experimento de prueba diagnostica",row.names =F)
+kable_styling(res,"striped", position = "center",full_width = F)
+```
+La columna *Id* es un identificador del sujeto, la variable *Dis* determina si el sujeto tiene o no cancer segun el estandar de oro y la variable *Test* determina el resultado de la prueba diagnostica. Una primera aproximacion al analisis de este experimento sera construir una tabla de contingencia que relacione el estado del sujeto (Dis+ o Dis-) con los resultados de la prueba (Test+ o Test-), ver tabla \@ref(tab:contpdtab).
+
+```{r contpdtab, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+temp_table<-table(z0$Test,z0$Dis)
+res2<-kable((temp_table%>%addmargins),caption="Tabla de contingencia Dis vs Test")
+kable_styling(res2,"striped", position = "center",full_width = F)
+# res<-t(table(z0)%>%addmargins)
+# knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
+```
