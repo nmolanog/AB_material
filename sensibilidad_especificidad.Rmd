@@ -24,6 +24,7 @@ p_load(pROC)
 p_load(plotrix)
 p_load(graphics)
 p_load(latex2exp)
+
 set.seed(150)
 ```
 
@@ -68,3 +69,31 @@ kable_styling(res2,"striped", position = "center",full_width = F)
 # res<-t(table(z0)%>%addmargins)
 # knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
 ```
+
+Como ustedes podran saber, para este tipo de experimentos existen varios indices de resumen que evaluan la similaridad de la prueba diagnostica con respecto al estandar de oro y estos estan construidos en base a los valores de la tabla de contingencia descrita anteriormente, en la tabla \@ref(tab:pdmtrics) se presenta la nomenclatura de estos conteos.
+
+```{r pdmtrics, echo=FALSE, results = 'asis', message=FALSE}
+temp_table2<-matrix(c("TP","FN","FP","TN"),nrow = 2,dimnames = list(c("Dis+","Dis-"),c("Test+","Test-")))
+res22<-kable(temp_table2,caption="Tabla de contingencia para pruebas diagnosticas")
+kable_styling(res22,"striped", position = "center",full_width = F)
+```
+ Aqui, **TP** son los verdaderos positivos (true postive), **FN** falsos negativos (False negative), **FP** falsos positivos (False positive) y **TN** los verdaderos negativos (true negative). Para nuestro ejemplo tenemos que $TP=$ `r temp_table[1,1]`, $FN=$ `r temp_table[2,1]`, $FP=$ `r temp_table[1,2]`, $TN=$ `r temp_table[2,2]`.
+
+Con base en esta nomenclatura tenemos las siguientes definiciones:
+\begin{equation}
+Sensibilidad=\frac{TP}{TP+FN} (\#eq:sens)
+\end{equation}
+
+\begin{equation}
+Especificidad=\frac{TN}{FP+TN} (\#eq:esp)
+\end{equation}
+
+\begin{equation}
+Valor Predictivo Postivo= V.P.P=\frac{TP}{TP+FP} (\#eq:vpp)
+\end{equation}
+
+\begin{equation}
+Valor Predictivo Negativo= V.P.N=\frac{TN}{FN+TN} (\#eq:vpn)
+\end{equation}
+
+Estas ecuaciones parecen sospechosamente similares al calculo de ciertas probabilidades que estudiamos en el capitulo anterior, de hecho, estas cuatro formulas son en realidad probabilidades condicionales.
