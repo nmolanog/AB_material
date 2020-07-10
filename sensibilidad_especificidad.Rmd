@@ -4,6 +4,7 @@ author: "Nicolás Molano González"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   bookdown::html_document2: default
+bibliography: references.bib  
 ---
 ```{r echo=F, message = FALSE, warning =F}
 ###see https://bookdown.org/yihui/rmarkdown-cookbook/cross-ref.html for cross reference
@@ -73,7 +74,7 @@ kable_styling(res2,"striped", position = "center",full_width = F)
 Como ustedes podran saber, para este tipo de experimentos existen varios indices de resumen que evaluan la similaridad de la prueba diagnostica con respecto al estandar de oro y estos estan construidos en base a los valores de la tabla de contingencia descrita anteriormente, en la tabla \@ref(tab:pdmtrics) se presenta la nomenclatura de estos conteos.
 
 ```{r pdmtrics, echo=FALSE, results = 'asis', message=FALSE}
-temp_table2<-matrix(c("TP","FN","FP","TN"),nrow = 2,dimnames = list(c("Dis+","Dis-"),c("Test+","Test-")))
+temp_table2<-matrix(c("TP","FN","FP","TN"),nrow = 2,dimnames = list(c("Test+","Test-"),c("Dis+","Dis-")))
 res22<-kable(temp_table2,caption="Tabla de contingencia para pruebas diagnosticas")
 kable_styling(res22,"striped", position = "center",full_width = F)
 ```
@@ -97,3 +98,56 @@ Valor Predictivo Negativo= V.P.N=\frac{TN}{FN+TN} (\#eq:vpn)
 \end{equation}
 
 Estas ecuaciones parecen sospechosamente similares al calculo de ciertas probabilidades que estudiamos en el capitulo anterior, de hecho, estas cuatro formulas son en realidad probabilidades condicionales.
+
+# Metricas de diagnostico como probabilidades condicionales
+
+A continuacion demostraraemos que las cuatro metricas anteriormente definidas son en realidad probabilidades condicionales. Empesaremos por definir el tamaño total de la poblacion de estudio como
+
+\begin{equation}
+N=TP+FN+FP+TN (\#eq:nsize)
+\end{equation}
+
+## Sensibilidad
+
+La ecuacion \@ref(eq:sens) se puede reeescribir como 
+
+$$Sensibilidad=\frac{TP}{TP+FN}=\frac{\frac{TP}{N}}{\frac{TP+FN}{N}} =\frac{P(Test+ \cap  \; Dis+)}{P(Dis+)}= P(Test+|Dis+)$$
+
+Es decir que la sensibilidad corresponde a la probabilidad condicional de obtener un resultado postivo en la prueba diagnostica  dado que se esta verdaderamente enfermo.
+
+## Espesificidad
+
+La ecuacion \@ref(eq:esp) se puede reeescribir como 
+$$Especificidad=\frac{TN}{FP+TN}=\frac{\frac{TN}{N}}{\frac{FP+TN}{N}}=\frac{P(Test- \cap  \; Dis-)}{P(Dis-)}=P(Test-|Dis-)$$
+Es decir que la espesificidad corresponde a la probabilidad condicional de obtener un resultado negativo en la prueba diagnostica  dado que se esta verdaderamente sano.
+
+## Valor Predictivo Postivo
+
+La ecuacion \@ref(eq:vpp) se puede reeescribir como 
+$$V.P.P=\frac{TP}{TP+FP}=\frac{\frac{TP}{N}}{\frac{TP+FP}{N}}=\frac{P(Test+ \cap  \; Dis+)}{P(Test+)}=P(Dis+|Test+)$$
+
+Es decir que el V.P.P. corresponde a la probabilidad condicional de estar verdaderamente enfermo cuando la prueba arroja un resultado positivo. Aqui vale la pena destacar el caracter "predictivo" del indice. Se habla de prediccion ya que estamos interesados en conocer la probabilidad de estar verdaderamente enfermo (segun el estandar de oro) teniendo en cuenta que el resultado del test es positivo. Es decir, se esta evaluado la capacidad predictiva del test en pacientes enfermos.
+
+## Valor Predictivo Negativo
+
+La ecuacion \@ref(eq:vpn) se puede reeescribir como 
+$$V.P.N=\frac{TN}{FN+TN}=\frac{\frac{TN}{N}}{\frac{FN+TN}{N}}=\frac{P(Test- \cap  \; Dis-)}{P(Test-)}=P(Dis-|Test-)$$
+
+Es decir que el V.P.N. corresponde a la probabilidad condicional de estar verdaderamente sano cuando la prueba arroja un resultado positivo. Aqui vale la pena destacar el caracter "predictivo" del indice. Se habla de prediccion ya que estamos interesados en conocer la probabilidad de estar verdaderamente sano (segun el estandar de oro) teniendo en cuenta que el resultado del test es negativo. Es decir, se esta evaluado la capacidad predictiva del test en pacientes sanos.
+
+# Otras metricas de evaluacion de desempeño de una prueba diagnostica
+
+Existen otras metricas menos comunes para la evaluacion del desempeño de la prueba diagnostica, por ejemplo el Valor Predictivo Global o tambien denominado Presicion definida como
+
+\begin{equation}
+Valor Predictivo Global= V.P.G=\frac{TP+TN}{N} (\#eq:vpg)
+\end{equation}
+
+Esta metrica se puede interpretar como la probabilidad de acierto de la prueba diagnostica.
+
+Para conocer otros indices de evaluacion del desempeño de una prueba diagnostica remitase a @Hajian2013 y @Florkowski2008 por ejemplo.
+
+# Detalles de un estudio de prueba diagnostica
+
+# Bibliografia
+[comment]: <> (see https://bookdown.org/yihui/rmarkdown-cookbook/bibliography.html)
