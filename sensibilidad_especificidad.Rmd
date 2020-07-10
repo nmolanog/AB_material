@@ -38,16 +38,21 @@ En este documento estudiaremos el analisis de pruebas diagnosticas, con enfasis 
 disp<-rnorm(744,9,2)
 disn<-rnorm(842,5,2)
 
-z0<-data.frame(score=c(disp,disn),Dis=c(rep("Dis+",length(disp)),rep("Dis-",length(disn))))
-mroc<-roc(z0[,"Dis"],z0[,"score"])
+z0<-data.frame(cons=c(disp,disn),Dis=c(rep("Dis+",length(disp)),rep("Dis-",length(disn))))
+mroc<-roc(z0[,"Dis"],z0[,"cons"])
 best_coords<-coords(mroc, "best", ret=c("threshold", "specificity", "sensitivity"))
-z0$Test<-factor(ifelse(z0$score<best_coords$threshold,"Test-","Test+"))
+z0$Test<-factor(ifelse(z0$cons<best_coords$threshold,"Test-","Test+"))
 
 z0$Dis<-relevel(z0$Dis,ref="Dis+")
 z0$Test<-relevel(z0$Test,ref="Test+")
-z0<-data.frame(Id=1:nrow(z0),Dis=z0$Dis,Test=z0$Test,Score=z0$score)
+z0<-data.frame(Id=1:nrow(z0),Dis=z0$Dis,Test=z0$Test,cons=z0$cons)
+
+mincons<-min(z0$cons)
+maxcons<-max(z0$cons)
+examplumb<-seq(mincons,maxcons,length.out=5)%>%round(3)
 ```
 
+La variable **cons** es la consentracion de la molecula en la sangre de cada uno de los sujetos de prueba. Ahora el investigador se enfrenta a una pregunta fundamental: ¿Cual sera el valor humbral adecuado para determinar si el test se considera Positivo o Negativo?
 
 Un estudainte de doctorado ha propuesto que la precencia de cierta molecula en la sangre es un buen predictor de la presencia de cancer en los pacientes. Para comprobar su hipotesis, el estudiante a desarrollado un experimento en el cual ha tomado muestras de sangre para `r length(disp)` enfermos de cancer (Dis+) y `r length(disn)` sujetos sanos (Dis-). En estas muestras de sangre el estudiante a corrido una prueba especializada de laboratorio para determinar la presencia (Test+) o ausencia (Test-) de la molecula en la sangre.
 
@@ -90,11 +95,11 @@ Especificidad=\frac{TN}{FP+TN} (\#eq:esp)
 \end{equation}
 
 \begin{equation}
-Valor Predictivo Postivo= V.P.P=\frac{TP}{TP+FP} (\#eq:vpp)
+Valor\; Predictivo\; Postivo= V.P.P=\frac{TP}{TP+FP} (\#eq:vpp)
 \end{equation}
 
 \begin{equation}
-Valor Predictivo Negativo= V.P.N=\frac{TN}{FN+TN} (\#eq:vpn)
+Valor\; Predictivo\; Negativo= V.P.N=\frac{TN}{FN+TN} (\#eq:vpn)
 \end{equation}
 
 Estas ecuaciones parecen sospechosamente similares al calculo de ciertas probabilidades que estudiamos en el capitulo anterior, de hecho, estas cuatro formulas son en realidad probabilidades condicionales.
@@ -140,7 +145,7 @@ Es decir que el V.P.N. corresponde a la probabilidad condicional de estar verdad
 Existen otras metricas menos comunes para la evaluacion del desempeño de la prueba diagnostica, por ejemplo el Valor Predictivo Global o tambien denominado Presicion definida como
 
 \begin{equation}
-Valor Predictivo Global= V.P.G=\frac{TP+TN}{N} (\#eq:vpg)
+Valor\; Predictivo\; Global= V.P.G=\frac{TP+TN}{N} (\#eq:vpg)
 \end{equation}
 
 Esta metrica se puede interpretar como la probabilidad de acierto de la prueba diagnostica.
@@ -149,5 +154,58 @@ Para conocer otros indices de evaluacion del desempeño de una prueba diagnostic
 
 # Detalles de un estudio de prueba diagnostica
 
+Retomando nuestro ejemplo de prueba diagnostica para cancer, la prueba propuesta consiste en la deteccion de una molecula en la sangre de los sujetos de prueba. Sin embargo, la prueba de laboratorio que se realiza para detectar esta molecula en la sangre de los pacientes no arroja un valor dicotomico como "+" o "-", en realidad arroja una consentracion de la molecula en la sangre, es decir que la verdadera tabla del estudio se ve de esta manera:
+
+```{r pdtabtrue, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+resT<-kable(z0[sample(1:nrow(z0),10,replace =T),c(1:2,4)],caption="Tabla de datos para el experimento de prueba diagnostica",row.names =F)
+kable_styling(resT,"striped", position = "center",full_width = F)
+```
+
+Para este caso el valor minimo de la consentracion es `r mincons%>%round(3)` y  el maximo es `r maxcons%>%round(3)`. Esto implica que el investigador debe buscar un numero umbral entre `r mincons%>%round(3)` y  `r maxcons%>%round(3)` para el cual concentraciondes menores a ese umbral determinaran valores negativos de la prueba y complementariametne valores de concentracion superiores a ese umbral determinara un valor positivo en la prueba. Tomemos por ejemplo los siguintes umbrales: `r examplumb` y veamos como se ven los valores de positividad del test en funcion de estos umbrales:
+
+```{r pdtabtrueUMB, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+
+for(i in seq_along(examplumb)){
+  z0[,paste0("Um_",i)]<-factor(ifelse(z0$cons<examplumb[i],"Test-","Test+"),levels = c("Test+","Test-"))
+}
+resTUMB<-kable(z0[sample(1:nrow(z0),10,replace =T),c(-3)],caption="Tabla de datos para con resultados del test para diferentes umbrales",row.names =F)
+kable_styling(resTUMB,"striped", position = "center",full_width = F)
+```
+
+donde `r paste0("Um_",1:5," = ",examplumb)`. Notese que, para el primer umbral, todos los resultados son pòsitivos mietras que, para el ultimo umbral todos los resultados son negativos. Claramente para cada umbral se genera una tabla de contingencia (ver \@ref(tab:contresumb)) para la cual se pueden calcular todoas las metricas de desempeño de pruebas diagnosticas (ver \@ref(tab:contresumbdes)).
+
+```{r contresumb, echo=FALSE}
+cont_tabl_list<-list()
+ana_list<-list()
+for(i in paste0("Um_",1:5)){
+  cont_tabl_list[[i]]<-table(z0[,i],z0$Dis)
+  
+  ana_list[[i]]<-epi.tests(cont_tabl_list[[i]])
+}
+
+desp_df<-paste0("Um_",1:5)%>%map_df(function(x){
+  data.frame(Umb=x,Sens=ana_list[[x]]$rval$se$est,Esp=ana_list[[x]]$rval$sp$est,vpp=ana_list[[x]]$rval$ppv$est,vpn=ana_list[[x]]$rval$npv$est,vpg=ana_list[[x]]$rval$diag.acc$est)
+})
+
+cont_tblUMB<-cont_tabl_list%>%reduce(rbind)%>%{cbind(.,UM=rep(paste0("Um_",1:5),each=2))}
+resCTUMB<-kable(cont_tblUMB,caption="Tablas de contingencia para diferentes umbrales",row.names =T)
+kable_styling(resCTUMB,"striped",full_width = F,position = "center")
+
+```
+
+```{r contresumbdes, echo=FALSE}
+
+depCTUMB<-kable(desp_df,caption="Metricas de desempeño para diferentes umbrales",row.names =T)
+kable_styling(depCTUMB,"striped",full_width = F,position = "center")
+
+```
+
+Teniendo esto en cuenta, podria proponer usted cual seria el mejor valor de los 5 umbrales estudiados?
+
+# Espacio ROC
+
+  
 # Bibliografia
 [comment]: <> (see https://bookdown.org/yihui/rmarkdown-cookbook/bibliography.html)
