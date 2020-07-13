@@ -22,6 +22,7 @@ p_load(ggrepel)
 p_load(latex2exp)
 p_load(epitab)
 p_load(epiR)
+p_load(ROCR)
 p_load(pROC)
 p_load(plotrix)
 p_load(graphics)
@@ -238,7 +239,101 @@ Relacione los puntos en el espacio ROC con los valores de sensibilidad y especif
 * **B** corresponde a 100% sensibilidad y 100% especifisidad
 * **C** corresponde a 100% sensibilidad y 0% especifisidad
 
-Claramente deseamos estar lo mas cerca posible del punto B en donde la prueba diagnositca coinside 100% con el estandar de oro. Este es de hecho un de los criterios para buscar el mejor umbral: econtrar el valor de umbral para el cual se esta mas cerca de la esquina superior izquierda del plano cartesiano del espacio ROC.
+Claramente deseamos estar lo mas cerca posible del punto B en donde la prueba diagnositca coinside 100% con el estandar de oro. Este es de hecho un de los criterios para buscar el mejor umbral: econtrar el valor de umbral para el cual se esta mas cerca de la esquina superior izquierda del plano cartesiano del espacio ROC. Estos calculos son computacionalemnte intensivos y por lo general son realizados por programas hechos a medida para tal fin. En la figura \@ref(fig:rocg2) presentamos la curva ROC para la prueba diagnostica de cancer, el valor de corte optimo para la consentracion de la molecula estudiada y su respecitva sensibilidad y espesificidad.
+
+<center>
+```{r rocg2, message = FALSE, warning =F, echo=F, fig.width=4, fig.height=4, fig.cap="Curva ROC para prueba diagnostica de cancer"}
+pred_Dis <- prediction(z0[,"cons"],z0[,"Dis"])
+perf_Dis  <- performance(pred_Dis,"tpr","fpr")
+mroc<-roc(z0[,"Dis"],z0[,"cons"])
+optimal_cut<-coords(mroc, "best", ret=c("threshold", "specificity", "sensitivity"))
+
+plot(perf_Dis,colorize=TRUE, main="ROC",ylab="Sens",xlab="1-Esp")
+points(1-optimal_cut[2],optimal_cut[3])
+text(1-optimal_cut[2]+.2,optimal_cut[3], paste0("cons: ",round(optimal_cut[1],2)))
+text(1-optimal_cut[2]+.3,optimal_cut[3]-.1, paste0("Sens: ",round(optimal_cut[3],2),", Spec: ",round(optimal_cut[2],2)))
+```
+</center>
+
+# Comparacion de multiples pruebas diagnosticas
+
+La curva ROC tiene otros usos, ademas del visto anteriormente: encontrar el mejor umbral para construir una prueba diagnostica. La curva ROC puede ser usada tambien para comparar y evaluar el desempeño de multiples pruebas diagnosticas. Suponga que ahora tenemos 3 moleculas (m1,m2 y m3) que compiten para ser la prueba diagnostica para cancer. En la figura \@ref(fig:rocg3)A presentamos sus curvas ROC respectivas.
+<center>
+```{r rocg3, message = FALSE, warning =F, echo=F, fig.width=8, fig.height=4, fig.cap="Comparacion de curvas ROC"}
+z1<-z0[,c("Id","Dis","cons")]
+colnames(z1)[colnames(z1) %in% "cons"]<-"m1"
+
+z1$m2<-NA
+z1[z1$Dis %in% "Dis+","m2"]<-rnorm(length(z1[z1$Dis %in% "Dis+","Dis"]),10,3)
+z1[z1$Dis %in% "Dis-","m2"]<-rnorm(length(z1[z1$Dis %in% "Dis-","Dis"]),5,4)
+
+z1$m3<-NA
+z1[z1$Dis %in% "Dis+","m3"]<-rnorm(length(z1[z1$Dis %in% "Dis+","Dis"]),10,3)
+z1[z1$Dis %in% "Dis-","m3"]<-rnorm(length(z1[z1$Dis %in% "Dis-","Dis"]),4,2)
+
+
+m1<-9
+v1<-11
+m2<-7
+v2<-5
+
+a2<-(m2^2)/v2
+a1<-(m1^2)/v1
+b2<-v2/m1
+b1<-v1/m1
+z1$m4<-NA
+z1[z1$Dis %in% "Dis+","m4"]<-rgamma(length(z1[z1$Dis %in% "Dis+","Dis"]),shape=a1,scale=b1)
+z1[z1$Dis %in% "Dis-","m4"]<-rgamma(length(z1[z1$Dis %in% "Dis-","Dis"]),shape=a2,scale=b2)
+
+pred1 <- prediction(z1$m1,z1$Dis)
+pred2 <- prediction(z1$m2,z1$Dis)
+pred3 <- prediction(z1$m3,z1$Dis)
+pred4 <- prediction(z1$m4,z1$Dis)
+perf1 <- performance(pred1, "tpr", "fpr" )
+perf2 <- performance(pred2, "tpr", "fpr")
+perf3 <- performance(pred3, "tpr", "fpr")
+perf4 <- performance(pred4, "tpr", "fpr")
+
+par(mfrow=c(1,2))
+plot(perf1, colorize = F,ylab="Sens",xlab="1-Esp",col=1,main="A)")
+plot(perf2, add = TRUE, colorize = F,col=2)
+plot(perf3, add = TRUE, colorize = F,col=3)
+legend(x=.6,y=.4,legend=paste0("m",1:3),lty = 1,col=1:3)
+
+plot(perf2, colorize = F,ylab="Sens",xlab="1-Esp",col=2,main="B)")
+plot(perf4, add = TRUE, colorize = F,col=4)
+legend(x=.6,y=.4,legend=paste0("m",c(2,4)),lty = 1,col=c(2,4))
+
+```
+</center>
+
+Debemos recordar que entre mas cerca se esta de la esquina superior izquierda, mejor es el desempeño de la prueba diagnostica (al menos en terminos de sensibilidad y especificidad). Teniendo en cuenta esto, las curvas de la figura \@ref(fig:rocg3)A se ordenan, en orden de desempeño, de la siguiente forma: m3,m1 y m2, siendo m3 la molecula con mejor desempeño y m2 la de peor desempeño. Sin embargo, las comparaciones no siempre son tan faciles. Estudiemos el caso de la figura \@ref(fig:rocg3)B.
+
+Estas dos curvas tienen regiones en donde una es superior a la otra: para valores de $1-Esp$, entre $0$ y $2$ (es decir entre valores de $Esp$ de $0.8$ y $1$) la curva de la molecula 4 esta por ensima de la curva de la molecula 2, mientras que en valores de $Sens$ de $0.75$ a $1$ la curva de la molecula 2 esta por ensima de la curva de la molecula 4 (ver \@ref(fig:rocg3)B). Si se tuviera que escojer exclusivamente entre las moleculas 2 y 4 cual escogeria Usted? La respuesta es un *"depende"*. Claramente la molecula 2 tiene un mejor desempeño en sensibilidad, mientras que la molecula 4 tiene un mejor desempeño en terminos de especificidad. 
+
+Suponga que el tratamiento para la enfermedad en cuestion, no tiene efectos secundarios importantes para personas sanas, en ese caso seria adecuado usar la molecula 2 como prueba diagnostica ya que garantiza una alta sensibilidad, sin embargo su menor especificidad (es decir que se diagnosticaran mas sanos como enfermos) no tendra implicaciones importantes en la salud de los pacientes realmente sanos. Esto es pensando que aquellos pacientes realmente sanos que se diagnostican, segun la prueba diagnostica, como enfermos recibiran el tratamiento cuando realmente no lo nesecitan, y como este tratamiento es inocuo para ellos, bien vale la pena correr ese riesgo.
+
+Sin embargo, si el tratamiento es costoso, invasivo y presenta importantes efectos secundarios, existira la preocupacion de exponer a sujetos sanos a dicho tratamiento, por lo cual se preferira no equivocarse con ellos y por ende, se optaria por la molecula 4, que garantiza una mayor especificidad, claro esta, a costa de un menor sensibilidad.
+
+Como se puede apreciar, la seleccion de la molecula 2 o 4 dependera de los riesgos y costos asociados al tratamiento de la enfermedad, consideraciones que llevan al objetivo de maximizar la senseibilidad o la especificidad en uno y otro caso.
+
+# Area bajo la curva ROC
+
+Como vimos en la seccion anterior, entre mas cerca este la curva ROC de la esquina superior izquierda, mejor es el desempeño de la prueba diagnostica. Sin embargo no siempre es facil dicernir que curva esta mas cerca que otra, como lo observamos en el caso de la figura \@ref(fig:rocg3)B. Es nesezario entonces tener un valor objetivo de que tan cerca se esta de la esquina superior derecha, y para esto se puede usar el area bajo la curva ROC (AUC por sus siglas en ingles). Un clasificador perfecto tendria una curva triangular con un area bajo la curva de 1 (el area total de cuadrado delimitado por 1 de $Sens$ y 1 de $1- Esp$). Asi que enves de comparar las curvas graficamente, se puede comparar sus areas bajo la curva, que es mucho mas facil. Veamos los valores del area bajo la curva para las 4 moleculas estudiadas anteriormente:
+
+```{r AUCtbl, echo=FALSE}
+auc_m1 <- performance(pred1, measure = "auc")@y.values[[1]]
+auc_m2 <- performance(pred2, measure = "auc")@y.values[[1]]
+auc_m3 <- performance(pred3, measure = "auc")@y.values[[1]]
+auc_m4 <- performance(pred4, measure = "auc")@y.values[[1]]
+auc_res<-data.frame(molecula=paste0("m",1:4),AUC=c(auc_m1,auc_m2,auc_m3,auc_m4))
+AUCkab<-kable(auc_res[order(auc_res$AUC),],caption="AUC para las 4 moleculas",row.names =F)
+kable_styling(AUCkab,"striped",full_width = F,position = "center")
+
+```
+
+Al evaluar el AUC para las cuatro moleculas, vemos que la molecula 3 tiene la mayor area (en concordancia con nuestra previa inspeccion grafica). Tambien podemos observar que las diferencias en terminos de area entre las moleculas 2 y 4 es bastante pequeña (`r abs(auc_m2-auc_m4)`), siendo la molecula 2 aquella con mayor area entre las 2. Sin embargo para esta diferencia tan pequeña podemos considerar que tienen un AUC similar, validando la desicion del uso de la molecula 2 o 4 en el razonamiento de riesgo anteriormente mencionado.
+
 
 # Bibliografia
 [comment]: <> (see https://bookdown.org/yihui/rmarkdown-cookbook/bibliography.html)
