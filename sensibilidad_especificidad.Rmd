@@ -1,5 +1,5 @@
 ---
-title: "Analisis de pruebas diagnosticas"
+title: "Análisis de pruebas diagnosticas"
 author: "Nicolás Molano González"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
@@ -27,65 +27,57 @@ p_load(pROC)
 p_load(plotrix)
 p_load(graphics)
 p_load(latex2exp)
-
 set.seed(150)
 ```
 
 # Introducción
-En este documento estudiaremos el analisis de pruebas diagnosticas, con enfasis en los significados probabilisticos de medidas como la sensibilidad y especificidad entre otros. Empezaremos nuestra discucion con un ejemplo.
+En este documento estudiaremos el análisis de pruebas diagnósticas, con énfasis en los significados probabilísticos de medidas como la sensibilidad y especificidad entre otros. Empezaremos nuestra discusión con un ejemplo.
 
-## Prueba diagnostica para cancer
+## Prueba diagnóstica para cáncer
 
 ```{r echo=FALSE, results = 'asis',message = FALSE, warning =F}
 disp<-rnorm(744,9,2)
 disn<-rnorm(842,5,2)
-
 z0<-data.frame(cons=c(disp,disn),Dis=c(rep("Dis+",length(disp)),rep("Dis-",length(disn))))
 mroc<-roc(z0[,"Dis"],z0[,"cons"])
 best_coords<-coords(mroc, "best", ret=c("threshold", "specificity", "sensitivity"))
 z0$Test<-factor(ifelse(z0$cons<best_coords$threshold,"Test-","Test+"))
-
 z0$Dis<-relevel(z0$Dis,ref="Dis+")
 z0$Test<-relevel(z0$Test,ref="Test+")
 z0<-data.frame(Id=1:nrow(z0),Dis=z0$Dis,Test=z0$Test,cons=z0$cons)
-
 mincons<-min(z0$cons)
 maxcons<-max(z0$cons)
 examplumb<-seq(mincons,maxcons,length.out=5)%>%round(3)
 ```
 
-La variable **cons** es la consentracion de la molecula en la sangre de cada uno de los sujetos de prueba. Ahora el investigador se enfrenta a una pregunta fundamental: ¿Cual sera el valor humbral adecuado para determinar si el test se considera Positivo o Negativo?
+Un estudiante de doctorado ha propuesto que la presencia de cierta molécula en la sangre es un buen predictor de la presencia de cáncer en los pacientes. Para comprobar su hipótesis, el estudiante ha desarrollado un experimento en el cual ha tomado muestras de sangre para `r length(disp)` enfermos de cancer (Dis+) y `r length(disn)` sujetos sanos (Dis-). En estas muestras de sangre el estudiante ha corrido una prueba especializada de laboratorio para determinar la presencia (Test+) o ausencia (Test-) de la molécula en la sangre.
 
-Un estudainte de doctorado ha propuesto que la precencia de cierta molecula en la sangre es un buen predictor de la presencia de cancer en los pacientes. Para comprobar su hipotesis, el estudiante a desarrollado un experimento en el cual ha tomado muestras de sangre para `r length(disp)` enfermos de cancer (Dis+) y `r length(disn)` sujetos sanos (Dis-). En estas muestras de sangre el estudiante a corrido una prueba especializada de laboratorio para determinar la presencia (Test+) o ausencia (Test-) de la molecula en la sangre.
+El Estudiante sugiere que este estudio es importante ya que determinar la presencia o ausencia de la molécula (prueba que denominaremos como prueba diagnóstica) es mucho más económico, rápido y menos invasivo que las pruebas convencionales que se utilizan para diagnosticar el cáncer (conjunto de pruebas que se asumen diagnostican la enfermedad sin error y que denominaremos como el estándar de oro). De tal forma que, si los resultados de la prueba diagnóstica son similares a los del estándar de oro, esta nueva prueba diagnóstica podría usarse en ves del estándar de oro, reduciendo costos, aumentando la velocidad de las pruebas y evitándole incomodidades al paciente.
 
-El Estudiante sujiere que este estudio es importante ya que determinar la presencia o ausencia de la molecula (prueba que denominaremos como prueba diagnostica) es mucho mas economico, rapido y menos invasivo que las pruebas convencionales que se utilisan para diagnosticar el cancer (conjunto de pruebas que se asumen diagnostican la enfermedad sin error y que denominaremos como el estandar de oro). De tal forma que si los resultados de la prueba diagnostica son similares a los del estandar de oro, esta nueva prueba diagnostica podria usarse en ves del estandar de oro reduciondo costos, aumentando la velocidad de las pruebas y evitandole incomodidades al paciente.
-
-A continuacion presentamos una parte de la tabla de datos correspondiente a este experimento (tabla \@ref(tab:pdtab)):
+A continuación presentamos una parte de la tabla de datos correspondiente a este experimento (tabla \@ref(tab:pdtab)):
 
 ```{r pdtab, echo=FALSE}
 ###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
-res<-kable(z0[sample(1:nrow(z0),10,replace =T),1:3],caption="Tabla de datos para el experimento de prueba diagnostica",row.names =F)
+res<-kable(z0[sample(1:nrow(z0),10,replace =T),1:3],caption="Tabla de datos para el experimento de prueba diagnóstica",row.names =F)
 kable_styling(res,"striped", position = "center",full_width = F)
 ```
-La columna *Id* es un identificador del sujeto, la variable *Dis* determina si el sujeto tiene o no cancer segun el estandar de oro y la variable *Test* determina el resultado de la prueba diagnostica. Una primera aproximacion al analisis de este experimento sera construir una tabla de contingencia que relacione el estado del sujeto (Dis+ o Dis-) con los resultados de la prueba (Test+ o Test-), ver tabla \@ref(tab:contpdtab).
+La columna *Id* es un identificador del sujeto, la variable *Dis* determina si el sujeto tiene o no cáncer según el estándar de oro y la variable *Test* determina el resultado de la prueba diagnóstica. Una primera aproximación al análisis de este experimento será construir una tabla de contingencia que relacione el estado del sujeto (Dis+ o Dis-) con los resultados de la prueba (Test+ o Test-), ver tabla \@ref(tab:contpdtab).
 
 ```{r contpdtab, echo=FALSE}
 ###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
 temp_table<-table(z0$Test,z0$Dis)
 res2<-kable((temp_table%>%addmargins),caption="Tabla de contingencia Dis vs Test")
 kable_styling(res2,"striped", position = "center",full_width = F)
-# res<-t(table(z0)%>%addmargins)
-# knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
 ```
 
-Como ustedes podran saber, para este tipo de experimentos existen varios indices de resumen que evaluan la similaridad de la prueba diagnostica con respecto al estandar de oro y estos estan construidos en base a los valores de la tabla de contingencia descrita anteriormente, en la tabla \@ref(tab:pdmtrics) se presenta la nomenclatura de estos conteos.
+Como ustedes podrán saber, para este tipo de experimentos existen varios índices de resumen que evalúan la similaridad de la prueba diagnóstica con respecto al estándar de oro y estos están construidos en base a los valores de la tabla de contingencia descrita anteriormente, en la tabla \@ref(tab:pdmtrics) se presenta la nomenclatura de estos conteos.
 
 ```{r pdmtrics, echo=FALSE, results = 'asis', message=FALSE}
 temp_table2<-matrix(c("TP","FN","FP","TN"),nrow = 2,dimnames = list(c("Test+","Test-"),c("Dis+","Dis-")))
-res22<-kable(temp_table2,caption="Tabla de contingencia para pruebas diagnosticas")
+res22<-kable(temp_table2,caption="Tabla de contingencia para pruebas diagnósticas")
 kable_styling(res22,"striped", position = "center",full_width = F)
 ```
- Aqui, **TP** son los verdaderos positivos (true postive), **FN** falsos negativos (False negative), **FP** falsos positivos (False positive) y **TN** los verdaderos negativos (true negative). Para nuestro ejemplo tenemos que $TP=$ `r temp_table[1,1]`, $FN=$ `r temp_table[2,1]`, $FP=$ `r temp_table[1,2]`, $TN=$ `r temp_table[2,2]`.
+ Aqui, **TP** son los verdaderos positivos (True Postive), **FN** falsos negativos (False Negative), **FP** falsos positivos (False Positive) y **TN** los verdaderos negativos (True Negative). Para nuestro ejemplo tenemos que $TP=$ `r temp_table[1,1]`, $FN=$ `r temp_table[2,1]`, $FP=$ `r temp_table[1,2]`, $TN=$ `r temp_table[2,2]`.
 
 Con base en esta nomenclatura tenemos las siguientes definiciones:
 \begin{equation}
@@ -104,11 +96,11 @@ Valor\; Predictivo\; Postivo= V.P.P=\frac{TP}{TP+FP} (\#eq:vpp)
 Valor\; Predictivo\; Negativo= V.P.N=\frac{TN}{FN+TN} (\#eq:vpn)
 \end{equation}
 
-Estas ecuaciones parecen sospechosamente similares al calculo de ciertas probabilidades que estudiamos en el capitulo anterior, de hecho, estas cuatro formulas son en realidad probabilidades condicionales.
+Estas ecuaciones parecen sospechosamente similares al cálculo de ciertas probabilidades que estudiamos en el capítulo anterior, de hecho, estas cuatro formulas son en realidad probabilidades condicionales.
 
-# Metricas de diagnostico como probabilidades condicionales
+# Métricas de diagnóstico como probabilidades condicionales
 
-A continuacion demostraraemos que las cuatro metricas anteriormente definidas son en realidad probabilidades condicionales. Empesaremos por definir el tamaño total de la poblacion de estudio como
+A continuación, demostraremos que las cuatro métricas anteriormente definidas son en realidad probabilidades condicionales. Empezaremos por definir el tamaño total de la población de estudio como
 
 \begin{equation}
 N=TP+FN+FP+TN (\#eq:nsize)
@@ -116,67 +108,67 @@ N=TP+FN+FP+TN (\#eq:nsize)
 
 ## Sensibilidad
 
-La ecuacion \@ref(eq:sens) se puede reeescribir como 
+La ecuación \@ref(eq:sens) se puede reescribir como 
 
 $$Sensibilidad=\frac{TP}{TP+FN}=\frac{\frac{TP}{N}}{\frac{TP+FN}{N}} =\frac{P(Test+ \cap  \; Dis+)}{P(Dis+)}= P(Test+|Dis+)$$
 
-Es decir que la sensibilidad corresponde a la probabilidad condicional de obtener un resultado postivo en la prueba diagnostica  dado que se esta verdaderamente enfermo.
+Es decir que la sensibilidad corresponde a la probabilidad condicional de obtener un resultado positivo en la prueba diagnóstica dado que se está verdaderamente enfermo.
 
-## Espesificidad
+## Especificidad
 
-La ecuacion \@ref(eq:esp) se puede reeescribir como 
+La ecuación \@ref(eq:esp) se puede reescribir como 
 $$Especificidad=\frac{TN}{FP+TN}=\frac{\frac{TN}{N}}{\frac{FP+TN}{N}}=\frac{P(Test- \cap  \; Dis-)}{P(Dis-)}=P(Test-|Dis-)$$
-Es decir que la espesificidad corresponde a la probabilidad condicional de obtener un resultado negativo en la prueba diagnostica  dado que se esta verdaderamente sano.
+Es decir que la especificidad corresponde a la probabilidad condicional de obtener un resultado negativo en la prueba diagnóstica dado que se está verdaderamente sano.
 
 ## Valor Predictivo Postivo
 
-La ecuacion \@ref(eq:vpp) se puede reeescribir como 
+La ecuación \@ref(eq:vpp) se puede reescribir como 
 $$V.P.P=\frac{TP}{TP+FP}=\frac{\frac{TP}{N}}{\frac{TP+FP}{N}}=\frac{P(Test+ \cap  \; Dis+)}{P(Test+)}=P(Dis+|Test+)$$
 
-Es decir que el V.P.P. corresponde a la probabilidad condicional de estar verdaderamente enfermo cuando la prueba arroja un resultado positivo. Aqui vale la pena destacar el caracter "predictivo" del indice. Se habla de prediccion ya que estamos interesados en conocer la probabilidad de estar verdaderamente enfermo (segun el estandar de oro) teniendo en cuenta que el resultado del test es positivo. Es decir, se esta evaluado la capacidad predictiva del test en pacientes enfermos.
+Es decir que el V.P.P. corresponde a la probabilidad condicional de estar verdaderamente enfermo cuando la prueba arroja un resultado positivo. Aquí vale la pena destacar el carácter "predictivo" del índice. Se habla de predicción ya que estamos interesados en conocer la probabilidad de estar verdaderamente enfermo (según el estándar de oro) teniendo en cuenta que el resultado del test es positivo. Es decir, se está evaluado la capacidad predictiva del test en pacientes enfermos.
 
 ## Valor Predictivo Negativo
 
-La ecuacion \@ref(eq:vpn) se puede reeescribir como 
+La ecuación \@ref(eq:vpn) se puede reescribir como 
 $$V.P.N=\frac{TN}{FN+TN}=\frac{\frac{TN}{N}}{\frac{FN+TN}{N}}=\frac{P(Test- \cap  \; Dis-)}{P(Test-)}=P(Dis-|Test-)$$
 
-Es decir que el V.P.N. corresponde a la probabilidad condicional de estar verdaderamente sano cuando la prueba arroja un resultado positivo. Aqui vale la pena destacar el caracter "predictivo" del indice. Se habla de prediccion ya que estamos interesados en conocer la probabilidad de estar verdaderamente sano (segun el estandar de oro) teniendo en cuenta que el resultado del test es negativo. Es decir, se esta evaluado la capacidad predictiva del test en pacientes sanos.
+Es decir que el V.P.N. corresponde a la probabilidad condicional de estar verdaderamente sano cuando la prueba arroja un resultado positivo. Aquí vale la pena destacar el carácter "predictivo" del índice. Se habla de predicción ya que estamos interesados en conocer la probabilidad de estar verdaderamente sano (según el estándar de oro) teniendo en cuenta que el resultado del test es negativo. Es decir, se está evaluado la capacidad predictiva del test en pacientes sanos.
 
-# Otras metricas de evaluacion de desempeño de una prueba diagnostica
+# Otras métricas de evaluación de desempeño de una prueba diagnostica
 
-Existen otras metricas menos comunes para la evaluacion del desempeño de la prueba diagnostica, por ejemplo el Valor Predictivo Global o tambien denominado Presicion definida como
+Existen otras métricas menos comunes para la evaluación del desempeño de la prueba diagnóstica, por ejemplo el Valor Predictivo Global o también denominado Precisión definida como
 
 \begin{equation}
 Valor\; Predictivo\; Global= V.P.G=\frac{TP+TN}{N} (\#eq:vpg)
 \end{equation}
 
-Esta metrica se puede interpretar como la probabilidad de acierto de la prueba diagnostica.
+Esta métrica se puede interpretar como la probabilidad de acierto de la prueba diagnóstica.
 
-Para conocer otros indices de evaluacion del desempeño de una prueba diagnostica remitase a @Hajian2013 y @Florkowski2008 por ejemplo.
+Para conocer otros índices de evaluación del desempeño de una prueba diagnóstica remítase a @Hajian2013 y @Florkowski2008 por ejemplo.
 
 # Detalles de un estudio de prueba diagnostica
 
-Retomando nuestro ejemplo de prueba diagnostica para cancer, la prueba propuesta consiste en la deteccion de una molecula en la sangre de los sujetos de prueba. Sin embargo, la prueba de laboratorio que se realiza para detectar esta molecula en la sangre de los pacientes no arroja un valor dicotomico como "+" o "-", en realidad arroja una consentracion de la molecula en la sangre, es decir que la verdadera tabla del estudio se ve de esta manera:
+Retomando nuestro ejemplo de prueba diagnóstica para cáncer, la prueba propuesta consiste en la detección de una molécula en la sangre de los sujetos de prueba. Sin embargo, la prueba de laboratorio que se realiza para detectar esta molécula en la sangre de los pacientes no arroja un valor dicotómico como "+" o "-", en realidad arroja una concentración de la molécula en la sangre, es decir que la verdadera tabla del estudio se ve de esta manera:
 
 ```{r pdtabtrue, echo=FALSE}
 ###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
 resT<-kable(z0[sample(1:nrow(z0),10,replace =T),c(1:2,4)],caption="Tabla de datos para el experimento de prueba diagnostica",row.names =F)
 kable_styling(resT,"striped", position = "center",full_width = F)
 ```
+La variable **cons** es la concentración de la molécula en la sangre de cada uno de los sujetos de prueba. Ahora el investigador se enfrenta a una pregunta fundamental: ¿Cuál será el valor umbral adecuado para determinar si el test se considera Positivo o Negativo?
 
-Para este caso el valor minimo de la consentracion es `r mincons%>%round(3)` y  el maximo es `r maxcons%>%round(3)`. Esto implica que el investigador debe buscar un numero umbral entre `r mincons%>%round(3)` y  `r maxcons%>%round(3)` para el cual concentraciondes menores a ese umbral determinaran valores negativos de la prueba y complementariametne valores de concentracion superiores a ese umbral determinara un valor positivo en la prueba. Tomemos por ejemplo los siguintes umbrales: `r examplumb` y veamos como se ven los valores de positividad del test en funcion de estos umbrales:
+Para este caso el valor mínimo de la concentración es `r mincons%>%round(3)` y  el máximo es `r maxcons%>%round(3)`. Esto implica que el investigador debe buscar un numero umbral entre `r mincons%>%round(3)` y  `r maxcons%>%round(3)` para el cual concentraciones menores a ese umbral determinaran valores negativos de la prueba y complementariamente valores de concentración superiores a ese umbral determinara un valor positivo en la prueba. Tomemos por ejemplo los siguientes umbrales: `r examplumb` y veamos cómo se ven los valores de positividad del test en función de estos umbrales:
 
 ```{r pdtabtrueUMB, echo=FALSE}
 ###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
-
 for(i in seq_along(examplumb)){
   z0[,paste0("Um_",i)]<-factor(ifelse(z0$cons<examplumb[i],"Test-","Test+"),levels = c("Test+","Test-"))
 }
-resTUMB<-kable(z0[sample(1:nrow(z0),10,replace =T),c(-3)],caption="Tabla de datos para con resultados del test para diferentes umbrales",row.names =F)
+resTUMB<-kable(z0[sample(1:nrow(z0),10,replace =T),c(-3)],caption="Tabla de datos con resultados del test para diferentes umbrales",row.names =F)
 kable_styling(resTUMB,"striped", position = "center",full_width = F)
 ```
 
-donde `r paste0("Um_",1:5," = ",examplumb)`. Notese que, para el primer umbral, todos los resultados son pòsitivos mietras que, para el ultimo umbral todos los resultados son negativos. Claramente para cada umbral se genera una tabla de contingencia (ver \@ref(tab:contresumb)) para la cual se pueden calcular todoas las metricas de desempeño de pruebas diagnosticas (ver \@ref(tab:contresumbdes)).
+donde `r paste0("Um_",1:5," = ",examplumb)`. Nótese que, para el primer umbral, todos los resultados son positivos mientras que, para el ultimo umbral todos los resultados son negativos. Claramente para cada umbral se genera una tabla de contingencia (ver \@ref(tab:contresumb)) para la cual se pueden calcular todas las métricas de desempeño de pruebas diagnósticas (ver \@ref(tab:contresumbdes)).
 
 ```{r contresumb, echo=FALSE}
 cont_tabl_list<-list()
@@ -186,31 +178,26 @@ for(i in paste0("Um_",1:5)){
   
   ana_list[[i]]<-epi.tests(cont_tabl_list[[i]])
 }
-
 desp_df<-paste0("Um_",1:5)%>%map_df(function(x){
   data.frame(Umb=x,Sens=ana_list[[x]]$rval$se$est,Esp=ana_list[[x]]$rval$sp$est,vpp=ana_list[[x]]$rval$ppv$est,vpn=ana_list[[x]]$rval$npv$est,vpg=ana_list[[x]]$rval$diag.acc$est)
 })
-
 cont_tblUMB<-cont_tabl_list%>%reduce(rbind)%>%{cbind(.,UM=rep(paste0("Um_",1:5),each=2))}
 resCTUMB<-kable(cont_tblUMB,caption="Tablas de contingencia para diferentes umbrales",row.names =T)
 kable_styling(resCTUMB,"striped",full_width = F,position = "center")
-
 ```
 
 ```{r contresumbdes, echo=FALSE}
-
-depCTUMB<-kable(desp_df,caption="Metricas de desempeño para diferentes umbrales",row.names =T)
+depCTUMB<-kable(desp_df,caption="Métricas de desempeño para diferentes umbrales",row.names =T)
 kable_styling(depCTUMB,"striped",full_width = F,position = "center")
-
 ```
 
-Teniendo esto en cuenta, podria proponer usted cual seria el mejor valor de los 5 umbrales estudiados?
+¿Teniendo esto en cuenta, podría proponer usted cual sería el mejor valor de los 5 umbrales estudiados?
 
 # Espacio ROC
 
-ROC, por sus siglas en ingles (Receiver-Operating Characteristic), traduce al español "Curva operativa del receptor", el desarrollo de esta tecnica de analisis data de los años 50 en el campo de la ingenieria elctrica y el estudio de deteccion de señales. Ver @Hajian2013 para una breve contextualizacion. 
+ROC, por sus siglas en inglés (Receiver-Operating Characteristic), traduce al español "Curva operativa del receptor", el desarrollo de esta técnica de análisis data de los años 50 en el campo de la ingeniería eléctrica y el estudio de detección de señales. Ver @Hajian2013 para una breve contextualización. 
 
-Considere el problema anterior de los 5 umbrales propuestos. Vamos a graficar las medidas de sensibilidad y especificidad en un plano carteciano en donde el eje $x$ corresponde a $1-Esp$ y el eje $y$ corresponde a la $Sens$. Este plano cartesiano con estos ejes se denomina el espacio ROC (figura \@ref(fig:rocg1)B).
+Considere el problema anterior de los 5 umbrales propuestos. Vamos a graficar las medidas de sensibilidad y especificidad en un plano cartesiano en donde el eje $x$ corresponde a $1-Esp$ y el eje $y$ corresponde a la $Sens$. Este plano cartesiano con estos ejes se denomina el espacio ROC (figura \@ref(fig:rocg1)B).
 <center>
 ```{r rocg1, message = FALSE, warning =F, echo=F, fig.width=8, fig.height=4, fig.cap="Espacio ROC"}
 rocp2<-ggplot(desp_df,aes(x=1-Esp,y=Sens))+
@@ -220,7 +207,6 @@ rocp2<-ggplot(desp_df,aes(x=1-Esp,y=Sens))+
                   point.padding = 0.5,
                   segment.color = 'grey50') +
   theme_bw()+ ggtitle("B) Curva ROC para los 5 umbrales")
-
 rocp1<-ggplot(data.frame(Umb=LETTERS[1:3],Sens=c(0,1,1),Esp=c(1,1,0)),aes(x=1-Esp,y=Sens))+
   geom_point()+
   geom_label_repel(aes(label = Umb),
@@ -228,18 +214,17 @@ rocp1<-ggplot(data.frame(Umb=LETTERS[1:3],Sens=c(0,1,1),Esp=c(1,1,0)),aes(x=1-Es
                   point.padding = 0.5,
                   segment.color = 'grey50') +
   theme_bw()+ ggtitle("A) Puntos destacados en el espacio ROC")
-
 gridExtra::grid.arrange(grobs =list(rocp1,rocp2),nrow=1,ncol=2)
 ```
 </center>
 
-Relacione los puntos en el espacio ROC con los valores de sensibilidad y especifisidad de la tabla \@ref(tab:contresumbdes). En la figura \@ref(fig:rocg1)A Relacionamos tres puntos importantes en el espacio ROC:
+Relacione los puntos en el espacio ROC con los valores de sensibilidad y especificidad de la tabla \@ref(tab:contresumbdes). En la figura \@ref(fig:rocg1)A relacionamos tres puntos importantes en el espacio ROC:
 
-* **A** corresponde a 0% sensibilidad y 100% especifisidad
-* **B** corresponde a 100% sensibilidad y 100% especifisidad
-* **C** corresponde a 100% sensibilidad y 0% especifisidad
+* **A** corresponde a 0% sensibilidad y 100% especificidad
+* **B** corresponde a 100% sensibilidad y 100% especificidad
+* **C** corresponde a 100% sensibilidad y 0% especificidad
 
-Claramente deseamos estar lo mas cerca posible del punto B en donde la prueba diagnositca coinside 100% con el estandar de oro. Este es de hecho un de los criterios para buscar el mejor umbral: econtrar el valor de umbral para el cual se esta mas cerca de la esquina superior izquierda del plano cartesiano del espacio ROC. Estos calculos son computacionalemnte intensivos y por lo general son realizados por programas hechos a medida para tal fin. En la figura \@ref(fig:rocg2) presentamos la curva ROC para la prueba diagnostica de cancer, el valor de corte optimo para la consentracion de la molecula estudiada y su respecitva sensibilidad y espesificidad.
+Claramente deseamos estar lo más cerca posible del punto B en donde la prueba diagnóstica coincide 100% con el estándar de oro. Este es de hecho, un de los criterios para buscar el mejor umbral: encontrar el valor de umbral para el cual, se está más cerca de la esquina superior izquierda del plano cartesiano del espacio ROC. Estos cálculos son computacionalmente intensivos y por lo general son realizados por programas hechos a medida para tal fin. En la figura \@ref(fig:rocg2) presentamos la curva ROC para la prueba diagnóstica de cáncer, el valor de corte óptimo para la concentración de la molécula estudiada y su respectiva sensibilidad y especificidad.
 
 <center>
 ```{r rocg2, message = FALSE, warning =F, echo=F, fig.width=4, fig.height=4, fig.cap="Curva ROC para prueba diagnostica de cancer"}
@@ -247,7 +232,6 @@ pred_Dis <- prediction(z0[,"cons"],z0[,"Dis"])
 perf_Dis  <- performance(pred_Dis,"tpr","fpr")
 mroc<-roc(z0[,"Dis"],z0[,"cons"])
 optimal_cut<-coords(mroc, "best", ret=c("threshold", "specificity", "sensitivity"))
-
 plot(perf_Dis,colorize=TRUE, main="ROC",ylab="Sens",xlab="1-Esp")
 points(1-optimal_cut[2],optimal_cut[3])
 text(1-optimal_cut[2]+.2,optimal_cut[3], paste0("cons: ",round(optimal_cut[1],2)))
@@ -255,28 +239,23 @@ text(1-optimal_cut[2]+.3,optimal_cut[3]-.1, paste0("Sens: ",round(optimal_cut[3]
 ```
 </center>
 
-# Comparacion de multiples pruebas diagnosticas
+# Comparación de múltiples pruebas diagnosticas
 
-La curva ROC tiene otros usos, ademas del visto anteriormente: encontrar el mejor umbral para construir una prueba diagnostica. La curva ROC puede ser usada tambien para comparar y evaluar el desempeño de multiples pruebas diagnosticas. Suponga que ahora tenemos 3 moleculas (m1,m2 y m3) que compiten para ser la prueba diagnostica para cancer. En la figura \@ref(fig:rocg3)A presentamos sus curvas ROC respectivas.
+La curva ROC tiene otros usos, además del visto anteriormente: encontrar el mejor umbral para construir una prueba diagnóstica. La curva ROC puede ser usada también para comparar y evaluar el desempeño de múltiples pruebas diagnósticas. Suponga que ahora tenemos 3 moléculas (m1,m2 y m3) que compiten para ser la prueba diagnóstica para cáncer. En la figura \@ref(fig:rocg3)A presentamos sus curvas ROC respectivas.
 <center>
 ```{r rocg3, message = FALSE, warning =F, echo=F, fig.width=8, fig.height=4, fig.cap="Comparacion de curvas ROC"}
 z1<-z0[,c("Id","Dis","cons")]
 colnames(z1)[colnames(z1) %in% "cons"]<-"m1"
-
 z1$m2<-NA
 z1[z1$Dis %in% "Dis+","m2"]<-rnorm(length(z1[z1$Dis %in% "Dis+","Dis"]),10,3)
 z1[z1$Dis %in% "Dis-","m2"]<-rnorm(length(z1[z1$Dis %in% "Dis-","Dis"]),5,4)
-
 z1$m3<-NA
 z1[z1$Dis %in% "Dis+","m3"]<-rnorm(length(z1[z1$Dis %in% "Dis+","Dis"]),10,3)
 z1[z1$Dis %in% "Dis-","m3"]<-rnorm(length(z1[z1$Dis %in% "Dis-","Dis"]),4,2)
-
-
 m1<-9
 v1<-11
 m2<-7
 v2<-5
-
 a2<-(m2^2)/v2
 a1<-(m1^2)/v1
 b2<-v2/m1
@@ -284,7 +263,6 @@ b1<-v1/m1
 z1$m4<-NA
 z1[z1$Dis %in% "Dis+","m4"]<-rgamma(length(z1[z1$Dis %in% "Dis+","Dis"]),shape=a1,scale=b1)
 z1[z1$Dis %in% "Dis-","m4"]<-rgamma(length(z1[z1$Dis %in% "Dis-","Dis"]),shape=a2,scale=b2)
-
 pred1 <- prediction(z1$m1,z1$Dis)
 pred2 <- prediction(z1$m2,z1$Dis)
 pred3 <- prediction(z1$m3,z1$Dis)
@@ -293,33 +271,30 @@ perf1 <- performance(pred1, "tpr", "fpr" )
 perf2 <- performance(pred2, "tpr", "fpr")
 perf3 <- performance(pred3, "tpr", "fpr")
 perf4 <- performance(pred4, "tpr", "fpr")
-
 par(mfrow=c(1,2))
 plot(perf1, colorize = F,ylab="Sens",xlab="1-Esp",col=1,main="A)")
 plot(perf2, add = TRUE, colorize = F,col=2)
 plot(perf3, add = TRUE, colorize = F,col=3)
 legend(x=.6,y=.4,legend=paste0("m",1:3),lty = 1,col=1:3)
-
 plot(perf2, colorize = F,ylab="Sens",xlab="1-Esp",col=2,main="B)")
 plot(perf4, add = TRUE, colorize = F,col=4)
 legend(x=.6,y=.4,legend=paste0("m",c(2,4)),lty = 1,col=c(2,4))
-
 ```
 </center>
 
-Debemos recordar que entre mas cerca se esta de la esquina superior izquierda, mejor es el desempeño de la prueba diagnostica (al menos en terminos de sensibilidad y especificidad). Teniendo en cuenta esto, las curvas de la figura \@ref(fig:rocg3)A se ordenan, en orden de desempeño, de la siguiente forma: m3,m1 y m2, siendo m3 la molecula con mejor desempeño y m2 la de peor desempeño. Sin embargo, las comparaciones no siempre son tan faciles. Estudiemos el caso de la figura \@ref(fig:rocg3)B.
+Debemos recordar que entre más cerca se está de la esquina superior izquierda, mejor es el desempeño de la prueba diagnóstica (al menos en terminos de sensibilidad y especificidad). Teniendo en cuenta esto, las curvas de la figura \@ref(fig:rocg3)A se ordenan, en orden de desempeño, de la siguiente forma: m3,m1 y m2, siendo m3 la molecula con mejor desempeño y m2 la de peor desempeño. Sin embargo, las comparaciones no siempre son tan fáciles. Estudiemos el caso de la figura \@ref(fig:rocg3)B.
 
-Estas dos curvas tienen regiones en donde una es superior a la otra: para valores de $1-Esp$, entre $0$ y $2$ (es decir entre valores de $Esp$ de $0.8$ y $1$) la curva de la molecula 4 esta por ensima de la curva de la molecula 2, mientras que en valores de $Sens$ de $0.75$ a $1$ la curva de la molecula 2 esta por ensima de la curva de la molecula 4 (ver \@ref(fig:rocg3)B). Si se tuviera que escojer exclusivamente entre las moleculas 2 y 4 cual escogeria Usted? La respuesta es un *"depende"*. Claramente la molecula 2 tiene un mejor desempeño en sensibilidad, mientras que la molecula 4 tiene un mejor desempeño en terminos de especificidad. 
+Estas dos curvas tienen regiones en donde una es superior a la otra: para valores de $1-Esp$, entre $0$ y $2$ (es decir entre valores de $Esp$ de $0.8$ y $1$) la curva de la molécula 4 está por encima de la curva de la molécula 2, mientras que en valores de $Sens$ de $0.75$ a $1$ la curva de la molécula 2 está por encima de la curva de la molécula 4 (ver \@ref(fig:rocg3)B). ¿Si se tuviera que escoger exclusivamente entre las moléculas 2 y 4 cual escogería Usted? La respuesta es un *"depende"*. Claramente la molécula 2 tiene un mejor desempeño en sensibilidad, mientras que la molécula 4 tiene un mejor desempeño en términos de especificidad. 
 
-Suponga que el tratamiento para la enfermedad en cuestion, no tiene efectos secundarios importantes para personas sanas, en ese caso seria adecuado usar la molecula 2 como prueba diagnostica ya que garantiza una alta sensibilidad, sin embargo su menor especificidad (es decir que se diagnosticaran mas sanos como enfermos) no tendra implicaciones importantes en la salud de los pacientes realmente sanos. Esto es pensando que aquellos pacientes realmente sanos que se diagnostican, segun la prueba diagnostica, como enfermos recibiran el tratamiento cuando realmente no lo nesecitan, y como este tratamiento es inocuo para ellos, bien vale la pena correr ese riesgo.
+Suponga que el tratamiento para la enfermedad en cuestión, no tiene efectos secundarios importantes para personas sanas, en ese caso sería adecuado usar la molécula 2 como prueba diagnóstica ya que garantiza una alta sensibilidad, pese su menor especificidad (es decir que se diagnosticaran más sanos como enfermos) no tendrá implicaciones importantes en la salud de los pacientes realmente sanos. Esto es pensando que aquellos pacientes realmente sanos que se diagnostican, según la prueba diagnóstica, como enfermos recibirán el tratamiento cuando realmente no lo necesitan, y como este tratamiento es inocuo para ellos, bien vale la pena correr ese riesgo.
 
-Sin embargo, si el tratamiento es costoso, invasivo y presenta importantes efectos secundarios, existira la preocupacion de exponer a sujetos sanos a dicho tratamiento, por lo cual se preferira no equivocarse con ellos y por ende, se optaria por la molecula 4, que garantiza una mayor especificidad, claro esta, a costa de un menor sensibilidad.
+Sin embargo, si el tratamiento es costoso, invasivo y presenta importantes efectos secundarios, existirá la preocupación de exponer a sujetos sanos a dicho tratamiento, por lo cual se preferirá no equivocarse con ellos y por ende, se optaría por la molécula 4, que garantiza una mayor especificidad, claro está, a costa de una menor sensibilidad.
 
-Como se puede apreciar, la seleccion de la molecula 2 o 4 dependera de los riesgos y costos asociados al tratamiento de la enfermedad, consideraciones que llevan al objetivo de maximizar la senseibilidad o la especificidad en uno y otro caso.
+Como se puede apreciar, la selección de la molécula 2 o 4 dependera de los riesgos y costos asociados al tratamiento de la enfermedad, consideraciones que llevan al objetivo de maximizar la sensibilidad o la especificidad en uno y otro caso.
 
-# Area bajo la curva ROC
+# Área bajo la curva ROC
 
-Como vimos en la seccion anterior, entre mas cerca este la curva ROC de la esquina superior izquierda, mejor es el desempeño de la prueba diagnostica. Sin embargo no siempre es facil dicernir que curva esta mas cerca que otra, como lo observamos en el caso de la figura \@ref(fig:rocg3)B. Es nesezario entonces tener un valor objetivo de que tan cerca se esta de la esquina superior derecha, y para esto se puede usar el area bajo la curva ROC (AUC por sus siglas en ingles). Un clasificador perfecto tendria una curva triangular con un area bajo la curva de 1 (el area total de cuadrado delimitado por 1 de $Sens$ y 1 de $1- Esp$). Asi que enves de comparar las curvas graficamente, se puede comparar sus areas bajo la curva, que es mucho mas facil. Veamos los valores del area bajo la curva para las 4 moleculas estudiadas anteriormente:
+Como vimos en la sección anterior, entre más cerca este la curva ROC de la esquina superior izquierda, mejor es el desempeño de la prueba diagnóstica. Sin embargo no siempre es fácil discernir que curva esta más cerca que otra, como lo observamos en el caso de la figura \@ref(fig:rocg3)B. Es necesario entonces tener un valor objetivo de que tan cerca se está de la esquina superior derecha, y para esto se puede usar el área bajo la curva ROC (AUC por sus siglas en ingles). Un clasificador perfecto tendría una curva triangular con un área bajo la curva de 1 (el área total de cuadrado delimitado por 1 de $Sens$ y 1 de $1- Esp$). Así que envés de comparar las curvas gráficamente, se puede comparar sus áreas bajo la curva, que es mucho más fácil. Veamos los valores del área bajo la curva para las 4 moléculas estudiadas anteriormente:
 
 ```{r AUCtbl, echo=FALSE}
 auc_m1 <- performance(pred1, measure = "auc")@y.values[[1]]
@@ -327,12 +302,11 @@ auc_m2 <- performance(pred2, measure = "auc")@y.values[[1]]
 auc_m3 <- performance(pred3, measure = "auc")@y.values[[1]]
 auc_m4 <- performance(pred4, measure = "auc")@y.values[[1]]
 auc_res<-data.frame(molecula=paste0("m",1:4),AUC=c(auc_m1,auc_m2,auc_m3,auc_m4))
-AUCkab<-kable(auc_res[order(auc_res$AUC),],caption="AUC para las 4 moleculas",row.names =F)
+AUCkab<-kable(auc_res[order(auc_res$AUC),],caption="AUC para las 4 moléculas",row.names =F)
 kable_styling(AUCkab,"striped",full_width = F,position = "center")
-
 ```
 
-Al evaluar el AUC para las cuatro moleculas, vemos que la molecula 3 tiene la mayor area (en concordancia con nuestra previa inspeccion grafica). Tambien podemos observar que las diferencias en terminos de area entre las moleculas 2 y 4 es bastante pequeña (`r abs(auc_m2-auc_m4)`), siendo la molecula 2 aquella con mayor area entre las 2. Sin embargo para esta diferencia tan pequeña podemos considerar que tienen un AUC similar, validando la desicion del uso de la molecula 2 o 4 en el razonamiento de riesgo anteriormente mencionado.
+Al evaluar el AUC para las cuatro moléculas, vemos que la molécula 3 tiene la mayor área (en concordancia con nuestra previa inspección grafica). También podemos observar que las diferencias en términos de área entre las moléculas 2 y 4 es bastante pequeña (`r abs(auc_m2-auc_m4)`), siendo la molécula 2 aquella con mayor área entre las 2. Sin embargo, para esta diferencia tan pequeña podemos considerar que tienen un AUC similar, validando la decisión del uso de la molécula 2 o 4 basada en el razonamiento de riesgo anteriormente mencionado.
 
 
 # Bibliografia
