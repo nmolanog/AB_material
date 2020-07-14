@@ -42,7 +42,7 @@ z0<-data.frame(cons=c(disp,disn),Dis=c(rep("Dis+",length(disp)),rep("Dis-",lengt
 mroc<-roc(z0[,"Dis"],z0[,"cons"])
 best_coords<-coords(mroc, "best", ret=c("threshold", "specificity", "sensitivity"))
 z0$Test<-factor(ifelse(z0$cons<best_coords$threshold,"Test-","Test+"))
-z0$Dis<-relevel(z0$Dis,ref="Dis+")
+z0$Dis<-relevel(factor(z0$Dis),ref="Dis+")
 z0$Test<-relevel(z0$Test,ref="Test+")
 z0<-data.frame(Id=1:nrow(z0),Dis=z0$Dis,Test=z0$Test,cons=z0$cons)
 mincons<-min(z0$cons)
