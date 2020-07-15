@@ -14,7 +14,8 @@ library(kableExtra)
 library(knitr)
 library(MASS)
 library(boot)
-library(carData)   
+library(carData)
+library(latex2exp)   
 
 set.seed(150)
 ```
@@ -175,8 +176,8 @@ pf<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
                                          labels= xlabels) + 
   annotate("segment", x = c(45), xend = c(40), 
            y = c(0.01), yend = c(.03), colour = "red", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
-  annotate("text", x = 94, y = .015, 
-           label = "P(X>q)==0.25",parse=T , size=3 , fontface="bold")+
+  annotate("text", x = 36, y = .033, 
+           label = "P(X>q)==0.25",parse=T , size=5 , fontface="bold")+
   theme_bw()
 pf
 ```
@@ -190,23 +191,42 @@ $$P(X<q_p)=p$$
 
 Donde $X$ es una variable aleatoria cualquiera.
 
-```{r qgraph2, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="Distribucion de peso para hombres y mujeres"}
-xlabels <- c(
-  ~ "-5.000",
-  ~ "-2.042",
-  ~ "0",
-  ~ list(q[0.95]==0.025),
-  ~ "5.000"
+```{r qgraph2, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="Definicion de cuantil"}
+xlabels <- expression(
+  "30",
+  "40",
+  q[p],
+  "60","70","80","90"
 )
-pf<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
+pf<-ggplot(data = data.frame(weight = c(30,90)), aes(weight)) +
   stat_function(fun = dnorm, n = 101, args = list(mean = mf, sd = sdf),color=2) +
   geom_segment(aes(x=50,xend=50,y=c(0),yend=c(dnorm(50,mf,sdf))),linetype=2,col=2)+
   stat_function(fun = dnorm, args = list(mean = mf,sd=sdf),
-                xlim = c(weight_lim[1],50),
+                xlim = c(30,50),
                 geom = "area",fill="red",alpha=0.5)+
-  ylab("f(weight)") + scale_x_continuous("t", seq(weight_lim[1],weight_lim[2], length.out = 5), 
-                     limits=weight_lim, 
+  ylab("f(weight)") + scale_x_continuous("t", c(30,40,50,60,70,80,90), 
+                     limits=c(30,90), 
                      labels= xlabels) + 
+  annotate("segment", x = c(45), xend = c(40), 
+           y = c(0.01), yend = c(.03), colour = "red", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 35, y = .033, 
+           label = "P(X>q[p])==p",parse=T , size=5 , fontface="bold")+
   theme_bw()
 pf
 ```
+
+Esta vez queremos encontrar valores de la variable de interés que acumulen $p$ de probabilidad por debajo de $q$.
+
+## Ejemplo
+
+Se tiene la siguiente información:
+
+* $P(W_F<44.74)=0.1$
+* $P(W_F<48.28)=0.2$
+* $P(W_F<50.80)=0.3$
+* $P(W_F<52.97)=0.4$
+* $P(W_F<55.00)=0.5$
+
+Cual es el valor del cuantil $q_0.3$?
+
+Solucion: $q_{0.3}=50.80$ ya que $P(W_F<50.80)=0.3$
