@@ -156,3 +156,57 @@ p12<-p1+geom_segment(aes(x=xrange[2],xend=xrange[2],y=c(0),yend=c(dnorm(xrange[2
   ggtitle(expression(list(P(W[M]>90)==1-0.048)==0.952))
 gridExtra::grid.arrange(grobs =list(p11,p12),nrow=2,ncol=1)
 ```
+
+# Cuantiles
+
+Una vez entendido el concepto de funciones de densidad y de como se calculan las probabilidades como áreas bajo la curva, se puede introducir el concepto de cuantil. La idea es determinar cantidades de la variable aleatoria que acumulan cierta cantidad de probabilidad.
+
+Retomemos el ejemplo del peso y concentrémonos solamente en la distribución del peso de las mujeres. Queremos encontrar el valor de peso $q$ tal que $P(W_F<q)=0.25$. Es decir que queremos encontrar un valor de peso $q$ tal que el 25% de las mujeres tiene pesos menores a este valor.
+
+```{r qgraph1, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="Distribucion de peso para hombres y mujeres"}
+xlabels <- c("30","40","q=?","60","70","80","90","100","110")
+pf<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mf, sd = sdf),color=2) +
+  geom_segment(aes(x=50,xend=50,y=c(0),yend=c(dnorm(50,mf,sdf))),linetype=2,col=2)+
+  stat_function(fun = dnorm, args = list(mean = mf,sd=sdf),
+                xlim = c(weight_lim[1],50),
+                geom = "area",fill="red",alpha=0.5)+
+  ylab("f(weight)") + scale_x_continuous(breaks=seq(weight_lim[1],weight_lim[2], by=10),
+                                         labels= xlabels) + 
+  annotate("segment", x = c(45), xend = c(40), 
+           y = c(0.01), yend = c(.03), colour = "red", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 94, y = .015, 
+           label = "P(X>q)==0.25",parse=T , size=3 , fontface="bold")+
+  theme_bw()
+pf
+```
+En la gráfica se puede apreciar que q=50. Se dice que el 50kg es el cuantil 0.25
+
+## Definición de cuantil
+
+Se define el **cuantil p** como $q_p$ tal que
+
+$$P(X<q_p)=p$$
+
+Donde $X$ es una variable aleatoria cualquiera.
+
+```{r qgraph2, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="Distribucion de peso para hombres y mujeres"}
+xlabels <- c(
+  ~ "-5.000",
+  ~ "-2.042",
+  ~ "0",
+  ~ list(q[0.95]==0.025),
+  ~ "5.000"
+)
+pf<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mf, sd = sdf),color=2) +
+  geom_segment(aes(x=50,xend=50,y=c(0),yend=c(dnorm(50,mf,sdf))),linetype=2,col=2)+
+  stat_function(fun = dnorm, args = list(mean = mf,sd=sdf),
+                xlim = c(weight_lim[1],50),
+                geom = "area",fill="red",alpha=0.5)+
+  ylab("f(weight)") + scale_x_continuous("t", seq(weight_lim[1],weight_lim[2], length.out = 5), 
+                     limits=weight_lim, 
+                     labels= xlabels) + 
+  theme_bw()
+pf
+```
