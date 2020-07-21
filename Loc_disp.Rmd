@@ -1,0 +1,245 @@
+---
+title: "Parametros de localizacion y dispercion"
+author: "Nicolás Molano Gonzalez"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  bookdown::html_document2: default
+bibliography: references.bib  
+---
+
+```{r echo=F, message = FALSE, warning =F}
+library(pacman)
+p_load(tidyverse)
+p_load(kableExtra)
+p_load(knitr)
+p_load(latex2exp)   
+p_load(ggrepel)
+set.seed(150)
+```
+
+# Introduccion
+
+En capitulos anteriores, hemos estudiado el calculo de probabilidades para eventos que, en la practica, son codificados como variables categoricas. Ahora ha llegado el momento de estudiar como funciona la medida de probabilidad para el caso en que la variable es cuantitativa. Empezaremos nuestro estudio con un ejemplo graphico. En la figura \@ref(fig:fdmw) se presenta una informacion relacionada con el peso de hombres y mujeres.
+
+```{r fdmw, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="Distribucion de peso para hombres y mujeres"}
+mf<-55
+mm<-70
+sdf<-8
+sdm<-12
+weight_lim<-c(30, 110)
+p1<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mm, sd = sdm),color=1) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mf, sd = sdf),color=2) +
+  ylab("f(weight)") + scale_x_continuous(breaks=seq(weight_lim[1],weight_lim[2], by=5)) + 
+  annotate("text", x = c(65,80), y = c(.04,.03), 
+           label = c("Female","Male") , size=4 , 
+           color=c("red","black"))+
+  theme_bw()
+p1
+```
+
+Cuando se le pregunta a los estudiantes sobre la interpretacion de este grafico, la mayoria de ellos genera interpretaciones acertadas de este. Veamos algunas de estas interpretaciones acertadas:
+
+* El peso de las mujeres esta al rededor de los $55kg$ mientras que el de los hombres esta al rededor de los $70kg$
+* Las mujeres sulen pesar menos que los hombres
+* El rango de pesos de los hombres es mas ampliio que el de las mujeres.
+
+Ahora veamos una de las interpretaciones incorrectas mas comunes para este mismo grafico:
+
+* Hay mas mujeres que hombres
+
+Lo cierto es que la mayoria de estudiantes conocen de alguna manera la interpretacion correcta de este grafico, ya sea por intuicion o por formacion previa. Lo importante es que en este capitulo aclararemos estas ideas y las formalizaremos en terminos probabilisticos.
+
+# Funcion de densidad
+
+Las curvas presentadas en la figura \@ref(fig:fdmw) reciben el nombre tecnico de funcion de densidad. Son funciones matematicas comunes las cuales se representan en un plano cartesiano. Para repazar estos conceptos sugerimos revizar los siguientes recursos:
+
+* https://www.profesorenlinea.cl/matematica/Funciones_matematicas.html
+* https://www.ck12.org/book/ck-12-conceptos-de-%c3%a1lgebra-i-en-espa%c3%b1ol/section/1.12/
+* https://www.ck12.org/book/ck-12-conceptos-de-%c3%81lgebra-nivel-b%c3%a1sico-en-espa%c3%b1ol/section/1.13/
+
+Es fundamental recordar los conceptos basicos al rededor de la representacion de funciones en el plano cartesiano para poder comprender plenamente los conceptos aqui tratados. 
+
+De esta manera, las curvas presentadas en la \@ref(fig:fdmw) son simplemente funciones matematicas, por ejemplo para la funcion de densidad de las mujeres (que de ahora en adelante denominaremos por $f_F(x)$), el valor de la funcion para el peso de $55kg$ es de $0.05$, es decir: $f_F(55)=0.05$. De manera similar, para la funcion de densidad de los hombres (que de ahora en adelante denominaremos por $f_M(x)$), el valor de la funcion para el peso de $55kg$ es de $0.015$, es decir: $f_M(55)=0.015$.
+
+La pregunta fundamental que surge a continuacion es "¿que significa el valor $f(x)$?" en donde $f$ es una funcion de densidad? Dicho tambien de otro modo, en una primera aproximacion de los estudiantes al grafico de la figura \@ref(fig:fdmw), "¿Que significa el eje $y$ en la figura \@ref(fig:fdmw)?". Esta pregunta se responde de manera mucho mas facil cuando se estudian funciones de densidad para variables discretas.
+
+## Funciones de densidad para variables discretas
+
+Empezaremos esta discucion con el siguiente ejemplo. Considerese la variable "Numero de hijos en un matrimonio". En la figura \@ref(fig:fdpois) se presenta la funcion de densidad para esta variable.
+
+```{r fdpois, echo=FALSE, results = 'asis',fig.width=7, fig.height=4, fig.cap="Funcion de densidad para la variable numero de hijos"}
+dtf_pois<-data.frame(x=factor(0:11),y=dpois(0:11,3))
+dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
+  ylab("f(x)")+ theme_bw()+
+  theme(axis.title.y = element_text(angle=0))+
+  annotate("text", x = dtf_pois$x, y = dtf_pois$y+.01, 
+           label = paste0("(",dtf_pois$x,", ",round(dtf_pois$y,3),")"),parse=F , size=2.5 , fontface="bold")
+  
+```
+Para facilidad del lector, en la grafica aparecen las coordenadas $(x,f(x))$, en donde $x$ es el numero de hijos y $f(x)$ es el valor de la funcion de densidad respectiva. En el caso en el que la variable es discreta, la funcion de densidad resulta coincidri con la probabilidad. Es decir que la probabilidad de que el matrimonio no tenga hijos es de `r round(dtf_pois$y[1],3)`. El lector puede verificar que en efecto los valores de $f(x)$ son probabilidades, ya que al sumar todos los 12 valores el resultado es uno. Es decir $\sum_{i=0}^{11} f(x_i)=1$ (Lo invitamos a repasar el significado del simbolo $\sum$ visitando el siguiente recurso: https://www.profesorenlinea.cl/matematica/Sumatoria.html)
+
+Es decir que en el caso en que la variable es discreta se tiene que
+
+\begin{equation}
+Si\; x\; es \; una \; variable \; discreta\; entonces \; f(x)=P(X=x) (\#eq:discrfd)
+\end{equation}
+
+Donde $P(X=x)$ se interpreta como "la probabilidad de que la variable $X$ tome el valor $x$". Mas adelante profundizaremos en la notacion y diferencias entre $X$ y $x$.
+
+Para este caso en el que la variable es discreta usted puede usar las reglas vistas en capitulos anteriores para hacer calculos de probabilidad. Por ejemplo, preguntemonos por lo siguiente:
+
+* ¿Cual es la probabilidad de que el numero de hijos sea menor a 4?
+
+Esto en terminos de formulas equivale a $P(X<4)$. Para calcular esta probabilidad, simplemente sumamos las probabilidades de los numeros que cumplen la condicion $x<4$, es decir 
+$$P(X<4)=\sum_{i=0}^{3}P(X=x_i)=\sum_{i=0}^{3}f(x_i)=$$
+$$0.05+0.149+0.224+0.224=0.647$$
+
+Puede usted intuir de manera rapida como se calculara $P(X \geq 4)$? Haciendo uso de la regla del complemento, se tiene que $P(X \geq 4)=1-P(X<4)=1-0.647=0.353$.
+
+## Funciones de densidad para variables continuas
+
+En el caso en que las variables son continuas, ya no se cumple que la equacion \@ref(eq:discrfd). Esto es debido a la naturaleza extraña de los numeros reales. Para cualquier numero real $x$ sucede que
+\begin{equation}
+Si\; x\; es \; un \; numero \; real \; entonces \; P(X=x)=0 (\#eq:realpo)
+\end{equation}
+
+La ecuacion \@ref(eq:realpo) parece contraintuitiva, sin embargo tiene sentido. Pensemos en la variable peso (medida en Kg). Cuando yo mido mi peso en una vascula obtenumos un valor como por ejemplo $78.3$. Es laro que la variable peso es una variable continua, y al serlo sus valores son numeros reales, numeros con una expancion en desimales infinita. Pero la vascula reporta solo un desimal, esto tiene que ver con la exactitud y presecion, conceptos discutidos anteriormente. el reporte de la vascula no es relamente un numero sino un rango:
+
+$$78.30000...., 78.39999....$$
+Es decir que la vascula esta reportando que mi peso es un numero real que se encuentra en el rango $78.30000...., 78.39999....$. De hecho el verdadero valor de mi peso es un numero real con una expancion decimal infinita que nunca llegaremos a conocer, y es debido a esa expancion en desimales infinita que la ecuacion \@ref(eq:realpo) se cumple. Cuando la variable es continua, no tiene sentido pensar en la probabilidad de que la variable tome un valor (un nunmero real) arbitrario, tiene mas sentido preguntarnos por la probabilidad de que la variable tome valores en un rango. Es decir que en ves de preguntarnos por la probabilidad de que el valor de peso sea igual a $78.3$ (es decir $P(X=78.3)$), es mas apropiado pensar en $P(78.30000....<X< 78.39999....)$. La pregunta que surge a continuacion es ¿como se calculan estas probabilidades?
+
+### Probabilidades para variables continuas
+
+Los conjuntos a los cuales medimos probabilidades en variables continuas son segmentos de recta definidos como $x\leq 5$, $x< 4$, $x \ge 10$, $x>15$, $2<x <10$, $-3\leq x <15$, etc. Lo invitamos a repasar los conceptos asociados a los segmentos de recta en los numeros reales visitando el siguiente link: https://www.matesfacil.com/ESO/numeros/intervalos/concepto/concepto-intervalo-abierto-cerrado-numeros-reales-extremos-test-online.html
+
+Las probabilidades en este contexto resultan ser areas bajo la funcion dedensidad, delimitados por los segmentos de recta a los cuales se les desea calcular la probabilidad. Por ejemplo, calcularemos la probabilidad de observar pesos entre 50 y 70 en ambos sexos:
+
+```{r fdmwP1,echo=FALSE, results = 'asis',fig.width=8, fig.height=6, fig.cap="Probabilidad de peso entre 50 y 70"}
+xrange<-c(50,70)
+p11<-p1+geom_segment(aes(x=xrange,xend=xrange,y=0,yend=dnorm(c(50,70),mf,sdf)),linetype=2)+
+  stat_function(fun = dnorm, args = list(mean = mf,sd=sdf),
+                xlim =xrange,
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("segment", x = c(55), xend = c(40), 
+           y = c(0.03), yend = c(.04), colour = "red", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 38, y = .044, 
+           label = "P(list(50 <Weight)<70)==0.746",parse=T , size=3 , fontface="bold")+
+  ggtitle("A) Probabilidad de peso entre 50 y 70 para F")
+p12<-p1+geom_segment(aes(x=xrange,xend=xrange,y=0,yend=dnorm(xrange,mm,sdm)),linetype=2)+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm),
+                xlim =xrange,
+                geom = "area",fill="grey",alpha=0.5)+
+  annotate("segment", x = c(62.5), xend = c(75), 
+           y = c(0.015), yend = c(.04), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 80, y = .044, 
+           label = "P(list(50 <Weight)<70)==0.452",parse=T , size=3 , fontface="bold")+
+  ggtitle("B) Probabilidad de peso entre 50 y 70 para M")
+gridExtra::grid.arrange(grobs =list(p11,p12),nrow=2,ncol=1)
+```
+
+Las areas bajo la curva se calculan mediante la operacion integracion (ver <http://hyperphysics.phy-astr.gsu.edu/hbasees/integ.html>).
+
+Sea $f_F(x)$ la funcion de densidad del peso de las mujeres y $f_M(x)$ la funcion de densidad del peso de los hombres. Estas funciones tienen las siguientes formulas:
+
+$$f_F(x)=\frac{1}{\sqrt{2\pi8^2}}exp\left(\frac{-(x-55)^2}{8^2}\right)$$
+$$f_M(x)=\frac{1}{\sqrt{2\pi12^2}}exp\left(\frac{-(x-70)^2}{12^2}\right)$$
+Estas son solo funciones matematicas como por ejemplo $f(x)=10+15x$ o$f(x)=x^2$.
+
+Ahora, definimos las variables aleatorias $W_F$ y $W_M$ como los pesos de hombres y mujeres respectivamente. Entonces 
+
+\begin{equation}
+P(50<W_F<70)=\int_{50}^{70}f_F(x)dx=0.746 (\#eq:pwf1)
+\end{equation}
+
+\begin{equation}
+P(50<W_M<70)=\int_{50}^{70}f_M(x)dx=0.452 (\#eq:pwm1)
+\end{equation}
+
+Donde $P(50<W_F<70)$ y $P(50<W_M<70)$ denotan simplmente la probabilidad de observar pesos entre 50 y 70 para mujeres y hombres respectivamente. Estas probabilidades corresponden a las areas mostradas en la figura \@ref(fig:fdmwP1). Notese como estas areas tienen su notacion respectiva en las formulas \@ref(eq:pwf1) y \@ref(eq:pwm1).
+
+Otro tipo de calculos son por ejemplo $P(W_F < 45)$ o $P(W_M>90)$
+
+```{r fdmwP2,echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="Probabilidad de peso \"menor que\" y \"mayor que\""}
+xrange<-c(45,90)
+p11<-p1+geom_segment(aes(x=xrange,xend=xrange,y=c(0,0),yend=c(dnorm(xrange[1],mf,sdf),dnorm(xrange[2],mm,sdm))),linetype=2,col=2:1)+
+  stat_function(fun = dnorm, args = list(mean = mf,sd=sdf),
+                xlim = c(weight_lim[1],xrange[1]),
+                geom = "area",fill="red",alpha=0.5)+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm),
+                xlim = c(xrange[2],weight_lim[2]),
+                geom = "area",fill="grey",alpha=0.5)+
+  annotate("segment", x = c(40), xend = c(35), 
+           y = c(0.005), yend = c(.018), colour = "red", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("segment", x = c(92.5), xend = c(95), 
+           y = c(0.0025), yend = c(.0125), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 35, y = .02, 
+           label = "P(W[F]<45)==0.11",parse=T , size=3 , fontface="bold")+
+  annotate("text", x = 94, y = .015, 
+           label = "P(W[M]>90)==0.048",parse=T , size=3 , fontface="bold")
+p11
+```
+
+Lo anterior se escribe en símbolos de integración como
+
+\begin{equation}
+P(W_F<45)=\int_{-\infty}^{45}f_F(x)dx=0.11 (\#eq:pwf2)
+\end{equation}
+
+\begin{equation}
+P(W_M>90)=\int_{90}^{\infty}f_M(x)dx=0.048 (\#eq:pwm2)
+\end{equation}
+
+$P(W_F<45)=0.11$ se interpreta de la siguiente forma: "11% de las mujeres tienen pesos menores a 45kg" o "la probabilidad de observar mujeres con pesos menores a 45kg es de 11%".
+
+De forma similar, $P(W_M>90)=0.048$, significa que 4.8% de los hombres tienen pesos mayores a 90Kg o que la probabilidad de observar hombres con pesos mayores a 90kg es de 4.8%.
+
+Notese como estas areas tienen su notacion respectiva en las formulas \@ref(eq:pwf2) y \@ref(eq:pwm2).
+
+$$P(50<W_M<70)=0.452$$ Significaría que 45.2% de los hombres tiene pesos entre 50 y 70 o que la probabilidad de observar hombres con pesos entre 50 y 70 es de 45.2%
+
+En base a esta información es claro que $P(W_F >45)=1-P(W_F<45)$  y de manera similar $P(W_M<90)=1-P(W_M>90)$. Esto se debe al aplicar la regla del complemento, vista anteriormente.
+
+```{r fdmwP3,echo=FALSE, results = 'asis',fig.width=8, fig.height=6, fig.cap="Probabilidad del complemento"}
+p11<-p1+geom_segment(aes(x=xrange[1],xend=xrange[1],y=c(0),yend=c(dnorm(xrange[1],mf,sdf))),linetype=2,col=2)+
+  stat_function(fun = dnorm, args = list(mean = mf,sd=sdf),
+                xlim = c(weight_lim[1],xrange[1]),
+                geom = "area",fill="red",alpha=0.5)+
+  stat_function(fun = dnorm, args = list(mean = mf,sd=sdf),
+                xlim = c(xrange[1],weight_lim[2]),
+                geom = "area",fill="#CC3366",alpha=0.5)+
+  annotate("segment", x = c(40), xend = c(35), 
+           y = c(0.005), yend = c(.018), colour = "red", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("segment", x = c(55), xend = c(80), 
+           y = c(.035), yend = c(.04), colour = "#CC3366", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 35, y = .02, 
+           label = "P(W[F]<45)==0.11",parse=T , size=3 , fontface="bold")+
+  annotate("text", x = 94, y = .04, 
+           label = "list(P(W[F]>45)==1-0.11)==0.89",parse=T , size=3 , fontface="bold")+
+  ggtitle(expression(list(P(W[F]>45)==1-0.11)==0.89))
+p12<-p1+geom_segment(aes(x=xrange[2],xend=xrange[2],y=c(0),yend=c(dnorm(xrange[2],mm,sdm))),linetype=2,col=1)+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm),
+                xlim = c(weight_lim[2],xrange[2]),
+                geom = "area",fill="grey",alpha=0.5)+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm),
+                xlim = c(weight_lim[1],xrange[2]),
+                geom = "area",fill="#444444",alpha=0.5)+
+  annotate("segment", x = c(92.5), xend = c(95), 
+           y = c(0.0025), yend = c(.0125), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("segment", x = c(70), xend = c(75), 
+           y = c(.025), yend = c(.04), colour = "#444444", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 94, y = .015, 
+           label = "P(W[M]>90)==0.048",parse=T , size=3 , fontface="bold")+
+  annotate("text", x = 83, y = .043, 
+           label = "list(P(W[M]<90)==1-0.048)==0.952",parse=T , size=3 , fontface="bold")+
+  ggtitle(expression(list(P(W[M]>90)==1-0.048)==0.952))
+gridExtra::grid.arrange(grobs =list(p11,p12),nrow=2,ncol=1)
+```
+
+Estas notaciones de integrales para representar el area bajo la curva son algo complicadas, las presentamos aca para dar un punto de referencia tecnico, sin embargo, lo importante es lo siguiente:
+
+* Para las variables continuas, los conjuntos a los cuales se les mediran probabilidades son segmentos de recta.
+* Las probabilidades se miden como areas bajo la funcion de densidad delimitadas por los segmentos de recta.
+* Las areas bajo la funcion de densidad se miden a travez de la operacion de integracion.
+
+# Variable aleatoria

@@ -1,7 +1,7 @@
 ---
 title: "Funciones de Densidad y Cuantiles"
 author: "Nicolás Molano Gonzalez"
-date: "07 de Marzo de 2019"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   bookdown::html_document2: default
 bibliography: references.bib  
@@ -227,6 +227,6 @@ Se tiene la siguiente información:
 * $P(W_F<52.97)=0.4$
 * $P(W_F<55.00)=0.5$
 
-Cual es el valor del cuantil $q_0.3$?
+Cual es el valor del cuantil $q_{0.3}$?
 
 Solucion: $q_{0.3}=50.80$ ya que $P(W_F<50.80)=0.3$
