@@ -236,6 +236,13 @@ p12<-p1+geom_segment(aes(x=xrange[2],xend=xrange[2],y=c(0),yend=c(dnorm(xrange[2
 gridExtra::grid.arrange(grobs =list(p11,p12),nrow=2,ncol=1)
 ```
 
+finalmente, cabe preguntarse por lo siguiente: ¿Cuanto mide el area total bajo la funcion de densidad? Esta area tiene su notacion respectiva en terminos de integrales:
+
+$$P(-\infty<W_M<\infty)=\int_{-\infty}^{\infty}f_M(x)dx$$
+Es decir la integral de menos infinito a infinito de la funcion de densidad $f_M(x)$. Como es de esperarse esta area (o probabilidad) mide $1$, de manera homologa al calso del axioma 2 de proabibilidad visto anteriormente. La probabilidad de observar cualquier valor posible es $1$.
+
+Teneindo en cuenta esto, se da uno cuenta que el area bajo las funciones de densidad $f_F(x)$  y $f_M(x)$ es la misma y es de $1$. Por esta razon, se equivocan algunos estudiantes al pensar que la funcion de densidad $f_F(x)$ tiene mas area que $f_M(x)$  infiriendo que hay mas mujeres que hombres. Al tener ambas c¡funciones de densidad la misma area, el grafico que hemos venido discutiendo no nos puede dar informacion acerca del numero de hombres y mujeres.
+
 Estas notaciones de integrales para representar el area bajo la curva son algo complicadas, las presentamos aca para dar un punto de referencia tecnico, sin embargo, lo importante es lo siguiente:
 
 * Para las variables continuas, los conjuntos a los cuales se les mediran probabilidades son segmentos de recta.
@@ -243,3 +250,94 @@ Estas notaciones de integrales para representar el area bajo la curva son algo c
 * Las areas bajo la funcion de densidad se miden a travez de la operacion de integracion.
 
 # Variable aleatoria
+
+En las discuciones anteriores se ha mencionado el termino variable aleatoria, ¿Que es exactamente? La respuesta es sencilla. La definicion tecnica de una variable aleatoria es compleja, pero pare efectos practicos tomaremos la siguiente difenicion:
+
+* *Se define una variable aleatoria como el sistema compuesto por un rango de valores y su funcion de densidad.*
+
+Esto quiere decir que, para una medida como el peso existen diferentes variables aleatorias. El grafico de las funciones de densidad del peso para hombres y mujeres asi lo demuestra, existe una variable aleatoria de peso para mujeres y otra de peso para los hombres. El peso de los colombianos no es el mismo peso de los norte americanos. Una variable aleatoria consiste en el conjunte de posibles valores que toma la variable junto con su funcion de densidad.
+
+Ahora, para referirnos a una variable aleatoria usamos letras mayusculas. Por ejemplo, en el ejemplo del peso tenemos dos variables aleatorias diferentes: $W_F$ y $W_M$. para referirnos  a posibles valores arbitrarios que pueden tomar estas variables aleatorias usamos letras minusculas. Veamos un ejemplo:
+
+$$P(W_F < x)$$
+
+En esta expresion se traduce de la siguiente manera: La probabilidad de que la variable aleatoria peso de las mujeres ($W_F$) sea menor a un valor arbitrario ($x$).
+
+Es fundamental la diferencia en los significados de los simbolos. Por ejemplo en el caso de las variables aleatorias discretas habiamos verificado que 
+
+$$P(X=x)=f(x)$$
+
+Es decir que la probabilidad de que la variable aleatoria $X$ tome un valor arbitrario $x$ es definida simplemente por su funcion de densidad $f(x)$.
+
+# Parametros
+
+En este punto, ya esta clara la representacion matematica que se emplea para expresar probabilidades en el caso de variables cuantitativas (bien sean discretas o continuas). La naturaleza de los conjuntos para los cuales se calculan probabilidades son segmentos de numeros (reales o enteros segun sea el caso). Y la forma de calcular las probabilidades es como areas bajo la funcion de densidad delimitados por los segmentos de numeros de interes. 
+
+Es hora de hablar con mayor detalle acerca de las formulas matematicas que se usan como funciones densidad. Empesaremos estudiando la funcion de densidad del numero de hijos estudiada anteriormente. Reproducimos la grafica a continuacion, para facilidad de lectura (figura \@ref(fig:fdpoisr)).
+
+```{r fdpoisr, echo=FALSE, results = 'asis',fig.width=7, fig.height=4, fig.cap="Funcion de densidad para la variable numero de hijos"}
+dtf_pois<-data.frame(x=factor(0:11),y=dpois(0:11,3))
+dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
+  ylab("f(x)")+ theme_bw()+
+  theme(axis.title.y = element_text(angle=0))+
+  annotate("text", x = dtf_pois$x, y = dtf_pois$y+.01, 
+           label = paste0("(",dtf_pois$x,", ",round(dtf_pois$y,3),")"),parse=F , size=2.5 , fontface="bold")
+  
+```
+
+La formula de esta funcion de densidad es la siguiente:
+
+\begin{equation}
+f(x)=\frac{3^x e^{-3}}{x!} (\#eq:pois1)
+\end{equation}
+
+En esta formula, $x$ es un posible valor arbitrario que puede tomar la variable aleatoria $X$ (numero de hijos), $e$ es el numero de *oiler*, $x!$ se denomina *equis factorial*, esto se define como
+
+$$n!=1\times 2 \times 3 ... \times n-1 \times n$$
+
+Y aparece tambien el numero $3$. Usted puede verificar que efectivamente al evaluar diferentes valores de $x$ en la formula se obtienen los valores que aparecen en la figura \@ref(fig:fdpoisr).
+
+## Funcion de densidad Poisson
+
+El numero $3$ es lo que se conoce como un parametro y la formula general de la ecuacion \@ref(eq:pois1) se conoce como la funcion de densidad *Poisson* y es la siguiente:
+
+\begin{equation}
+f(x|\lambda)=\frac{\lambda^x e^{-\lambda}}{x!} (\#eq:poisg)
+\end{equation}
+
+Donde $f(x|\lambda)$ es una nueva notacion introducida, simplemente estamos definiendo que la funcion de densidad $f(x)$ depende de otra cantidad, $\lambda$ que se denomina parametro de la funcion de denisdad.
+
+Veamos cual es elefecto del parametro $\lambda$ graficando diferentes funciones de densidad para diferentes valores de $\lambda$.
+
+```{r fdpoisr2, echo=FALSE, results = 'asis',fig.width=7, fig.height=4, fig.cap="Funcion de densidad para diferentes valores del parametro"}
+xrange<-0:50
+dtf_pois2<-data.frame(x=rep(xrange,5),
+                      y=c(dpois(xrange,3),
+                          dpois(xrange,7),
+                          dpois(xrange,12),
+                          dpois(xrange,19),
+                          dpois(xrange,25)),
+                      parameter=factor(rep(c(3,7,12,19,25), each = length(xrange)) ))
+
+dtf_pois2%>%ggplot(aes(x=x,y=y,color=parameter))+geom_point()+
+  ylab("f(x)")+ theme_bw()+ labs(color = expression(lambda),
+                                 y=expression(paste("f(x|",lambda,")")))
+```
+
+Observando la figura \@ref(fig:fdpoisr2), vemos que el valor de $\lambda$ afecta la forma de la funcion de densidad. Este es el concepto fundamental del parametro.
+
+* Definicion: *un * **_Parametro_** *es una cantidad que controla la forma de una funcion de densidad*
+
+¿Puede usted describir como el parametro $\lambda$ controla la forma de la funcion de denisdad *Poisson*?
+
+## Funcion de densidad Normal
+
+Vamos ahora a explorar la formula de la funcion de densidad normal, de la cual ya hemos visto un ejemplo, de hecho las formulas de las funciones de densidad para el peso de hombres y mujeres en el ejemplo tratado anteriormente pertenecen a esta clase.
+
+La funcion de densidad normal se define mediante la siguiente ecuacion:
+
+\begin{equation}
+f(x|\mu, \sigma^{2})=\frac{1}{\sqrt{2\pi \sigma^2}}exp\left(\frac{-(x-\mu)^2}{\sigma^2}\right) (\#eq:dfnorm)
+\end{equation}
+
+en esta ecuacion hay dos parametros: $\mu$ y $\sigma^{2}$. A continuacion exploraremos la forma en que estos dos parametros contrlan la forma de la funcion de densidad.
