@@ -309,7 +309,7 @@ Donde $f(x|\lambda)$ es una nueva notacion introducida, simplemente estamos defi
 
 Veamos cual es elefecto del parametro $\lambda$ graficando diferentes funciones de densidad para diferentes valores de $\lambda$.
 
-```{r fdpoisr2, echo=FALSE, results = 'asis',fig.width=7, fig.height=4, fig.cap="Funcion de densidad para diferentes valores del parametro"}
+```{r fdpoisr2, echo=FALSE, results = 'asis',fig.width=7, fig.height=4, fig.cap="Funcion de densidad para diferentes valores de <span>&lambda;</span>"}
 xrange<-0:50
 dtf_pois2<-data.frame(x=rep(xrange,5),
                       y=c(dpois(xrange,3),
@@ -320,7 +320,7 @@ dtf_pois2<-data.frame(x=rep(xrange,5),
                       parameter=factor(rep(c(3,7,12,19,25), each = length(xrange)) ))
 
 dtf_pois2%>%ggplot(aes(x=x,y=y,color=parameter))+geom_point()+
-  ylab("f(x)")+ theme_bw()+ labs(color = expression(lambda),
+  theme_bw()+ labs(color = expression(lambda),
                                  y=expression(paste("f(x|",lambda,")")))
 ```
 
@@ -341,3 +341,28 @@ f(x|\mu, \sigma^{2})=\frac{1}{\sqrt{2\pi \sigma^2}}exp\left(\frac{-(x-\mu)^2}{\s
 \end{equation}
 
 en esta ecuacion hay dos parametros: $\mu$ y $\sigma^{2}$. A continuacion exploraremos la forma en que estos dos parametros contrlan la forma de la funcion de densidad.
+
+```{r fdnorm1, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="diferentes funciones de densidad normal"}
+m1<-4
+m2<-10
+
+sd1<-3
+sd2<-6
+weight_lim<-c(-14, 27)
+pdnorm1<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = m1, sd = sd1),aes(color="black")) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = m2, sd = sd1),aes(color="red")) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = m1, sd = sd2),aes(color="blue")) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = m2, sd = sd2),aes(color="green")) +
+  ylab(expression(paste("f(x|",mu,",",sigma^2,")"))) +xlab("x") + scale_x_continuous(breaks=seq(weight_lim[1],weight_lim[2], by =4)) + 
+  scale_color_identity(name = "",
+                          breaks = c("black", "red", "blue","green"),
+                          labels = c(expression(paste(mu,"= 5, ",sigma^2,"= 9")),
+                                     expression(paste(mu,"= 10, ",sigma^2,"= 9")), 
+                                     expression(paste(mu,"= 5, ",sigma^2,"= 36"))
+                                     ,expression(paste(mu,"= 10, ",sigma^2,"= 36"))),
+                          guide = "legend")+
+  theme_bw()
+pdnorm1
+```
+¿Puede usted describir como los parametros $\mu$ y $\sigma^2$ controlan la forma de la funcion de denisdad *Normal*?
