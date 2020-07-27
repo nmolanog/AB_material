@@ -14,6 +14,7 @@ p_load(kableExtra)
 p_load(knitr)
 p_load(latex2exp)   
 p_load(ggrepel)
+p_load(magick)
 set.seed(150)
 ```
 
@@ -308,6 +309,11 @@ f(x|\lambda)=\frac{\lambda^x e^{-\lambda}}{x!} (\#eq:poisg)
 Donde $f(x|\lambda)$ es una nueva notacion introducida, simplemente estamos definiendo que la funcion de densidad $f(x)$ depende de otra cantidad, $\lambda$ que se denomina parametro de la funcion de denisdad.
 
 Veamos cual es elefecto del parametro $\lambda$ graficando diferentes funciones de densidad para diferentes valores de $\lambda$.
+<center>
+```{r , echo=F,warning =F, fig.width=6, fig.height=4}
+gifdpois <- image_read("dpois.gif") 
+gifdpois
+```
 
 ```{r fdpoisr2, echo=FALSE, results = 'asis',fig.width=7, fig.height=4, fig.cap="Funcion de densidad para diferentes valores de <span>&lambda;</span>"}
 xrange<-0:50
@@ -323,6 +329,7 @@ dtf_pois2%>%ggplot(aes(x=x,y=y,color=parameter))+geom_point()+
   theme_bw()+ labs(color = expression(lambda),
                                  y=expression(paste("f(x|",lambda,")")))
 ```
+</center>
 
 Observando la figura \@ref(fig:fdpoisr2), vemos que el valor de $\lambda$ afecta la forma de la funcion de densidad. Este es el concepto fundamental del parametro.
 
@@ -341,6 +348,11 @@ f(x|\mu, \sigma^{2})=\frac{1}{\sqrt{2\pi \sigma^2}}exp\left(\frac{-(x-\mu)^2}{\s
 \end{equation}
 
 en esta ecuacion hay dos parametros: $\mu$ y $\sigma^{2}$. A continuacion exploraremos la forma en que estos dos parametros contrlan la forma de la funcion de densidad.
+<center>
+```{r , echo=F,warning =F, fig.width=6, fig.height=4}
+gifdnorm <- image_read("dnorm.gif") 
+gifdnorm
+```
 
 ```{r fdnorm1, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="diferentes funciones de densidad normal"}
 m1<-4
@@ -365,4 +377,5 @@ pdnorm1<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
   theme_bw()
 pdnorm1
 ```
+</center>
 ¿Puede usted describir como los parametros $\mu$ y $\sigma^2$ controlan la forma de la funcion de denisdad *Normal*?
