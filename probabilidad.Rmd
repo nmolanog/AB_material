@@ -278,6 +278,7 @@ text(-7,4,"CA",col=4)
 text(7,4,"yes",col = 2)
 ```
 </div>
+</div>
 
 El número de personas en $CA \cup yes$ es $46+29+75=150$ `r 46+29+75`.
 
