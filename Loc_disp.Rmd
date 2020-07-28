@@ -379,3 +379,43 @@ pdnorm1
 ```
 </center>
 ¿Puede usted describir como los parametros $\mu$ y $\sigma^2$ controlan la forma de la funcion de denisdad *Normal*?
+
+## Parametros de Localizacion y Dispercion
+
+Del estudio del effecto que tienen los parametros en la funcion de densidad poisson y normal queda claro que existen dos aspecto prinicpales en la forma de una funcion de densidad. El primer aspecto es el de la localizacion, los parametros que contrlan la localizacion en las funciones de densidad poisson y normal son $\lambda$ y $\mu$ respectivamente. Estos parametros controlan en donde se ubica la zona mas "alta" de la funcion de densidad en el eje x (tecnicamente hablando controlan en donde se presenta el mayor valor de la funcion de densidad en relacion con el eje x). 
+
+Por otra parte, vemos como el parametro $\sigma^2$ controla un aspecto geomtrico en particular en la funcion de densidad normal. Controla la forma en que la funcion se concentra o no al rededor del parametro de localizacion $\mu$. Valores grandes de $\sigma^2$ hacen que la curva se "aplane", mientras que valores pequeños de $\sigma^2$ hacen que la curva se "empine". Recuerdese que el area bajo la curva para uno u otra funcion de densidad es la misma ($1$), sugiriendo que estos cambios de aplanamiento o empinamiento hacen que la probabilidad se destribuya de manera diferente en uno u otro caso.
+
+Para aclarar esto considere el siguiente ejemplo
+
+```{r fdnormcompV,echo=FALSE, results = 'asis',fig.width=8, fig.height=4.5, fig.cap="Probabilidad de peso entre 50 y 90 para dos funciones de densidad diferentes"}
+weight_lim<-c(10,130)
+xrange<-c(mm-20,mm+20)
+p11<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mm, sd = sdm),aes(color="black")) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mm, sd = sdm+15),aes(color="red"))+
+  geom_segment(aes(x=xrange,xend=xrange,y=0,yend=.035),linetype=2)+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm),
+                xlim =xrange,
+                geom = "area",fill="grey",alpha=0.5)+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm+15),
+                xlim =xrange,
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("segment", x = c(mm), xend = c(100), 
+           y = c(0.0275), yend = c(.03), colour = "grey", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("segment", x = c(mm), xend = c(40), 
+           y = c(dnorm(mm,mm,sdm+15)/2), yend = c(.0175), colour = "red", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 100+7, y = .03, 
+           label = round(pnorm(xrange[2],mm,sdm)-pnorm(xrange[1],mm,sdm),3),parse=T , size=5 , fontface="bold")+
+  annotate("text", x = 40-7, y = .0175, 
+           label = round(pnorm(xrange[2],mm,sdm+15)-pnorm(xrange[1],mm,sdm+15),3),parse=T , size=5 , fontface="bold")+
+  scale_x_continuous(breaks=seq(weight_lim[1],weight_lim[2],by=10))+
+  scale_color_identity(name = "",
+                          breaks = c("black", "red"),
+                          labels = c(expression(paste(mu,"= 70, ",sigma^2,"= 144")),
+                                     expression(paste(mu,"= 70, ",sigma^2,"= 729"))),
+                          guide = "legend")+
+  theme_bw()
+p11
+```
+En la figura \@ref(fig:fdnormcompV) las dos funciones de densidad tienen el mismo valor del parametro $\mu$, sin embargo, la funcion de densidad roja tiene el parametro $\sigma^2=729$ mientras la negra tiene $\sigma^2=144$.
