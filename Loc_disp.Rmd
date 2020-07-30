@@ -369,10 +369,10 @@ pdnorm1<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
   ylab(expression(paste("f(x|",mu,",",sigma^2,")"))) +xlab("x") + scale_x_continuous(breaks=seq(weight_lim[1],weight_lim[2], by =4)) + 
   scale_color_identity(name = "",
                           breaks = c("black", "red", "blue","green"),
-                          labels = c(expression(paste(mu,"= 5, ",sigma^2,"= 9")),
-                                     expression(paste(mu,"= 10, ",sigma^2,"= 9")), 
-                                     expression(paste(mu,"= 5, ",sigma^2,"= 36"))
-                                     ,expression(paste(mu,"= 10, ",sigma^2,"= 36"))),
+                          labels = c(substitute(paste(mu,"= ", v," ,",sigma^2,"= ",s),list(v=m1,s=sd1)),
+                                     substitute(paste(mu,"= ", v," ,",sigma^2,"= ",s),list(v=m2,s=sd1)), 
+                                     substitute(paste(mu,"= ", v," ,",sigma^2,"= ",s),list(v=m1,s=sd2)),
+                                     substitute(paste(mu,"= ", v," ,",sigma^2,"= ",s),list(v=m1,s=sd2))),
                           guide = "legend")+
   theme_bw()
 pdnorm1
@@ -391,6 +391,8 @@ Para aclarar esto considere el siguiente ejemplo
 ```{r fdnormcompV,echo=FALSE, results = 'asis',fig.width=8, fig.height=4.5, fig.cap="Probabilidad de peso entre 50 y 90 para dos funciones de densidad diferentes"}
 weight_lim<-c(10,130)
 xrange<-c(mm-20,mm+20)
+prb1<-round(pnorm(xrange[2],mm,sdm)-pnorm(xrange[1],mm,sdm),3)
+prb2<-round(pnorm(xrange[2],mm,sdm+15)-pnorm(xrange[1],mm,sdm+15),3)
 p11<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
   stat_function(fun = dnorm, n = 101, args = list(mean = mm, sd = sdm),aes(color="black")) +
   stat_function(fun = dnorm, n = 101, args = list(mean = mm, sd = sdm+15),aes(color="red"))+
@@ -406,9 +408,9 @@ p11<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
   annotate("segment", x = c(mm), xend = c(40), 
            y = c(dnorm(mm,mm,sdm+15)/2), yend = c(.0175), colour = "red", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
   annotate("text", x = 100+7, y = .03, 
-           label = round(pnorm(xrange[2],mm,sdm)-pnorm(xrange[1],mm,sdm),3),parse=T , size=5 , fontface="bold")+
+           label = prb1,parse=T , size=5 , fontface="bold")+
   annotate("text", x = 40-7, y = .0175, 
-           label = round(pnorm(xrange[2],mm,sdm+15)-pnorm(xrange[1],mm,sdm+15),3),parse=T , size=5 , fontface="bold")+
+           label = prb2,parse=T , size=5 , fontface="bold")+
   scale_x_continuous(breaks=seq(weight_lim[1],weight_lim[2],by=10))+
   scale_color_identity(name = "",
                           breaks = c("black", "red"),
@@ -418,4 +420,6 @@ p11<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
   theme_bw()
 p11
 ```
-En la figura \@ref(fig:fdnormcompV) las dos funciones de densidad tienen el mismo valor del parametro $\mu$, sin embargo, la funcion de densidad roja tiene el parametro $\sigma^2=729$ mientras la negra tiene $\sigma^2=144$.
+En la figura \@ref(fig:fdnormcompV) las dos funciones de densidad tienen el mismo valor del parametro $\mu$, sin embargo, la funcion de densidad roja tiene el parametro $\sigma^2= `r (sdm+15)^2`$ mientras la negra tiene $\sigma^2=`r (sdm)^2`$. Para la funcion de densidad roja se tiene que $P(50< W <90)= `r round(prb2,3)`$ mientras que para la negra, el mismo intervalo tiene probabilidad $P(50<W<90)= `r round(prb1,3)`$. En cual de las dos funciones de densidad hay mayor incertidumbre de observar valores entre $50$ y $90$? Claramente en la roja en donde $\sigma^2$ es mayor.
+
+Consideremos ahora otro enfoque
