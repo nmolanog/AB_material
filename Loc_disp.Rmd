@@ -380,6 +380,8 @@ pdnorm1
 </center>
 ¿Puede usted describir como los parametros $\mu$ y $\sigma^2$ controlan la forma de la funcion de denisdad *Normal*?
 
+## funcion de densidad gamma
+
 ## Parametros de Localizacion y Dispercion
 
 Del estudio del effecto que tienen los parametros en la funcion de densidad poisson y normal queda claro que existen dos aspecto prinicpales en la forma de una funcion de densidad. El primer aspecto es el de la localizacion, los parametros que contrlan la localizacion en las funciones de densidad poisson y normal son $\lambda$ y $\mu$ respectivamente. Estos parametros controlan en donde se ubica la zona mas "alta" de la funcion de densidad en el eje x (tecnicamente hablando controlan en donde se presenta el mayor valor de la funcion de densidad en relacion con el eje x). 
@@ -395,8 +397,9 @@ prb1<-round(pnorm(xrange[2],mm,sdm)-pnorm(xrange[1],mm,sdm),3)
 prb2<-round(pnorm(xrange[2],mm,sdm+15)-pnorm(xrange[1],mm,sdm+15),3)
 p11<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
   stat_function(fun = dnorm, n = 101, args = list(mean = mm, sd = sdm),aes(color="black")) +
-  stat_function(fun = dnorm, n = 101, args = list(mean = mm, sd = sdm+15),aes(color="red"))+
-  geom_segment(aes(x=xrange,xend=xrange,y=0,yend=.035),linetype=2)+
+  stat_function(fun = dnorm, n = 101, args = list(mean = mm, sd = sdm+15),aes(color="red"))
+  
+p112<-p11+geom_segment(aes(x=xrange,xend=xrange,y=0,yend=.035),linetype=2)+
   stat_function(fun = dnorm, args = list(mean = mm,sd=sdm),
                 xlim =xrange,
                 geom = "area",fill="grey",alpha=0.5)+
@@ -414,12 +417,40 @@ p11<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
   scale_x_continuous(breaks=seq(weight_lim[1],weight_lim[2],by=10))+
   scale_color_identity(name = "",
                           breaks = c("black", "red"),
-                          labels = c(expression(paste(mu,"= 70, ",sigma^2,"= 144")),
-                                     expression(paste(mu,"= 70, ",sigma^2,"= 729"))),
+                          labels = c(substitute(paste(mu[M],"= ", v," ,",sigma[M]^2,"= ",s),list(v=mm,s=sdm^2)),
+                                     substitute(paste(mu[F],"= ", v," ,",sigma[F]^2,"= ",s),list(v=mm,s=(sdm+15)^2))),
                           guide = "legend")+
   theme_bw()
-p11
+p112
 ```
-En la figura \@ref(fig:fdnormcompV) las dos funciones de densidad tienen el mismo valor del parametro $\mu$, sin embargo, la funcion de densidad roja tiene el parametro $\sigma^2= `r (sdm+15)^2`$ mientras la negra tiene $\sigma^2=`r (sdm)^2`$. Para la funcion de densidad roja se tiene que $P(50< W <90)= `r round(prb2,3)`$ mientras que para la negra, el mismo intervalo tiene probabilidad $P(50<W<90)= `r round(prb1,3)`$. En cual de las dos funciones de densidad hay mayor incertidumbre de observar valores entre $50$ y $90$? Claramente en la roja en donde $\sigma^2$ es mayor.
+En la figura \@ref(fig:fdnormcompV) las dos funciones de densidad tienen el mismo valor del parametro $\mu$, sin embargo, la funcion de densidad roja ($f_F(w)$) tiene el parametro $\sigma_F^2= `r (sdm+15)^2`$ mientras la negra ($f_M(w)$) tiene $\sigma_M^2=`r (sdm)^2`$. Para la funcion de densidad roja se tiene que $P(50< W_F <90)= `r round(prb2,3)`$ mientras que para la negra, el mismo intervalo tiene probabilidad $P(50<W_M<90)= `r round(prb1,3)`$. En cual de las dos funciones de densidad hay mayor incertidumbre de observar valores entre $50$ y $90$? Claramente en la roja en donde $\sigma_F^2$ es mayor.
 
-Consideremos ahora otro enfoque
+Consideremos ahora otro enfoque. El objetivo ahora sera el de encontrar un intervalo que concetre el $90%$ de probabilidad para las dos funciones de densidad $f_M(w)$ y $f_F(w)$.
+
+```{r fdnormcompV2,echo=FALSE, results = 'asis',fig.width=8, fig.height=4.5, fig.cap="90% de probabilidad"}
+qdf<-qnorm(c(.05,.95),mm,sdm+15)
+qdm<-qnorm(c(.05,.95),mm,sdm)
+
+p113<-p11+geom_segment(aes(x=qdf,xend=qdf,y=0,yend=dnorm(qdf,mm,sdm+15)),linetype=2,col="red")+
+  geom_segment(aes(x=qdm,xend=qdm,y=0,yend=dnorm(qdm,mm,sdm)),linetype=2,col="black")+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm),
+                xlim =qdm,
+                geom = "area",fill="grey",alpha=0.7)+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm+15),
+                xlim =qdf,
+                geom = "area",fill="red",alpha=0.3)+
+  scale_x_continuous(breaks=c(qdf[1],qdm[1],qdf[2],qdm[2])%>%round(3))+
+  scale_color_identity(name = "",
+                          breaks = c("black", "red"),
+                          labels = c(substitute(paste(mu[M],"= ", v," ,",sigma[M]^2,"= ",s),list(v=mm,s=sdm^2)),
+                                     substitute(paste(mu[F],"= ", v," ,",sigma[F]^2,"= ",s),list(v=mm,s=(sdm+15)^2))),
+                          guide = "legend")+
+  theme_bw()
+p113
+```
+
+En la figura \@ref(fig:fdnormcompV2) se presentan los rangos correspondientes para cada funcion de densidad. Ambas areas acumulan la misma probabilidad (90%). Sin embargo es claro que esta probabilidad se acumula en un rango mucho mas ampli en la funcion de densidad $f_F(w)$, en comparacion a $f_M(w)$. Decimos entonces, que hay mayor "dispercion" en $f_F(w)$ en comparacion con $f_M(w)$. Esta "dispercion" hace referencia a que los posibles valores que podemos observar para la variable $W_f$ son mucho mas disperos, o tienen un rango de variacion mayor en comparacion con la variable $W_M$.
+
+En conclucion, hemos presentado como se ve el efecto de parametros de localizacion y dispersion. Puede usted notar que el parametro $\lambda$ en la funcion de densidad poisson es, ademas de ser un parametro de localizacion, tambien un parametro de dispercion? (ver figura \@ref(fig:fdpoisr2))
+
+# Parametros naturales vs 
