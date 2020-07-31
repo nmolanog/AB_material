@@ -337,6 +337,8 @@ Observando la figura \@ref(fig:fdpoisr2), vemos que el valor de $\lambda$ afecta
 
 ¿Puede usted describir como el parametro $\lambda$ controla la forma de la funcion de denisdad *Poisson*?
 
+Existe otro aspecto importante de esta funcion de densidad y es el conjunto de valores para la cual esta definida. Esta funcion de densidad se define para numeros enteros positivos. Por ejemplo no tiene sentido pensar en $1.5$ hijos en un hogar. 
+
 ## Funcion de densidad Normal
 
 Vamos ahora a explorar la formula de la funcion de densidad normal, de la cual ya hemos visto un ejemplo, de hecho las formulas de las funciones de densidad para el peso de hombres y mujeres en el ejemplo tratado anteriormente pertenecen a esta clase.
@@ -379,8 +381,64 @@ pdnorm1
 ```
 </center>
 ¿Puede usted describir como los parametros $\mu$ y $\sigma^2$ controlan la forma de la funcion de denisdad *Normal*?
+Notese finalmente, cual es el conjunto de valores para los cuales la funcion de densidad normal esta definida: todos los numeros reales, tanto positivos como negativos.
 
 ## funcion de densidad gamma
+Ahora estudiaremos una funcion de densidad que se encuentra exclusivamente definida para numeros reales positivos, la funcion de densidad gamma. Esta es su formula
+
+$$f(x|\alpha,\beta)=\frac{1}{\beta^{\alpha}\Gamma(\alpha)}x^{\alpha-1}e^{-x/\beta}$$
+De nuevo, $x$ son los valores que puede tomar la variable aleatoria, $\alpha, \; \beta$ son parametros, y $\Gamma()$ (letra griega mayuscula gamma) es una funcion matematica especial. Esta formula matematica se ve complicada, a continuacion presentamos algunas funciones de densidad para diferentes valores de $\alpha, \; \beta$
+
+```{r fdgamma1, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="diferentes funciones de densidad gamma"}
+apar<-c(1,2,7.5,9)
+bpar<-c(2,2,1.3,0.5)
+gmaxlim<-c(0, 25)
+pgma1<-ggplot(data = data.frame(x = gmaxlim), aes(gmaxlim)) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[1], scale = bpar[1]),aes(color="black")) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[2], scale = bpar[2]),aes(color="red")) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[3], scale = bpar[3]),aes(color="blue")) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[4], scale = bpar[4]),aes(color="green")) +
+  ylab(expression(paste("f(x|",alpha,",",beta,")"))) +xlab("x") + scale_x_continuous(breaks=seq(gmaxlim[1],gmaxlim[2], by =5)) + 
+  scale_color_identity(name = "",
+                          breaks = c("black", "red", "blue","green"),
+                          labels = c(substitute(paste(alpha,"= ", v," ,",beta,"= ",s),list(v=apar[1],s=bpar[1])),
+                                     substitute(paste(alpha,"= ", v," ,",beta,"= ",s),list(v=apar[2],s=bpar[2])), 
+                                     substitute(paste(alpha,"= ", v," ,",beta,"= ",s),list(v=apar[3],s=bpar[3])),
+                                     substitute(paste(alpha,"= ", v," ,",beta,"= ",s),list(v=apar[4],s=bpar[4]))),
+                          guide = "legend")+
+  theme_bw()
+pgma1
+```
+En este caso es mas dificil comprender cual es el efecto de $\alpha$ y $\beta$ en la forma de la funcion de densidad.
+
+## funcion de densidad beta
+
+Esta funcion de densidad es interesante porque esta definida para numeros reales exclusivamente entre $0$ y $1$. su formula es
+
+$$f(x|\alpha,\beta)=\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)}x^{\alpha-1}(1-x)^{\beta-1}$$
+veamos diferntes funciones de densidad para diferentes valores de $\alpha$ y $\beta$:
+
+```{r fdbeta1, echo=FALSE, results = 'asis',fig.width=5.5, fig.height=4, fig.cap="diferentes funciones de densidad gamma"}
+apar<-c(0.7,1,2.5,5)
+bpar<-c(0.7,1,5,1)
+btaxlim<-c(0, 1)
+pbta1<-ggplot(data = data.frame(x = btaxlim), aes(btaxlim)) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[1], shape2 = bpar[1]),aes(color="black")) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[2], shape2 = bpar[2]),aes(color="red")) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[3], shape2 = bpar[3]),aes(color="blue")) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[4], shape2 = bpar[4]),aes(color="green")) +
+  ylab(expression(paste("f(x|",alpha,",",beta,")"))) +xlab("x") + scale_x_continuous(breaks=seq(btaxlim[1],btaxlim[2], by =.1)) + 
+  scale_color_identity(name = "",
+                          breaks = c("black", "red", "blue","green"),
+                          labels = c(substitute(paste(alpha,"= ", v," ,",beta,"= ",s),list(v=apar[1],s=bpar[1])),
+                                     substitute(paste(alpha,"= ", v," ,",beta,"= ",s),list(v=apar[2],s=bpar[2])), 
+                                     substitute(paste(alpha,"= ", v," ,",beta,"= ",s),list(v=apar[3],s=bpar[3])),
+                                     substitute(paste(alpha,"= ", v," ,",beta,"= ",s),list(v=apar[4],s=bpar[4]))),
+                          guide = "legend")+
+  theme_bw()
+pbta1
+```
+Similar al caso de la funcion de densidad gamma, es dificil comprender cual es el efecto de $\alpha$ y $\beta$ en la forma de la funcion de densidad.
 
 ## Parametros de Localizacion y Dispercion
 
@@ -453,4 +511,43 @@ En la figura \@ref(fig:fdnormcompV2) se presentan los rangos correspondientes pa
 
 En conclucion, hemos presentado como se ve el efecto de parametros de localizacion y dispersion. Puede usted notar que el parametro $\lambda$ en la funcion de densidad poisson es, ademas de ser un parametro de localizacion, tambien un parametro de dispercion? (ver figura \@ref(fig:fdpoisr2))
 
-# Parametros naturales vs 
+# Parametros generales
+
+Como vimos en la seccion anterior, dependiendo de la formula de la funcion de densidad pueden existir uno o dos parametros y su efecto en la forma de la funcion de densidad tambien depende de la formula matematica en cada caso. Sin embargo existen otro tipo de parametros que, en algunos casos, no se encuentran de manera explicita en estas formulas. Estos parametros, sin embargo, son calculados usando la funcion matematica que describe la funcion de densidad. Los parametros que estudiaremos a continuacion son **El Valor esperado, La Moda, La Mediana, La Varianza** y **La Desviacion Estandar**.
+
+## Valor Esperado
+
+El valor esperado de una variable aleatoria $X$ se define como
+
+\begin{equation}
+Valor \; Esperado \; de \; X=E(X)=\sum_{i=1}^{n}f(x_i)\times x_i (\#eq:EVdis)
+\end{equation}
+En el caso de una variable aleatoria discreta y 
+
+\begin{equation}
+Valor \; Esperado \; de \; X=E(X)=\int_{-\infty}^{\infty}f(x)dx (\#eq:EVcont)
+\end{equation}
+
+En el caso de una variable aleatoria continua. Estas forumulas parecen complicadas, empezaremos nuestra exploracion de este parametro en el caso de una variable aleatoria discreta.
+Recurdese que en el caso de una variable discreta $f(x_i)=P(X=x_i)$, luego la ecuacion \@ref(eq:EVdis) se puede reescribir como
+
+$$E(X)=\sum_{i=1}^{n}f(x_i)\times x_i=$$
+$$\sum_{i=1}^{n}P(X=x_i) \times x_i$$
+
+Es decir que el valor esperado para una variable discreta consiste en la suma ponderada de todos sus posibles valores multiplicados por su probabilidad. Calculemos el valor esperado paraa la variable numero de hijos. Reproducimos la grafica a continuacion, para facilidad de lectura (figura \@ref(fig:fdpoisrr2)).
+
+```{r fdpoisrr2, echo=FALSE, results = 'asis',fig.width=7, fig.height=4, fig.cap="Funcion de densidad para la variable numero de hijos"}
+dtf_pois<-data.frame(x=factor(0:11),y=dpois(0:11,3))
+dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
+  ylab("f(x)")+ theme_bw()+
+  theme(axis.title.y = element_text(angle=0))+
+  annotate("text", x = dtf_pois$x, y = dtf_pois$y+.01, 
+           label = paste0("(",dtf_pois$x,", ",round(dtf_pois$y,3),")"),parse=F , size=2.5 , fontface="bold")
+```
+
+Segun la formula \@ref(eq:EVdis) el calculo del valor esperado es el siguiente:
+
+$$E(X)=\sum_{i=1}^{n}f(x_i)\times x_i=$$
+$$E(X)=f(0)\times 0+f(1)\times 1+f(2)\times 2+ ... +f(11)\times 11=$$
+$$`r dtf_pois$x[1]` \times `r round(dtf_pois$y[1],3)`+`r dtf_pois$x[2]` \times `r round(dtf_pois$y[2],3)`+`r dtf_pois$x[3]` \times `r round(dtf_pois$y[3],3)`+...+`r dtf_pois$x[12]` \times `r round(dtf_pois$y[12],3)`=$$
+$$`r sum((0:11)*dtf_pois$y)` \approx 3$$
