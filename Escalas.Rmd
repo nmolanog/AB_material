@@ -79,5 +79,78 @@ Notese que un requisito minimo para que una variable sea cuantitativa es que el 
 
 En el estudio de los conjuntos de numeros (Naturales, Enteros, Racionales, Irracionales y Reales) existen dos tipos de infinitos: el infinito discreto y el infinito continuo. Los numeros Naturales, Enteros y Racionales son del primer tipo de infinito, los numeros Reales pertenecen al segunto tipo de infinito (ver https://www.youtube.com/watch?v=-RM6R9y-z60). Teneindo esto en cuenta, las variables se clasificaran en dos: *variables discretas* o *variables continuas*
 
+* **Variables Discretas**: Son aquellas variables en donde el tamaño del conjunto de posibles valroes que toma la variables es finito o infinito discreto.
+
+Toda variable cualitativa es discreta, ya que cualquier variable que tome valores categoricos termina teneindo finitas categorias. Otro ejemplo es la variable numero de hijos. El conjunto de los posibles valores que puede tomar esta variable es, cuando mucho, los numeros naturales, de tal forma que esta variable es discreta.
+
+* **Variables Continuas**: Son aquellas variables en donde el tamaño del conjunto de posibles valroes que toma la variables es del tipo infinito continuo.
+
+Una regla practica para determinar si una variable es continua es la siguiente:
+
+* Regla: Si para una variable, los numeros con decimales son admisibles, entonces puede considerarse del tipo *continuo*.
+
+Por ejemplo en la variable peso al nacer, tiene sentido observar valores como $3459.5$. Ya que este es un valor con decimales, esta variable se puede considerar como continua.
+Para la variable temperatura del cuerpo medida en grados celcius, valores de $32.7$ son plausibles, luego esta variable puede clsificarse como continua.
+Para la variable numero de hijos, no tiene sentido valores como $1.3$ hijos, luego esta variable no es continua, por tanto es discreta.
+
+## Nominal- Ordinal- Intervalo- Razon
+
+La ultima clasificacion que estudiaremos, se basa en las posibles relaciones que se pueden establecer entre diferentes valores de la variable.
+
+### Variable Nominal
+
+Estas variables se caracterizan por tener una unica relacion entre sus posibles valores: la relacion de identidad. Esta relacion establece que todo objeto susceptible de ser medido se identifica con uno y solamente un unico valor de la variable en cuestion.
+
+Por ejemplo considere la variable cancer con posibles valores "positivo" y "negativo". La relacion de identidad establece que una persona puede tener un unico valor de esta variable, bien sea "positivo" o "negativo". No es posible que una persona sea "positivo" y "negativo" al mismo tiempo, o que una persona no tenga ningun valor para esta variable.
+
+A esta clasificacion pertenecen todas aquellas variables que sean cualitativas (y por ende discretas) y que no exista un orden natural entre las mismas categorias. 
+
+Una nota adicional. Toda variable debe cumplir con la relacion de identidad para ser considerada una variable.
+
+### Variable Ordinal
+
+En esta clasificacion, ademas de existir la relacion de identidad, existe la relacion de orden. Las variables ordinales poseen unicamente estas dos relaciones. Por ejemplo la variable grado de escolaridad, con posibles valores *Primaria, Secundaria y tecnica-universitaria* es una variable ordinal ya que, ademas de poseer la relacion de identidad, posee la relacion de orden entre sus valores.
+
+### Variables de intervalo y razon
+
+Estos dos tipos de variables tienen en comun que la nosion de distancia entre los valores esta definida, lo cual implica que la suma (y la resta) tienen sentido (similar al criterio que usamos para determinar si una variable es cuantitativa). La diferencia entre las dos se encuentra en el significado que pueda tener el valor de 0.
+
+* Si el valor de 0 en la variable se puede conciderar como ausencia del atributo, entonces la variable se clasifica como de **Razon**
+* Si el valor de 0 en la variable no se puede conciderar como ausencia del atributo, entonces la variable se clasifica como de **Intervalo**
+
+Las variables de intervalo son escasas a continuacion presentamos algunos ejemplos.
+
+* La temperatura medida en grados celcius: El 0 en esta variable no significa ausencia de atributo (en este caso energia). El 0 es simplemente un punto de referencia: el estado energetico del agua destilada congelada a nivel del mar.
+
+* Coordenadas geograficas de longitud. el valor de 0 no representa atributo alguno, La longitud 0 representa al meridiano de greenwich punto de referencia en base al cual se calculan distancias cartograficas.
+
+La variable peso al nacer es una variable de razon ya que el 0 representa ausencia de peso. De manera similar la variable numero de hijos es tambien de razon, ya que denuevo el 0 representa ausencia de hijos.
+
+Notese que una variable de razon (y tambien de intervalo) puede ser discreta o continua. 
+
+# Error de Medicion
+
+Una vez revisados los conceptos al rededor de la medicion y la clasificacion de las variables, podemos hablar del concepto fundamental del *Error de Medicion*. El problema principal es que debido a nuestra naturaleza humana, el proseso de medicion es susceptible de error y no existe medicion exenta de error.
+
+Este error de medicion es facilmente ilustrable en el caso de variables continuas (bien sean de intervalo o razon). Pensemos en la variable peso (medida en Kg). Cuando yo mido mi peso en una vascula obtenumos un valor como por ejemplo $78.3$. Es claro que la variable peso es una variable continua, y al serlo sus valores son numeros reales, numeros con una expancion en desimales infinita. Pero la vascula reporta solo un desimal. El reporte de la vascula no es relamente un numero sino un rango:
+$$78.30000...., 78.39999....$$
+De tal forma que existe insertidumbre en la medicion realizada y para este caso esa incertidumbre se refleja en el rango de posibles valores inducido por el truncamiento de los decimales en un numero real.
+
+Por otra parte, al momento de pesarme en la bascula yo llevaba una chaqueta y unas botas de cuero, por lo cual el valor reportado esta por ensima de mi verdadero valor de peso $72.37986...$, de tal forma que el rango de peso reportado por la vascula ni siquiera incluye al verdadero valor de mi peso. Esta es otra fuente de error (denominada error sistematico).
+
+En este ejemplo vemos varios conceptos fundamentales de la teoria de la medicion. Primero se asume que existe un valor de medida verdadero para cada unidad de estudio (sujetos, pacientes, etc.). Segundo, se asume que los instrumentos que se usan para medir tienen insertidumbre en su medicion (en este caso el rango de peso inducido al truncar el numero real a un decimal) y tercero, que existe una fuente de error inerente al operador que usa el instrumento de medida (en este caso yo, al subirme a la bascula con ropa pesada).
+
+Estos factores de incertidumbre y error tambien suceden con variables cualitativas. Un medico especialista puede equivocarse al diagnosticar un paciente, las pruebas de laboratoria producen falsos positivos, etc.
+
+Para una revision mas profunda acerca de los tipos de error remitase a @invclin_epBook. 
+
+# Presicion y Exactitud
+
+
 # Bibliografia
 [comment]: <> (see https://bookdown.org/yihui/rmarkdown-cookbook/bibliography.html)
+
+---
+nocite: |
+  @ISO5725_1, @taylorError
+---
