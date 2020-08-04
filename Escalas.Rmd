@@ -1,0 +1,83 @@
+---
+title: "Escalas de medicion"
+author: "Nicolás Molano Gonzalez"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  bookdown::html_document2: default
+bibliography: references.bib  
+---
+
+```{r echo=F, message = FALSE, warning =F}
+library(pacman)
+p_load(tidyverse)
+p_load(kableExtra)
+p_load(knitr)
+p_load(latex2exp)   
+p_load(ggrepel)
+p_load(magick)
+set.seed(150)
+```
+
+# Introduccion
+
+El estudio de la bioestadistica empieza por el estudio de la medicion y sus posibles escalas. Todos tenemos algun concepto intuitivo de que es la medicion, sin embargo empezaremos nuestra discucion con una primera definicion de medicion
+
+* **Medicion**: "Se define como la asignacion de numeros o codigos a objetos o eventos de acuerdo
+con un conjunto de reglas." (adaptado de @Danielbook)
+
+El proceso de medicion es un proceso de transmicion de la informacion. Preguntemonos cual es el proposito de medir nuestra estatura o nuestro peso. El objetivo de estas mediciones es el de transmitir informacion sobre nuestros atributos fisicos (en este caso el peso y la estatura) a otras personas, de tal manera que, si por ejemplo, un medico se encuentra haciendo un consulta remota, al darle esta informacion el pueda darse una idea de estos atributos en nosotros. Al reportar estos datos al medico, el ya no tendra que medir por si mismo estos atributos en nostros y podra proceder con la consulta, "midiendo" otros atributos desconocidos, que nosotros no hemos medido.
+
+Como bien lo dice la definicion de medicion, este es simplemente un conjunto de reglas que mapean o relacionan atributos (fisicos, quimicos, psicologicos, etc.) con valores en un conjunto de codigos. Estos codigos no siempre son numeros, como se podria creer. Veamos un ejemplo.
+
+Un medico oncologo aplica criterios diagnosticos especificos para determinar si un paciente tiene o no cancer. El atributo fisico que se desea "medir" es el cancer, el cual tiene varias dimenciones (moleculares, clinicas, fisiologicas, histologicas, etc.). La "regla de medicion" son los criterios diagnosticos. El conjunto de posibles valores son, por ejemplo "positivo" o "negativo".
+
+El asunto fundamental es que un atributo puede ser medido de diferentes formas. Por ejemplo, la edad puede ser medida en unidades de años, o puede ser medida en rangos etarios. Esto nos lleva a nuestra segunda definicion:
+
+* **operacionalización**: Es el conjunto de reglas adoptadas y establecides que definen una medicion.
+
+Finalmente cuando se ha escojido una operacionalización en particular para medir un atributo de un objeto de estudio y medimos este atributo en diferentes unidades de estudio (como por ejemplo pacientes), obtenemos una **variable**.
+
+Esto significa que no existe una unica variable de edad, ya que si la medimos en años es una variable distinta a si la medimos como grupos etareos.
+
+En conclusion:
+
+* La medicion es un proceso de transmicion de informacion en el cual los atributos del objeto de estudio son codificados en valores de algun conjunto de codigos, mediante una regla sistematica.
+* Existen diferentes formas de operacionalizar atributos en diferentes reglas de medicion.
+* Una variable es el resultado de aplicar una regla de medicion (u operacionalización) a un conjunto en particular.
+
+# Clasificacion de las variables
+
+Para nosostros en estadistica es fundamental determinar las caracteristicas del conjunto de posibles valores que puede tomar una variable. Veamos unos ejemplos.
+
+* La variable genero con posibles valores *Femenino* y *Masculino*. El numero de posibles valores son dos. Los codigos utilizados son categorias.
+* La variable peso al nacer en kg. El numero de posibles valores son infinitos. La codificacion empleada son numeros reales con decimales truncados (por ejemplo se usara 1 decimal).
+* La variable numero de hijos. Determinar el numero de posibles valores de esta variable puede ser dificil, aunque intuimos que no es infinito. La codificacion empleada son numeros enteros (valores como 1.5 hijos no tienen sentido).
+* La variable estrato socioeconomico (en Bogotà). El numero de posibles valores son 6. La codificacion empleada son numeros enteros del 1 al 6.
+
+Las diferentes clasificaciones de estas variables se basan fuertemente en las caracteristicas del conjunto de posibles valores que puede tomar la variable. Empesaremos nuestro estudio con la primera y mas basica clasificacion.
+
+## Clasificacion Cuantitiativa-Cualitativa
+
+Esta clasificacion reconoce dos grupos de variabels: aquellas que son cualitativas y aquellas que son cuantitativas. Las disertaciones filosoficas al rededor de si una variable es cuantitativa o no son extensas y profundas, sin embargo aqui brindaremos la siguiente regla practica para establecer si una variable es cuantitativa o no.
+
+* _Una variable se considera cuantitiativa si sus valores admiten al menos la operacion de suma._
+
+Despues de todo, si una variable esta reflejando un atributo de cantida, estas deben poder sumarse. Veamos algunos ejemplos.
+
+La variable numero de hijos, toma valores de numeros enteros y si por ejemplo un sujeto tenia un hijo el año pasado y dos años despues tiene otros 2 hijos diferentes tiene sentido sumar para obtener un total de tres hijos. Luego esta variable es cuantitiativa.
+
+Por otra parte, para la variable estrato socioeconomico anteriormente presentada, tendra sentido que $1+1=2$? La respuesta es que no, y por tanto esta variable no es cuantitativa.
+Y que hay de las variables cualitativas? Adoptaremos la siguente regla para determinar si una variable es cualitativa:
+
+* _Una variable se considera cualitativa si no es cuantitativa_
+
+De tal forma que el estrato socioeconomico es una variable cualitativa.
+
+Notese que un requisito minimo para que una variable sea cuantitativa es que el conjunto de posibles valores sean numeros. Claramente una variable como el genero no puede ser cuantitativa ya que nisiquiera se codifica en numeros para poder hacer la prueba de la suma.
+
+## Clasificacion en base al tamaño del conjunto de posibles valores
+
+En el estudio de los conjuntos de numeros (Naturales, Enteros, Racionales, Irracionales y Reales) existen dos tipos de infinitos: el infinito discreto y el infinito continuo. Los numeros Naturales, Enteros y Racionales son del primer tipo de infinito, los numeros Reales pertenecen al segunto tipo de infinito (ver https://www.youtube.com/watch?v=-RM6R9y-z60). Teneindo esto en cuenta, las variables se clasificaran en dos: *variables discretas* o *variables continuas*
+
+# Bibliografia
+[comment]: <> (see https://bookdown.org/yihui/rmarkdown-cookbook/bibliography.html)
