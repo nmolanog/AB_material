@@ -149,18 +149,43 @@ Para una revision mas profunda acerca de los tipos de error remitase a @invclin_
 
 Una vez definido el error en el proceso de medicion, el paso a seguir es caracterizar la magnitud de este error. Para esto se han desarrollado dos conceptos: el de presicion y exactitud. Para ilustrar estos conceptos consideraremos el siguiente ejemplo.
 
-En un laboratorio, el tecnico debe prepara una prueba diagnostica y en el protocolo de esta prueban el tecnico debe medir 30mgr de peroxido de potasio. El tecnico dispone de 4 vasculas (A, B, C y D) y por instrucciones del director del laboratorio, le ha pedido que mida 10 veces el peso rewuerido en cada las basculas. A continuacion se presentan los resultados:
+En un laboratorio, el tecnico debe evaluar la presicion y exactitud de 4 basculas. El tecnico usara una pesa de 30mg, el cual se considera como patron de medida, pues se conoce su peso. La evaluacion consiste en realizar 10 mediciones del patron de medida en cada bascula. A continuacion se presentan los resultados:
 
 ```{r pdtab, echo=FALSE}
 ###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
-z0<-data.frame(A=rnorm(10,30,3),B=rnorm(10,30,9),C=rnorm(10,25,3),D=rnorm(10,25,9))
+z0<-data.frame(A=rnorm(10,30,3),B=rnorm(10,30,9),C=rnorm(10,20,3),D=rnorm(10,40,9))
 res<-kable(z0,caption="mediciones repetidas de peso en diferentes vasculas",row.names =F)
 kable_styling(res,"striped", position = "center",full_width = F)
 ```
-
-```{r fdmw, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="Distribucion de peso para hombres y mujeres"}
-
+Presentamos tambien una representacion grafica de estos datos:
+```{r fpresex, echo=FALSE, message=FALSE, warning=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="mediciones repetidas de peso en diferentes vasculas"}
+z0%>%melt%>%ggplot(aes(x=variable,y=value))+
+  geom_point()+geom_hline(yintercept = 30)+theme_bw()+ 
+  labs(y="Peso", x = "Bascula")
 ```
+La linea negra horisontal en 30 representa el verdadero valor de peso del patron. Puede observarse como las medidas repetidas en cada bascula se distribuyen en relacion con el verdadero valor.
+
+* La bascula A genera medidas muy similares entre si y al rededor del verdadero valor
+* La bascula B genera mediciones much mas variables que en la bascula A, sin embargo sus valores se encuentran al rededor del verdadero valor
+* La bascula C genera medidas muy similares entre si (como en la bascula A), sin embargo, sus valores se encuentran sistematicamente por debajo del verdadero valor
+* La bascula B genera mediciones much mas variables (como en la bascula B), sin embargo, sus valores se encuentran sistematicamente por encima del verdadero valor
+
+¿Cual cree usted que seria la mejor bascula?
+
+A continuacion definiremos la *Exactitud* y *Presicion*
+
+* *Exactitud*: Se relaciona con la diferencia entre las mediciones y el verdadero valor. Entre menor sea la diferencia mayor sera la exactitud. Entre mayor sea la diferencia menor sera la Exactitud.
+* *Presicion*: Se relaciona con la variabilidad de las mediciones repetidas sobre un mismo objeto. Entre menor sea la variabilidad, mayor sera la presicion. Entre mayor sea la variabilidad, menor sera la presicion.
+
+Teniendo esto en cuenta podemos decir sobre las basculas que:
+
+* La bascula A es exacta y presisa
+* La bascula B es exacta e impresisa
+* La bascula C es inexacta y presisa
+* La bascula D es inexacta e impresisa
+
+
+
 
 # Bibliografia
 [comment]: <> (see https://bookdown.org/yihui/rmarkdown-cookbook/bibliography.html)
