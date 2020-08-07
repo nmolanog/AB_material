@@ -1,6 +1,6 @@
 ---
-title: "Escalas de medicion"
-author: "Nicolás Molano Gonzalez"
+title: "Escalas de medición"
+author: "Nicolás Molano González"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   bookdown::html_document2: default
@@ -12,182 +12,182 @@ library(pacman)
 p_load(tidyverse)
 p_load(kableExtra)
 p_load(knitr)
-p_load(latex2exp)   
+p_load(latex2exp)  
 p_load(ggrepel)
 p_load(magick)
 p_load(reshape2)
 set.seed(150)
 ```
 
-# Introduccion
+# Introducción
 
-El estudio de la bioestadistica empieza por el estudio de la medicion y sus posibles escalas. Todos tenemos algun concepto intuitivo de que es la medicion, sin embargo empezaremos nuestra discucion con una primera definicion de medicion
+El estudio de la bioestadística empieza por el estudio de la medición y sus posibles escalas. Todos tenemos algún concepto intuitivo de que es la medición, sin embargo empezaremos nuestra discusión con una primera definición de medición
 
-* **Medicion**: "Se define como la asignacion de numeros o codigos a objetos o eventos de acuerdo
+* **Medición**: "Se define como la asignación de números o códigos a objetos o eventos de acuerdo
 con un conjunto de reglas." (adaptado de @Danielbook)
 
-El proceso de medicion es un proceso de transmicion de la informacion. Preguntemonos cual es el proposito de medir nuestra estatura o nuestro peso. El objetivo de estas mediciones es el de transmitir informacion sobre nuestros atributos fisicos (en este caso el peso y la estatura) a otras personas, de tal manera que, si por ejemplo, un medico se encuentra haciendo un consulta remota, al darle esta informacion el pueda darse una idea de estos atributos en nosotros. Al reportar estos datos al medico, el ya no tendra que medir por si mismo estos atributos en nostros y podra proceder con la consulta, "midiendo" otros atributos desconocidos, que nosotros no hemos medido.
+El proceso de medición es un proceso de transmisión de la información. Preguntémonos cual es el propósito de medir nuestra estatura o nuestro peso. El objetivo de estas mediciones es el de transmitir información sobre nuestros atributos físicos (en este caso el peso y la estatura) a otras personas, de tal manera que, si por ejemplo, un médico se encuentra haciendo una consulta remota, al darle esta información él pueda darse una idea de estos atributos en nosotros. Al reportar estos datos al médico, el ya no tendrá que medir por sí mismo estos atributos en nosotros y podrá proceder con la consulta, "midiendo" otros atributos desconocidos, que nosotros no hemos medido.
 
-Como bien lo dice la definicion de medicion, este es simplemente un conjunto de reglas que mapean o relacionan atributos (fisicos, quimicos, psicologicos, etc.) con valores en un conjunto de codigos. Estos codigos no siempre son numeros, como se podria creer. Veamos un ejemplo.
+Como bien lo dice la definición de medición, este es simplemente un conjunto de reglas que mapean o relacionan atributos (físicos, químicos, psicológicos, etc.) con valores en un conjunto de códigos. Estos códigos no siempre son números, como se podría creer. Veamos un ejemplo.
 
-Un medico oncologo aplica criterios diagnosticos especificos para determinar si un paciente tiene o no cancer. El atributo fisico que se desea "medir" es el cancer, el cual tiene varias dimenciones (moleculares, clinicas, fisiologicas, histologicas, etc.). La "regla de medicion" son los criterios diagnosticos. El conjunto de posibles valores son, por ejemplo "positivo" o "negativo".
+Un médico oncólogo aplica criterios diagnósticos específicos para determinar si un paciente tiene o no cáncer. El atributo físico que se desea "medir" es el cáncer, el cual tiene varias dimensiones (moleculares, clínicas, fisiológicas, histológicas, etc.). La "regla de medición" son los criterios diagnósticos. El conjunto de posibles valores es, por ejemplo "positivo" o "negativo".
 
-El asunto fundamental es que un atributo puede ser medido de diferentes formas. Por ejemplo, la edad puede ser medida en unidades de años, o puede ser medida en rangos etarios. Esto nos lleva a nuestra segunda definicion:
+El asunto fundamental es que un atributo puede ser medido de diferentes formas. Por ejemplo, la edad puede ser medida en unidades de años, o puede ser medida en rangos etarios. Esto nos lleva a nuestra segunda definición:
 
-* **operacionalización**: Es el conjunto de reglas adoptadas y establecides que definen una medicion.
+* **operacionalización**: Es el conjunto de reglas adoptadas y establecidas que definen una medición.
 
-Finalmente cuando se ha escojido una operacionalización en particular para medir un atributo de un objeto de estudio y medimos este atributo en diferentes unidades de estudio (como por ejemplo pacientes), obtenemos una **variable**.
+Finalmente, cuando se ha escogido una operacionalización en particular para medir un atributo de un objeto de estudio y medimos este atributo en diferentes unidades de estudio (como por ejemplo pacientes), obtenemos una **variable**.
 
-Esto significa que no existe una unica variable de edad, ya que si la medimos en años es una variable distinta a si la medimos como grupos etareos.
+Esto significa que no existe una única variable de edad, ya que si la medimos en años es una variable distinta a si la medimos como grupos etarios.
 
-En conclusion:
+En conclusión:
 
-* La medicion es un proceso de transmicion de informacion en el cual los atributos del objeto de estudio son codificados en valores de algun conjunto de codigos, mediante una regla sistematica.
-* Existen diferentes formas de operacionalizar atributos en diferentes reglas de medicion.
-* Una variable es el resultado de aplicar una regla de medicion (u operacionalización) a un conjunto en particular.
+* La medición es un proceso de transmisión de información en el cual los atributos del objeto de estudio son codificados en valores de algún conjunto de códigos, mediante una regla sistemática.
+* Existen diferentes formas de operacionalizar atributos en diferentes reglas de medición.
+* Una variable es el resultado de aplicar una regla de medición (u operacionalización) a un conjunto en particular.
 
-# Clasificacion de las variables
+# Clasificación de las variables
 
-Para nosostros en estadistica es fundamental determinar las caracteristicas del conjunto de posibles valores que puede tomar una variable. Veamos unos ejemplos.
+Para nosotros en estadística es fundamental determinar las características del conjunto de posibles valores que puede tomar una variable. Veamos unos ejemplos.
 
-* La variable genero con posibles valores *Femenino* y *Masculino*. El numero de posibles valores son dos. Los codigos utilizados son categorias.
-* La variable peso al nacer en kg. El numero de posibles valores son infinitos. La codificacion empleada son numeros reales con decimales truncados (por ejemplo se usara 1 decimal).
-* La variable numero de hijos. Determinar el numero de posibles valores de esta variable puede ser dificil, aunque intuimos que no es infinito. La codificacion empleada son numeros enteros (valores como 1.5 hijos no tienen sentido).
-* La variable estrato socioeconomico (en Bogotà). El numero de posibles valores son 6. La codificacion empleada son numeros enteros del 1 al 6.
+* La variable genero con posibles valores *Femenino* y *Masculino*. El número de posibles valores son dos. Los códigos utilizados son categorías.
+* La variable peso al nacer en kg. El número de posibles valores son infinitos. La codificación empleada son números reales con decimales truncados (por ejemplo, se usará 1 decimal).
+* La variable número de hijos. Determinar el número de posibles valores de esta variable puede ser difícil, aunque intuimos que no es infinito. La codificación empleada son números enteros (valores como 1.5 hijos no tienen sentido).
+* La variable estrato socioeconómico (en Bogotá). El número de posibles valores son 6. La codificación empleada son números enteros del 1 al 6.
 
-Las diferentes clasificaciones de estas variables se basan fuertemente en las caracteristicas del conjunto de posibles valores que puede tomar la variable. Empesaremos nuestro estudio con la primera y mas basica clasificacion.
+Las diferentes clasificaciones de estas variables se basan fuertemente en las características del conjunto de posibles valores que puede tomar la variable. Empezaremos nuestro estudio con la primera y más básica clasificación.
 
-## Clasificacion Cuantitiativa-Cualitativa
+## Clasificación Cuantitativa-Cualitativa
 
-Esta clasificacion reconoce dos grupos de variabels: aquellas que son cualitativas y aquellas que son cuantitativas. Las disertaciones filosoficas al rededor de si una variable es cuantitativa o no son extensas y profundas, sin embargo aqui brindaremos la siguiente regla practica para establecer si una variable es cuantitativa o no.
+Esta clasificación reconoce dos grupos de variables: aquellas que son cualitativas y aquellas que son cuantitativas. Las disertaciones filosóficas alrededor de si una variable es cuantitativa o no son extensas y profundas, sin embargo, aquí brindaremos la siguiente regla practica para establecer si una variable es cuantitativa o no.
 
-* _Una variable se considera cuantitiativa si sus valores admiten al menos la operacion de suma._
+* _Una variable se considera cuantitativa si sus valores admiten al menos la operación de suma._
 
-Despues de todo, si una variable esta reflejando un atributo de cantida, estas deben poder sumarse. Veamos algunos ejemplos.
+Después de todo, si una variable está reflejando un atributo de cantidad, estas deben poder sumarse. Veamos algunos ejemplos.
 
-La variable numero de hijos, toma valores de numeros enteros y si por ejemplo un sujeto tenia un hijo el año pasado y dos años despues tiene otros 2 hijos diferentes tiene sentido sumar para obtener un total de tres hijos. Luego esta variable es cuantitiativa.
+La variable número de hijos, toma valores de números enteros y si por ejemplo un sujeto tenía un hijo el año pasado y dos años después tiene otros 2 hijos diferentes tiene sentido sumar para obtener un total de tres hijos. Luego esta variable es cuantitativa.
 
-Por otra parte, para la variable estrato socioeconomico anteriormente presentada, tendra sentido que $1+1=2$? La respuesta es que no, y por tanto esta variable no es cuantitativa.
-Y que hay de las variables cualitativas? Adoptaremos la siguente regla para determinar si una variable es cualitativa:
+Por otra parte, para la variable estrato socioeconómico anteriormente presentada, tendrá sentido que $1+1=2$? La respuesta es que no, y por tanto esta variable no es cuantitativa.
+¿Y que hay de las variables cualitativas? Adoptaremos la siguiente regla para determinar si una variable es cualitativa:
 
 * _Una variable se considera cualitativa si no es cuantitativa_
 
-De tal forma que el estrato socioeconomico es una variable cualitativa.
+De tal forma que el estrato socioeconómico es una variable cualitativa.
 
-Notese que un requisito minimo para que una variable sea cuantitativa es que el conjunto de posibles valores sean numeros. Claramente una variable como el genero no puede ser cuantitativa ya que nisiquiera se codifica en numeros para poder hacer la prueba de la suma.
+Nótese que un requisito mínimo para que una variable sea cuantitativa es que el conjunto de posibles valores sean números. Claramente una variable como el género no puede ser cuantitativa ya que ni siquiera se codifica en números para poder hacer la prueba de la suma.
 
-## Clasificacion en base al tamaño del conjunto de posibles valores
+## Clasificación en base al tamaño del conjunto de posibles valores
 
-En el estudio de los conjuntos de numeros (Naturales, Enteros, Racionales, Irracionales y Reales) existen dos tipos de infinitos: el infinito discreto y el infinito continuo. Los numeros Naturales, Enteros y Racionales son del primer tipo de infinito, los numeros Reales pertenecen al segunto tipo de infinito (ver https://www.youtube.com/watch?v=-RM6R9y-z60). Teneindo esto en cuenta, las variables se clasificaran en dos: *variables discretas* o *variables continuas*
+En el estudio de los conjuntos de números (Naturales, Enteros, Racionales, Irracionales y Reales) existen dos tipos de infinitos: el infinito discreto y el infinito continuo. Los números Naturales, Enteros y Racionales son del primer tipo de infinito, los números Reales pertenecen al segundo tipo de infinito (ver https://www.youtube.com/watch?v=-RM6R9y-z60). Teniendo esto en cuenta, las variables se clasificarán en dos: *variables discretas* o *variables continuas*
 
-* **Variables Discretas**: Son aquellas variables en donde el tamaño del conjunto de posibles valroes que toma la variables es finito o infinito discreto.
+* **Variables Discretas**: Son aquellas variables en donde el tamaño del conjunto de posibles valores que toma la variable es finito o infinito discreto.
 
-Toda variable cualitativa es discreta, ya que cualquier variable que tome valores categoricos termina teneindo finitas categorias. Otro ejemplo es la variable numero de hijos. El conjunto de los posibles valores que puede tomar esta variable es, cuando mucho, los numeros naturales, de tal forma que esta variable es discreta.
+Toda variable cualitativa es discreta, ya que cualquier variable que tome valores categóricos termina teniendo finitas categorías. Otro ejemplo es la variable número de hijos. El conjunto de los posibles valores que puede tomar esta variable es, cuando mucho, los números naturales, de tal forma que esta variable es discreta.
 
-* **Variables Continuas**: Son aquellas variables en donde el tamaño del conjunto de posibles valroes que toma la variables es del tipo infinito continuo.
+* **Variables Continuas**: Son aquellas variables en donde el tamaño del conjunto de posibles valores que toma la variable es del tipo infinito continuo.
 
 Una regla practica para determinar si una variable es continua es la siguiente:
 
-* Regla: Si para una variable, los numeros con decimales son admisibles, entonces puede considerarse del tipo *continuo*.
+* Regla: Si para una variable, los números con decimales son admisibles, entonces puede considerarse del tipo *continuo*.
 
-Por ejemplo en la variable peso al nacer, tiene sentido observar valores como $3459.5$. Ya que este es un valor con decimales, esta variable se puede considerar como continua.
-Para la variable temperatura del cuerpo medida en grados celcius, valores de $32.7$ son plausibles, luego esta variable puede clsificarse como continua.
-Para la variable numero de hijos, no tiene sentido valores como $1.3$ hijos, luego esta variable no es continua, por tanto es discreta.
+Por ejemplo, en la variable peso al nacer, tiene sentido observar valores como $3459.5$. Ya que este es un valor con decimales, esta variable se puede considerar como continua.
+Para la variable temperatura del cuerpo medida en grados Celsius, valores de $32.7$ son plausibles, luego esta variable puede clasificarse como continua.
+Para la variable número de hijos, no tiene sentido valores como $1.3$ hijos, luego esta variable no es continua, por tanto, es discreta.
 
-## Nominal- Ordinal- Intervalo- Razon
+## Nominal- Ordinal- Intervalo- Razón
 
-La ultima clasificacion que estudiaremos, se basa en las posibles relaciones que se pueden establecer entre diferentes valores de la variable.
+La última clasificación que estudiaremos, se basa en las posibles relaciones que se pueden establecer entre diferentes valores de la variable.
 
 ### Variable Nominal
 
-Estas variables se caracterizan por tener una unica relacion entre sus posibles valores: la relacion de identidad. Esta relacion establece que todo objeto susceptible de ser medido se identifica con uno y solamente un unico valor de la variable en cuestion.
+Estas variables se caracterizan por tener una única relación entre sus posibles valores: la relación de identidad. Esta relación establece que todo objeto susceptible de ser medido se identifica con uno y solamente un único valor de la variable en cuestión.
 
-Por ejemplo considere la variable cancer con posibles valores "positivo" y "negativo". La relacion de identidad establece que una persona puede tener un unico valor de esta variable, bien sea "positivo" o "negativo". No es posible que una persona sea "positivo" y "negativo" al mismo tiempo, o que una persona no tenga ningun valor para esta variable.
+Por ejemplo, considere la variable cáncer con posibles valores "positivo" y "negativo". La relación de identidad establece que una persona puede tener un único valor de esta variable, bien sea "positivo" o "negativo". No es posible que una persona sea "positivo" y "negativo" al mismo tiempo, o que una persona no tenga ningún valor para esta variable.
 
-A esta clasificacion pertenecen todas aquellas variables que sean cualitativas (y por ende discretas) y que no exista un orden natural entre las mismas categorias. 
+A esta clasificación pertenecen todas aquellas variables que sean cualitativas (y por ende discretas) y que no exista un orden natural entre las mismas categorías.
 
-Una nota adicional. Toda variable debe cumplir con la relacion de identidad para ser considerada una variable.
+Una nota adicional. Toda variable debe cumplir con la relación de identidad para ser considerada una variable.
 
 ### Variable Ordinal
 
-En esta clasificacion, ademas de existir la relacion de identidad, existe la relacion de orden. Las variables ordinales poseen unicamente estas dos relaciones. Por ejemplo la variable grado de escolaridad, con posibles valores *Primaria, Secundaria y tecnica-universitaria* es una variable ordinal ya que, ademas de poseer la relacion de identidad, posee la relacion de orden entre sus valores.
+En esta clasificación, además de existir la relación de identidad, existe la relación de orden. Las variables ordinales poseen únicamente estas dos relaciones. Por ejemplo, la variable grado de escolaridad, con posibles valores *Primaria, Secundaria y técnica-universitaria* es una variable ordinal ya que, además de poseer la relación de identidad, posee la relación de orden entre sus valores.
 
-### Variables de intervalo y razon
+### Variables de intervalo y razón
 
-Estos dos tipos de variables tienen en comun que la nosion de distancia entre los valores esta definida, lo cual implica que la suma (y la resta) tienen sentido (similar al criterio que usamos para determinar si una variable es cuantitativa). La diferencia entre las dos se encuentra en el significado que pueda tener el valor de 0.
+Estos dos tipos de variables tienen en común que la noción de distancia entre los valores está definida, lo cual implica que la suma (y la resta) tienen sentido (similar al criterio que usamos para determinar si una variable es cuantitativa). La diferencia entre las dos se encuentra en el significado que pueda tener el valor de 0.
 
-* Si el valor de 0 en la variable se puede conciderar como ausencia del atributo, entonces la variable se clasifica como de **Razon**
-* Si el valor de 0 en la variable no se puede conciderar como ausencia del atributo, entonces la variable se clasifica como de **Intervalo**
+* Si el valor de 0 en la variable se puede considerar como ausencia del atributo, entonces la variable se clasifica como de **Razón**
+* Si el valor de 0 en la variable no se puede considerar como ausencia del atributo, entonces la variable se clasifica como de **Intervalo**
 
-Las variables de intervalo son escasas a continuacion presentamos algunos ejemplos.
+Las variables de intervalo son escasas a continuación presentamos algunos ejemplos.
 
-* La temperatura medida en grados celcius: El 0 en esta variable no significa ausencia de atributo (en este caso energia). El 0 es simplemente un punto de referencia: el estado energetico del agua destilada congelada a nivel del mar.
+* La temperatura medida en grados Celsius: El 0 en esta variable no significa ausencia de atributo (en este caso energía). El 0 es simplemente un punto de referencia: el estado energético del agua destilada congelada a nivel del mar.
 
-* Coordenadas geograficas de longitud. el valor de 0 no representa atributo alguno, La longitud 0 representa al meridiano de greenwich punto de referencia en base al cual se calculan distancias cartograficas.
+* Coordenadas geográficas de longitud. el valor de 0 no representa atributo alguno, La longitud 0 representa al meridiano de Greenwich punto de referencia en base al cual se calculan distancias cartográficas.
 
-La variable peso al nacer es una variable de razon ya que el 0 representa ausencia de peso. De manera similar la variable numero de hijos es tambien de razon, ya que denuevo el 0 representa ausencia de hijos.
+La variable peso al nacer es una variable de razón ya que el 0 representa ausencia de peso. De manera similar la variable número de hijos es también de razón, ya que de nuevo el 0 representa ausencia de hijos.
 
-Notese que una variable de razon (y tambien de intervalo) puede ser discreta o continua. 
+Nótese que una variable de razón (y también de intervalo) puede ser discreta o continua.
 
-# Error de Medicion
+# Error de Medición
 
-Una vez revisados los conceptos al rededor de la medicion y la clasificacion de las variables, podemos hablar del concepto fundamental del *Error de Medicion*. El problema principal es que debido a nuestra naturaleza humana, el proseso de medicion es susceptible de error y no existe medicion exenta de error.
+Una vez revisados los conceptos alrededor de la medición y la clasificación de las variables, podemos hablar del concepto fundamental del *Error de Medición*. El problema principal es que, debido a nuestra naturaleza humana, el proceso de medición es susceptible de error y no existe medición exenta de error.
 
-Este error de medicion es facilmente ilustrable en el caso de variables continuas (bien sean de intervalo o razon). Pensemos en la variable peso (medida en Kg). Cuando yo mido mi peso en una vascula obtenumos un valor como por ejemplo $78.3$. Es claro que la variable peso es una variable continua, y al serlo sus valores son numeros reales, numeros con una expancion en desimales infinita. Pero la vascula reporta solo un desimal. El reporte de la vascula no es relamente un numero sino un rango:
+Este error de medición es fácilmente ilustrable en el caso de variables continuas (bien sean de intervalo o razón). Pensemos en la variable peso (medida en Kg). Cuando yo mido mi peso en una báscula obtenemos un valor como por ejemplo $78.3$. Es claro que la variable peso es una variable continua, y al serlo sus valores son números reales, números con una expansión en decimales infinita. Pero la báscula reporta solo un decimal. El reporte de la báscula no es realmente un numero sino un rango:
 $$78.30000...., 78.39999....$$
-De tal forma que existe insertidumbre en la medicion realizada y para este caso esa incertidumbre se refleja en el rango de posibles valores inducido por el truncamiento de los decimales en un numero real.
+De tal forma que existe incertidumbre en la medición realizada y para este caso esa incertidumbre se refleja en el rango de posibles valores inducido por el truncamiento de los decimales en un número real.
 
-Por otra parte, al momento de pesarme en la bascula yo llevaba una chaqueta y unas botas de cuero, por lo cual el valor reportado esta por ensima de mi verdadero valor de peso $72.37986...$, de tal forma que el rango de peso reportado por la vascula ni siquiera incluye al verdadero valor de mi peso. Esta es otra fuente de error (denominada error sistematico).
+Por otra parte, al momento de pesarme en la báscula yo llevaba una chaqueta y unas botas de cuero, por lo cual el valor reportado esta por encima de mi verdadero valor de peso $72.37986...$, de tal forma que el rango de peso reportado por la báscula ni siquiera incluye al verdadero valor de mi peso. Esta es otra fuente de error (denominada error sistemático).
 
-En este ejemplo vemos varios conceptos fundamentales de la teoria de la medicion. Primero se asume que existe un valor de medida verdadero para cada unidad de estudio (sujetos, pacientes, etc.). Segundo, se asume que los instrumentos que se usan para medir tienen insertidumbre en su medicion (en este caso el rango de peso inducido al truncar el numero real a un decimal) y tercero, que existe una fuente de error inerente al operador que usa el instrumento de medida (en este caso yo, al subirme a la bascula con ropa pesada).
+En este ejemplo vemos varios conceptos fundamentales de la teoría de la medición. Primero se asume que existe un valor de medida verdadero para cada unidad de estudio (sujetos, pacientes, etc.). Segundo, se asume que los instrumentos que se usan para medir tienen incertidumbre en su medición (en este caso el rango de peso inducido al truncar el número real a un decimal) y tercero, que existe una fuente de error inherente al operador que usa el instrumento de medida (en este caso yo, al subirme a la báscula con ropa pesada).
 
-Estos factores de incertidumbre y error tambien suceden con variables cualitativas. Un medico especialista puede equivocarse al diagnosticar un paciente, las pruebas de laboratoria producen falsos positivos, etc.
+Estos factores de incertidumbre y error también suceden con variables cualitativas. Un médico especialista puede equivocarse al diagnosticar un paciente, las pruebas de laboratorio producen falsos positivos, etc.
 
-Para una revision mas profunda acerca de los tipos de error remitase a @invclin_epBook. 
+Para una revisión más profunda acerca de los tipos de error remítase a @invclin_epBook.
 
-# Presicion y Exactitud
+# Precisión y Exactitud
 
-Una vez definido el error en el proceso de medicion, el paso a seguir es caracterizar la magnitud de este error. Para esto se han desarrollado dos conceptos: el de presicion y exactitud. Para ilustrar estos conceptos consideraremos el siguiente ejemplo.
+Una vez definido el error en el proceso de medición, el paso a seguir es caracterizar la magnitud de este error. Para esto se han desarrollado dos conceptos: el de precisión y exactitud. Para ilustrar estos conceptos consideraremos el siguiente ejemplo.
 
-En un laboratorio, el tecnico debe evaluar la presicion y exactitud de 4 basculas. El tecnico usara una pesa de 30mg, el cual se considera como patron de medida, pues se conoce su peso. La evaluacion consiste en realizar 10 mediciones del patron de medida en cada bascula. A continuacion se presentan los resultados:
+En un laboratorio, el técnico debe evaluar la precisión y exactitud de 4 basculas. El técnico usara una pesa de 30mg, el cual se considera como patrón de medida, pues se conoce su peso. La evaluación consiste en realizar 10 mediciones del patrón de medida en cada bascula. A continuación, se presentan los resultados:
 
 ```{r pdtab, echo=FALSE}
 ###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
 z0<-data.frame(A=rnorm(10,30,3),B=rnorm(10,30,9),C=rnorm(10,20,3),D=rnorm(10,40,9))
-res<-kable(z0,caption="mediciones repetidas de peso en diferentes vasculas",row.names =F)
+res<-kable(z0,caption="mediciones repetidas de peso en diferentes básculas",row.names =F)
 kable_styling(res,"striped", position = "center",full_width = F)
 ```
-Presentamos tambien una representacion grafica de estos datos:
-```{r fpresex, echo=FALSE, message=FALSE, warning=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="mediciones repetidas de peso en diferentes vasculas"}
+Presentamos también una representación grafica de estos datos:
+```{r fpresex, echo=FALSE, message=FALSE, warning=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="mediciones repetidas de peso en diferentes básculas"}
 z0%>%melt%>%ggplot(aes(x=variable,y=value))+
-  geom_point()+geom_hline(yintercept = 30)+theme_bw()+ 
+  geom_point()+geom_hline(yintercept = 30)+theme_bw()+
   labs(y="Peso", x = "Bascula")
 ```
-La linea negra horisontal en 30 representa el verdadero valor de peso del patron. Puede observarse como las medidas repetidas en cada bascula se distribuyen en relacion con el verdadero valor.
+La línea negra horizontal en 30 representa el verdadero valor de peso del patrón. Puede observarse como las medidas repetidas en cada bascula se distribuyen en relación con el verdadero valor.
 
-* La bascula A genera medidas muy similares entre si y al rededor del verdadero valor
-* La bascula B genera mediciones much mas variables que en la bascula A, sin embargo sus valores se encuentran al rededor del verdadero valor
-* La bascula C genera medidas muy similares entre si (como en la bascula A), sin embargo, sus valores se encuentran sistematicamente por debajo del verdadero valor
-* La bascula B genera mediciones much mas variables (como en la bascula B), sin embargo, sus valores se encuentran sistematicamente por encima del verdadero valor
+* La bascula A genera medidas muy similares entre sí y al rededor del verdadero valor
+* La bascula B genera mediciones mucho más variables que en la báscula A, sin embargo, sus valores se encuentran al rededor del verdadero valor
+* La bascula C genera medidas muy similares entre si (como en la báscula A), sin embargo, sus valores se encuentran sistemáticamente por debajo del verdadero valor
+* La bascula B genera mediciones mucho más variables (como en la báscula B), sin embargo, sus valores se encuentran sistemáticamente por encima del verdadero valor
 
-¿Cual cree usted que seria la mejor bascula?
+¿Cuál cree usted que sería la mejor bascula?
 
-A continuacion definiremos la *Exactitud* y *Presicion*
+A continuación definiremos la *Exactitud* y *Precisión*
 
-* *Exactitud*: Se relaciona con la diferencia entre las mediciones y el verdadero valor. Entre menor sea la diferencia mayor sera la exactitud. Entre mayor sea la diferencia menor sera la Exactitud.
-* *Presicion*: Se relaciona con la variabilidad de las mediciones repetidas sobre un mismo objeto. Entre menor sea la variabilidad, mayor sera la presicion. Entre mayor sea la variabilidad, menor sera la presicion.
+* *Exactitud*: Se relaciona con la diferencia entre las mediciones y el verdadero valor. Entre menor sea la diferencia mayor será la exactitud. Entre mayor sea la diferencia menor será la Exactitud.
+* *Precisión*: Se relaciona con la variabilidad de las mediciones repetidas sobre un mismo objeto. Entre menor sea la variabilidad, mayor será la precisión. Entre mayor sea la variabilidad, menor será la precisión.
 
 Teniendo esto en cuenta podemos decir sobre las basculas que:
 
-* La bascula A es exacta y presisa
-* La bascula B es exacta e impresisa
-* La bascula C es inexacta y presisa
-* La bascula D es inexacta e impresisa
+* La bascula A es exacta y precisa
+* La bascula B es exacta e imprecisa
+* La bascula C es inexacta y precisa
+* La bascula D es inexacta e imprecisa
 
 
 
 
-# Bibliografia
+# Bibliografía
 [comment]: <> (see https://bookdown.org/yihui/rmarkdown-cookbook/bibliography.html)
 
 ---
