@@ -551,3 +551,147 @@ $$E(X)=\sum_{i=1}^{n}f(x_i)\times x_i=$$
 $$E(X)=f(0)\times 0+f(1)\times 1+f(2)\times 2+ ... +f(11)\times 11=$$
 $$`r dtf_pois$x[1]` \times `r round(dtf_pois$y[1],3)`+`r dtf_pois$x[2]` \times `r round(dtf_pois$y[2],3)`+`r dtf_pois$x[3]` \times `r round(dtf_pois$y[3],3)`+...+`r dtf_pois$x[12]` \times `r round(dtf_pois$y[12],3)`=$$
 $$`r sum((0:11)*dtf_pois$y)` \approx 3$$
+
+El claculo de valores esperados para funciones de densidad continuas es mas complejo y no sera aborado aqui.
+
+### Valor esperado en algunas funciones de densidad
+
+A continuacion presentaremos los valores esperados para algunas funciones de densidad
+
+* Funcion de densidad Poisson: 
+$$f(x|\lambda)=\frac{\lambda^x e^{-\lambda}}{x!}$$
+$$E(X)=\lambda$$
+
+* Funcion de densidad Normal: 
+$$f(x|\mu, \sigma^{2})=\frac{1}{\sqrt{2\pi \sigma^2}}exp\left(\frac{-(x-\mu)^2}{\sigma^2}\right)$$
+$$E(X)=\mu$$
+
+* Funcion de densidad Gamma: 
+$$f(x|\alpha,\beta)=\frac{1}{\beta^{\alpha}\Gamma(\alpha)}x^{\alpha-1}e^{-x/\beta}$$
+$$E(X)=\alpha \beta$$
+
+* Funcion de densidad Beta: 
+$$f(x|\alpha,\beta)=\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)}x^{\alpha-1}(1-x)^{\beta-1}$$
+$$E(X)=\frac{\alpha}{\alpha+\beta}$$
+
+Notese que en el caso de las funciones de densidad Poisson y Normal, el valor esperado corresponde a un parametro natural ($\lambda$ y $\mu$ respectivamente) mientras que para el caso de las distribuciones Gamma y Beta el valor esperado no corresponde exactamente a ningun parametro natural, sin embargo se calculan en base a estos.
+
+A continuacion presentamos algunas distribuciones junto con su correspondiente valor esperado.
+
+```{r EVps, echo=FALSE, results = 'asis',fig.width=9, fig.height=7, fig.cap="Valores esperados para diferentes funciones de densidad"}
+dtf_pois<-data.frame(x=0:11,y=dpois(0:11,3))
+
+pdfpoissE1<-dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
+  ylab("f(x)")+ theme_bw()+
+  theme(axis.title.y = element_text(angle=0))+ ggtitle(substitute(paste("A) Poisson, ", lambda," = ",v),list(v=3)))+
+  annotate("segment", x = c(3), xend = c(3), 
+           y = c(0), yend = c(0.075), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 3, y = 0.09, 
+           label = paste0("E(X)= ",3),size=2.5)
+
+dtf_pois<-data.frame(x=0:20,y=dpois(0:20,9))
+
+pdfpoissE2<-dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
+  ylab("f(x)")+ theme_bw()+
+  theme(axis.title.y = element_text(angle=0))+ ggtitle(substitute(paste("B) Poisson, ", lambda," = ",v),list(v=9)))+
+  annotate("segment", x = c(9), xend = c(9), 
+           y = c(0), yend = c(0.075), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 9, y = 0.09, 
+           label = paste0("E(X)= ",9),size=2.5)
+
+weight_lim<-c(5, 55)
+mymu<-mean(weight_lim)
+pdnormE<-ggplot(data = data.frame(x = weight_lim), aes(x)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mymu, sd = 8))+
+  ggtitle(substitute(paste("C) Normal, ", mu," = ",v,", ",sigma^2,"= ",s),list(v=mymu,s=8^2)))+
+  ylab("f(x)")+
+  annotate("segment", x = c(mymu), xend = c(mymu), 
+           y = c(0), yend = c(0.02), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = mymu, y = 0.022, 
+           label = paste0("E(X)= ",mymu),size=2.5)+
+  theme_bw()
+
+apar<-c(1,1.5,7.5,9)
+bpar<-c(2,20,1.3,0.5)
+gammaE<-apar*bpar
+gmaxlim<-c(0, 25)
+pgmaE1<-ggplot(data = data.frame(x = gmaxlim), aes(x)) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[1], scale = bpar[1]))+
+  ggtitle(substitute(paste("D) Gamma, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[1],s=bpar[1])))+
+  ylab("f(x)")+
+  annotate("segment", x = c(gammaE[1]), xend = c(gammaE[1]), 
+           y = c(0), yend = c(0.04), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = gammaE[1], y = 0.06, 
+           label = paste0("E(X)= ",gammaE[1]),size=2.5)+
+  theme_bw()
+
+gmaxlim2<-c(0,90)
+pgmaE2<-ggplot(data = data.frame(x = gmaxlim2), aes(x)) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[2], scale = bpar[2]))+
+  ggtitle(substitute(paste("E) Gamma, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[2],s=bpar[2])))+
+  ylab("f(x)")+
+  annotate("segment", x = c(gammaE[2]), xend = c(gammaE[2]), 
+           y = c(0), yend = c(0.03), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = gammaE[2], y = 0.033, 
+           label = paste0("E(X)= ",gammaE[2]),size=2.5)+
+  theme_bw()
+
+pgmaE3<-ggplot(data = data.frame(x = gmaxlim), aes(x)) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[3], scale = bpar[3]))+
+  ggtitle(substitute(paste("F) Gamma, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[3],s=bpar[3])))+
+  ylab("f(x)")+
+  annotate("segment", x = c(gammaE[3]), xend = c(gammaE[3]), 
+           y = c(0), yend = c(0.04), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = gammaE[3], y = 0.05, 
+           label = paste0("E(X)= ",gammaE[3]),size=2.5)+
+  theme_bw()
+
+apar<-c(0.7,2.5,5)
+bpar<-c(0.7,5,1)
+betaE<-apar/(apar+bpar)
+btaxlim<-c(0, 1)
+pbtaE1<-ggplot(data = data.frame(x = btaxlim), aes(x)) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[1], shape2 = bpar[1]))+
+  ggtitle(substitute(paste("G) Beta, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[1],s=bpar[1])))+
+  ylab("f(x)")+
+  annotate("segment", x = c(betaE[1]), xend = c(betaE[1]), 
+           y = c(0), yend = c(1.2), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = betaE[1], y = 1.3, 
+           label = paste0("E(X)= ",betaE[1]),size=2.5)+
+  theme_bw()
+
+pbtaE2<-ggplot(data = data.frame(x = btaxlim), aes(x)) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[2], shape2 = bpar[2]))+
+  ggtitle(substitute(paste("H) Beta, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[2],s=bpar[2])))+
+  ylab("f(x)")+
+  annotate("segment", x = c(betaE[2]), xend = c(betaE[2]), 
+           y = c(0), yend = c(1.2), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = betaE[2], y = 1.3, 
+           label = paste0("E(X)= ",round(betaE[2],3)),size=2.5)+
+  theme_bw()
+
+pbtaE3<-ggplot(data = data.frame(x = btaxlim), aes(x)) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[3], shape2 = bpar[3]))+
+  ggtitle(substitute(paste("I) Beta, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[3],s=bpar[3])))+
+  ylab("f(x)")+
+  annotate("segment", x = c(betaE[3]), xend = c(betaE[3]), 
+           y = c(0), yend = c(1.1), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = betaE[3], y = 1.2, 
+           label = paste0("E(X)= ",round(betaE[3],3)),size=2.5)+
+  theme_bw()
+
+gridExtra::grid.arrange(pdfpoissE1,pdfpoissE2, pdnormE, pgmaE1, pgmaE2, pgmaE3, pbtaE1, pbtaE2, pbtaE3, 
+             ncol = 3, nrow = 3)
+```
+
+¿Al observar la figura \@ref(fig:EVps) que podemos decir del valor esperado? 
+
+El hecho de que para las funciones de densidad Poisson y Normal el valor esperado coincida con los parametros $\lambda$ y $\mu$ nos indica que el valor esperado debe ser un parametro de localizacion. La figura \@ref(fig:EVps) confirma esta suposicion, sin embargo podria usted definir que es el valor esperado? La definicion tecnica del valor esperado esta fuera del alcance de este curso, sin embargo, daremos una definicion practica:
+
+* El Valor Esperado es un valor al rededor del cual hay una alta densidad de probabilidad
+
+Esta definicion indica que el valor esperado es un numero que podemos ubicar en el conjunto de posibles valores de la variable aleatoria (en el eje x de los graficos de funcion de densidad) y ademas, que las zonas en donde la funcion de densidad toma sus mayores valores se encuentra cerca del valor esperado ("... un valor al rededor del cual hay una alta densidad de probabilidad").
+
+Veamos como se ajusta esta definicion a los graficos de la figura \@ref(fig:EVps).
+
+En los graficos A, B, C el valor esperado coincide con el parametro natural y de hecho la funcion de densidad obtiene su mayor valor en ese mismo valor (el valor de las $x$ para la cual la curva es mas alta). Para las figuras D, E, F, H e I, el valor esperado no coincide exactamente con el valor de las $x$ en donde la funcion de densidad obtiene su mayor valorm sin embargo el valor esperado esta bastante cerca a este valor. Finalmente para la funcion de densidad de la figura G, de hecho el valor esperado se encuentra en el lugar donde la funcion de densidad obtiene su menor valor (donde la curva es mas baja). ¿Que sucede en este caso? Aun en este caso la definicion es apropiada, si bien en el valor esperado se encuentra en el lugar en donde la curva es mas baja, al rededor de el se encuentran regiones con alta desnsidad de probablidad.
