@@ -9,9 +9,6 @@ output:
 ###see https://bookdown.org/yihui/rmarkdown-cookbook/cross-ref.html for cross reference
 ###see https://bookdown.org/yihui/bookdown/internationalization.html for _bookdown.yml
 rm(list=ls())
-list.of.packages <- c("pacman")
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)) install.packages(new.packages)
 library(pacman)
 p_load(tidyverse)
 p_load(kableExtra)
@@ -280,7 +277,7 @@ text(7,4,"yes",col = 2)
 </div>
 </div>
 
-El número de personas en $CA \cup yes$ es $46+29+75=150$ `r 46+29+75`.
+El número de personas en $CA \cup yes$ es $46+29+75=`r 46+29+75`$ .
 
 Que interpretación tiene $CA \cup yes$ desde el punto de vista práctico? son las personas enfermas (CA) o que han estado expuestas (yes) al agente toxico de estudio. Veamos otro ejemplo:
 
@@ -364,7 +361,7 @@ v2_given_v1probs<-matrix(c(.1,.9,
                            .18,1-.18),byrow =T,ncol = 2)
 colnames(v2_given_v1probs)<-c("R","S")
 rownames(v2_given_v1probs)<-names(v1_props)
-N*v1_props%>%round(1)->v1_n
+(N*v1_props)%>%round(1)->v1_n
 z1<-data.frame(v1=rep(names(v1_props),v1_n),v2=NA)
 for(i in names(v1_props)){
   z1[z1$v1 %in% i,"v2"]<-sample(colnames(v2_given_v1probs),v1_n[i],T,v2_given_v1probs[i,])
@@ -382,9 +379,9 @@ kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_a
 
 ¿Cuál es la probabilidad de que una prótesis provenga de la fábrica A? Según la tabla \@ref(tab:conttablz1), el número de prótesis producidas en la fábrica A es de `r table(z1$v1)["A"]` y el número total de prótesis es de `r N`, luego la probabilidad de que una prótesis provenga de la fábrica A es de `r table(z1$v1)["A"]/N`.
 
-Cuál será la probabilidad de que una prótesis provenga de la fábrica B y haya superado la prueba de control de calidad? En términos de conjuntos, se nos está preguntando por $P(B \cap S)$. Nótese que hasta el momento no hay ninguna regla de probabilidad que hable de intersecciones. Sin embargo, como conocemos el número de elementos en el conjunto $B \cap S$,`r  t(table(z1))["S","B"] `, podemos calcular esta probabilidad como $P(B \cap S)=\frac{281}{1000}=$ `r  t(table(z1))["S","B"]/N ` usando la regla \@ref(eq:A4).
+Cuál será la probabilidad de que una prótesis provenga de la fábrica B y haya superado la prueba de control de calidad? En términos de conjuntos, se nos está preguntando por $P(B \cap S)$. Nótese que hasta el momento no hay ninguna regla de probabilidad que hable de intersecciones. Sin embargo, como conocemos el número de elementos en el conjunto $B \cap S$ (`r  t(table(z1))["S","B"] `), podemos calcular esta probabilidad como $P(B \cap S)=\frac{`r  t(table(z1))["S","B"] `}{`r  N`}=$ `r  t(table(z1))["S","B"]/N ` usando la regla \@ref(eq:A4).
 
-¿Cuál es la probabilidad de que una prótesis provenga de la fábrica A o C? Esta pregunta se puede traducir en términos de lenguaje de teoría de conjuntos como $P(A \cup C)$. Nótese que $A \cup C =\phi$, es decir, no hay prótesis que hayan sido fabricadas simultáneamente en las dos fábricas, por tanto, aplicando la formula \@ref(eq:A4), $P(A \cup C)= P(A)+P(C)=\frac{200}{1000}+\frac{400}{1000}=600/1000= 0.6$.
+¿Cuál es la probabilidad de que una prótesis provenga de la fábrica A o C? Esta pregunta se puede traducir en términos de lenguaje de teoría de conjuntos como $P(A \cup C)$. Nótese que $A \cap C =\phi$, es decir, no hay prótesis que hayan sido fabricadas simultáneamente en las dos fábricas, por tanto, aplicando la formula \@ref(eq:A4), $P(A \cup C)= P(A)+P(C)=\frac{`r table(z1$v1)["A"]`}{`r N`}+\frac{`r table(z1$v1)["C"]`}{`r N`}=`r table(z1$v1)["A"]+table(z1$v1)["C"]`/`r N`= `r (table(z1$v1)["A"]+table(z1$v1)["C"])/N`$.
 
 ### Axioma 5
 
@@ -422,7 +419,7 @@ kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_a
 
 cuál es la probabilidad de que una prótesis haya sido fabricada en la fábrica A o que la prótesis halla reprobado la prueba? En términos de notación de teoría de conjuntos, se nos está preguntando por $P(A \cup R)$. Según la regla \@ref(eq:A5) tenemos que 
 $$P(A \cup R)=P(A)+P(R)-P(A \cap R)$$
-$$=\frac{200}{1000}+\frac{201}{1000}-\frac{21}{1000}=\frac{380}{1000}=0.38$$
+$$=\frac{`r table(z1$v1)["A"]`}{`r N`}+\frac{`r table(z1$v2)["R"]`}{`r N`}-\frac{`r table(z1)["A","R"]`}{`r N`}=\frac{`r table(z1$v1)["A"]+table(z1$v2)["R"]-table(z1)["A","R"]`}{`r N`}=`r (table(z1$v1)["A"]+table(z1$v2)["R"]-table(z1)["A","R"])/N`$$
 ver tabla \@ref(tab:conttablz1rep)
 
 ### Axioma 6: Probabilidad condicional
