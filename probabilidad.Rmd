@@ -494,7 +494,7 @@ $$0.32=0.8 \times 0.4$$
 
 Verificándose la regla \@ref(eq:A7) y concluyendo que el hábito de fumar es independiente del género femenino.
 
-Veamos otro ejemplo, esta vez en el estudio del control de calidad de las proteicas ortopédicas, reproducimos la tabla nuevamente por facilidad de lectura.
+Veamos otro ejemplo, esta vez en el estudio del control de calidad de las prótesis ortopédicas, reproducimos la tabla nuevamente por facilidad de lectura.
 
 ```{r conttablz1rep2, echo=FALSE}
 ###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
