@@ -58,5 +58,37 @@ saveGIF({
   }
 }, interval = 0.05, movie.name = 'dnorm.gif', ani.width = 580, ani.height = 350)
 
+###########################
+###dnorm cnstant mean
+###########################
+rm(list=ls())
+library(animation)
+library(tidyverse)
+
+sig_seq<-c(rev(seq(0.15,225,length.out = 20)),seq(0.15,225,length.out = 20))
+mu_seq<-rep(0, length(sig_seq))
+dfp<-data.frame(mu=mu_seq,
+                sig=sig_seq)
+
+saveGIF({
+  ani.options(interval = 0.2, nmax = nrow(dfp))
+  ## use a loop to create images one by one
+  for (i in 1:ani.options('nmax')) {
+    m1<-dfp[i,1]
+    sd1<-sqrt(dfp[i,2])
+    weight_lim<-c(-40, 40)
+    pdnorm1<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
+      stat_function(fun = dnorm, n = 101, args = list(mean = m1, sd = sd1),aes(color="black")) +
+      ylab(expression(paste("f(x|",mu,",",sigma^2,")"))) +xlab("x") +  
+      scale_color_identity(name = "",
+                           breaks = c("black", "red", "blue","green"),
+                           labels = c(substitute(paste(mu,"= ",m1,", ",sigma^2,"= ",sd1),list(m1=format(round(m1, 1), nsmall = 2),sd1=format(round(sd1,3), nsmall = 3)))),
+                           guide = "legend")+
+      ylim(0,.125)+
+      theme_bw()
+    print(pdnorm1)
+    ani.pause()   ## pause for a while ('interval')
+  }
+}, interval = 0.05, movie.name = 'dnorm_var.gif', ani.width = 580, ani.height = 350)
 
 
