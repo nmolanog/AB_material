@@ -992,8 +992,9 @@ Que es equivalente a
 P \left(E(X)-k \times sd(X)\leq X \leq E(X)+k \times sd(X) \right)\geq 1-1/k^2  (\#eq:chvineq2)
 \end{equation}
 
-En donde $E(X)$ es el valor esperado, $sd(X)$ es la desviacion estandar y K es un numero constante positivo. En base a esta formula es posible decir que, por ejemplo, para cualquier variable aleatoria, no importa la forma de su funcion de densidad, se cumple que la probabilidad de observar valores a mas o menos 3 desviaciones estandar del valor esperado es de $1-1/3^9=0.8888$.
+En donde $E(X)$ es el valor esperado, $sd(X)$ es la desviacion estandar y $k$ es un numero constante positivo. En base a esta formula es posible decir que, por ejemplo, para cualquier variable aleatoria, no importa la forma de su funcion de densidad, se cumple que la probabilidad de observar valores a mas o menos 3 desviaciones estandar del valor esperado es de $1-1/3^2=0.8888$.
 
+<center>
 ```{r chvif, echo=FALSE, results = 'asis',fig.width=5.5, fig.height=4, fig.cap="Desigualdad de Chebychev"}
 myx_lim<-c(-3, 3)
 plim<-c(-2,2)
@@ -1019,4 +1020,172 @@ ggplot(data = data.frame(myx_lim = myx_lim), aes(myx_lim)) +
   
   theme_bw()
 ```
+</center>
+A continuacion presentamos las probabilidades minimas para diferentes valores de $k$
 
+```{r pdtab, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+cheb_tbl<-data.frame(k=1:4,PMA=1-1/(1:4)^2)
+res<-kable(cheb_tbl,caption="probabilidades minimas",row.names =F)
+kable_styling(res,"striped", position = "center",full_width = F)
+```
+Donde PMA hace referencia a probabilidad minima acumulada.
+
+Veamos un ejemplo. Suponga que el valor esperado del peso en cierta poblacion es de $80kg$ y que la desviacion estandar es de $15kg$. Usando la formula \@ref(eq:chvineq2) podemos dar las siguientes cotas de probabilidad para valores de k igual a 2 y 3:
+
+* Si $k=2$ entonces 
+
+$$P \left(E(X)-k \times sd(X)\leq X \leq E(X)+k \times sd(X) \right)=$$
+$$P \left(80-2 \times 15\leq X \leq 80+2 \times 15 \right)=$$
+$$P \left(`r 80-2*15` \leq X \leq `r 80+2*15` \right)\geq 1-1/2^2=`r 1-1/2^2` $$
+
+Es decir que, para esta poblacion, la probabilida de observar pesos entre `r 80-2*15` y `r 80+2*15` es de almenos `r (1-1/2^2)*100`%.
+
+* si $k=3$ entonces
+
+$$P \left(E(X)-k \times sd(X)\leq X \leq E(X)+k \times sd(X) \right)=$$
+$$P \left(80-3 \times 15\leq X \leq 80+3 \times 15 \right)=$$
+$$P \left(`r 80-3*15` \leq X \leq `r 80+3*15` \right)\geq 1-1/3^2=`r 1-1/3^2` $$
+
+Es decir que, para esta poblacion, la probabilida de observar pesos entre `r 80-3*15` y `r 80+3*15` es de almenos `r round((1-1/3^2)*100,2)`%.
+
+## Relacion entre parametros generales y parametros de localizacion y dispercion
+
+Para este momento, es claro que los parametros generales estudiados anteriormente, pueden ser calsificados como de localizacion y dispercion de la siguiente manera:
+
+**Parametros generales de localizacion:**
+
+* Valor Esperado: $E(X)$
+* Moda: $mod(X)$
+* Mediana: $med(X)$
+
+**Parametros generales de dispercion:**
+
+* Varianza: $Var(X)$
+* Desviacion estandar: $sd(X)$
+
+# Descripcion general de la forma de una funcion de densidad
+
+Como se puede apreciar en las figuras \@ref(fig:EVps), \@ref(fig:Modaps) y \@ref(fig:Medsps), las funciones de densidad tienen diferentes formas. A continuacion estudiaremos algunas de las formas mas comunes.
+
+## Forma simetrica
+
+Las funciones de densidad simetricas son aquellas que poseen un eje de simetria al rededor del valor esperado. Ejemplos de estas funciones de denidad se presentan a continuacion:
+
+```{r fdsim, echo=FALSE, results = 'asis',fig.width=12, fig.height=4, fig.cap="funciones de densidad simetricas"}
+weight_lim<-c(5, 55)
+mymu<-mean(weight_lim)
+sim_norm_p<-ggplot(data = data.frame(x = weight_lim), aes(x)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mymu, sd = 8))+
+  ggtitle(substitute(paste("A) Normal, E(X) = ",v),list(v=mymu)))+
+  ylab("f(x)")+
+  geom_vline(xintercept = mymu)+
+  theme_bw()
+
+apar<-c(0.7,2.5,5)
+bpar<-c(0.7,5,1)
+betaE<-apar/(apar+bpar)
+btaxlim<-c(0, 1)
+sim_beta_p<-ggplot(data = data.frame(x = btaxlim), aes(x)) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[1], shape2 = bpar[1]))+
+  ggtitle(substitute(paste("B) Beta, E(X) = ",v),list(v=betaE[1])))+
+  ylab("f(x)")+
+  geom_vline(xintercept = betaE[1])+
+  theme_bw()
+
+mixnorm<-function(x,mu1,mu2,sd1,sd2,w1,w2){
+  w1*dnorm(x,mu1,sd1)+w2*dnorm(x,mu2,sd2)
+}
+
+sim_normmix_p<-ggplot(data = data.frame(x = c(-3,3)), aes(x)) +
+  stat_function(fun = mixnorm, n = 101, args = list(mu1 = -1,mu2=1,sd1 = .5,sd2=.5,w1=.5,w2=.5))+
+  ggtitle(substitute(paste("C) E(X) = ",v),list(v=0)))+
+  ylab("f(x)")+
+  geom_vline(xintercept = 0)+
+  theme_bw()
+
+gridExtra::grid.arrange(sim_norm_p,sim_beta_p,sim_normmix_p, 
+             ncol = 3, nrow = 1)
+```
+
+Para estas funciones el valor esperado y la mediana coinciden en el mismo valor siempre, y en el caso en que la funcion de densidad es unimodal (es decir que tiene una sola moda como en el caso de las figuras \@ref(fig:fdsim) A y \@ref(fig:fdsim) B) la moda tambien tiene el mismo valor del valor esperado y la mediana.
+
+## Forma asimetrica
+
+Aquellas funciones de densidad, para las cuales el valor esperado y la mediana no coinciden en el mismo valor se denominan funciones de desnidad asimetricas.
+
+```{r fdasim, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="funciones de densidad asimetricas"}
+apar<-c(1,1.5,7.5,9)
+bpar<-c(2,20,1.3,0.5)
+
+gmaxlim2<-c(0,90)
+asim_gamma_p<-ggplot(data = data.frame(x = gmaxlim2), aes(x)) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[2], scale = bpar[2]))+
+  ggtitle(paste0("A) E(X)= ",apar[2]*bpar[2],"; med(X)= ",qgamma(.5,shape = apar[2], scale = bpar[2])%>%round(2)))+
+  ylab("f(x)")+
+  stat_function(fun = dgamma, args = list(shape = apar[2], scale = bpar[2]),
+                xlim = c(gmaxlim2[1],qgamma(.5,shape = apar[2], scale = bpar[2])),
+                geom = "area",fill="red",alpha=0.4)+
+  annotate("segment", x = c(apar[2]*bpar[2],qgamma(.5,shape = apar[2], scale = bpar[2])), xend = c(apar[2]*bpar[2],qgamma(.5,shape = apar[2], scale = bpar[2])), 
+           y = c(0,0), yend = c(0.008,0.023), colour = 1:2, size=1, alpha=1, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = c(apar[2]*bpar[2],qgamma(.5,shape = apar[2], scale = bpar[2])), y = c(0.009,0.024), 
+           label = c("E(X)","med(X)"),size=4)+
+  theme_bw()
+
+
+apar<-c(0.7,2.5,5)
+bpar<-c(0.7,5,1)
+btaxlim<-c(0, 1)
+
+asim_beta_p<-ggplot(data = data.frame(x = btaxlim), aes(x)) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[3], shape2 = bpar[3]))+
+  ggtitle(paste0("B) E(X)= ",round(apar[3]/(apar[3]+bpar[3]),3),"; med(X)= ",qbeta(.5,shape1 = apar[3], shape2 = bpar[3])%>%round(2)))+
+  ylab("f(x)")+
+  stat_function(fun = dbeta, args = list(shape1 = apar[3], shape2 = bpar[3]),
+                xlim = c(gmaxlim[1],qbeta(.5,shape1 = apar[3], shape2 = bpar[3])),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("segment", x = c(apar[3]/(apar[3]+bpar[3]),qbeta(.5,shape1 = apar[3], shape2 = bpar[3])), 
+           xend = c(apar[3]/(apar[3]+bpar[3]),qbeta(.5,shape1 = apar[3], shape2 = bpar[3])), 
+           y = c(0,0), yend = c(3.5,4.5), colour = 1:2, size=1, alpha=1, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = c(apar[3]/(apar[3]+bpar[3]),qbeta(.5,shape1 = apar[3], shape2 = bpar[3])), y = c(3.7,4.7), 
+           label = c("E(X)","med(X)"),size=4)+
+  theme_bw()
+
+gridExtra::grid.arrange(asim_gamma_p,asim_beta_p, 
+             ncol = 2, nrow = 1)
+```
+
+## Forma multimodal
+
+Finalmente, el ultimo tipo de forma que estudiaremos son las funciones de desnidad multimodal. Estas funciones de densidad son aquellas con varias "modas" o picos en sus funciones de densidad. A continuacion presentamos algunos ejemplos.
+
+```{r fdmultimod, echo=FALSE, results = 'asis',fig.width=12, fig.height=4, fig.cap="funciones de densidad multimodales"}
+
+mm_normmix_p1<-ggplot(data = data.frame(x = c(-3,3)), aes(x)) +
+  stat_function(fun = mixnorm, n = 101, args = list(mu1 = -1,mu2=1,sd1 = .5,sd2=.5,w1=.5,w2=.5))+
+  ylab("f(x)")+
+  ggtitle("A)")+
+  theme_bw()
+
+mm_normmix_p2<-ggplot(data = data.frame(x = c(-3,3)), aes(x)) +
+  stat_function(fun = mixnorm, n = 101, args = list(mu1 = -1,mu2=1,sd1 = .5,sd2=.5,w1=.7,w2=.3))+
+  ylab("f(x)")+
+  ggtitle("B)")+
+  theme_bw()
+
+mixnorm4<-function(x,mu1,mu2,mu3,sd1,sd2,sd3,w1,w2,w3){
+  res<- w1*dnorm(x,mu1,sd1)+w2*dnorm(x,mu2,sd2)+w3*dnorm(x,mu3,sd3)
+  return(res)
+}
+
+mm_normmix_p3<-ggplot(data = data.frame(x = c(-6,6)), aes(x)) +
+  stat_function(fun = mixnorm4, n = 101, args = list(mu1 = -3,mu2=0,mu3=3,sd1 = 1,sd2=1,sd3=1,w1=.2,w2=.5,w3=.3))+
+  ylab("f(x)")+
+  ggtitle("C)")+
+  theme_bw()
+
+gridExtra::grid.arrange(mm_normmix_p1,mm_normmix_p2,mm_normmix_p3, 
+             ncol = 3, nrow = 1)
+```
+
+Notese que las funciones de densidad multimodales pueden ser simetricas (figura \@ref(fig:fdmultimod) A ) o asimetricas (figuras \@ref(fig:fdmultimod) B y C)
