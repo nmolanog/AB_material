@@ -18,11 +18,11 @@ p_load(magick)
 set.seed(150)
 ```
 
-# Introduccion
+# Introducción
 
-En capitulos anteriores, hemos estudiado el calculo de probabilidades para eventos que, en la practica, son codificados como variables categoricas. Ahora ha llegado el momento de estudiar como funciona la medida de probabilidad para el caso en que la variable es cuantitativa. Empezaremos nuestro estudio con un ejemplo graphico. En la figura \@ref(fig:fdmw) se presenta una informacion relacionada con el peso de hombres y mujeres.
+En capítulos anteriores, hemos estudiado el cálculo de probabilidades para eventos que, en la práctica, son codificados como variables categóricas. Ahora ha llegado el momento de estudiar cómo funciona la medida de probabilidad para el caso en que la variable es cuantitativa. Empezaremos nuestro estudio con un ejemplo gráfico. En la figura \@ref(fig:fdmw) se presenta una información relacionada con el peso de hombres y mujeres.
 
-```{r fdmw, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="Distribucion de peso para hombres y mujeres"}
+```{r fdmw, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="Distribución de peso para hombres y mujeres"}
 mf<-55
 mm<-70
 sdf<-8
@@ -39,37 +39,37 @@ p1<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
 p1
 ```
 
-Cuando se le pregunta a los estudiantes sobre la interpretacion de este grafico, la mayoria de ellos genera interpretaciones acertadas de este. Veamos algunas de estas interpretaciones acertadas:
+Cuando se les pregunta a los estudiantes sobre la interpretación de este gráfico, la mayoría de ellos genera interpretaciones acertadas de este. Veamos algunas de estas interpretaciones acertadas:
 
-* El peso de las mujeres esta al rededor de los $55kg$ mientras que el de los hombres esta al rededor de los $70kg$
-* Las mujeres sulen pesar menos que los hombres
-* El rango de pesos de los hombres es mas ampliio que el de las mujeres.
+* El peso de las mujeres esta alrededor de los $55kg$ mientras que el de los hombres esta alrededor de los $70kg$
+* Las mujeres suelen pesar menos que los hombres
+* El rango de pesos de los hombres es más amplio que el de las mujeres.
 
-Ahora veamos una de las interpretaciones incorrectas mas comunes para este mismo grafico:
+Ahora veamos una de las interpretaciones incorrectas más comunes para este mismo gráfico:
 
-* Hay mas mujeres que hombres
+* Hay más mujeres que hombres
 
-Lo cierto es que la mayoria de estudiantes conocen de alguna manera la interpretacion correcta de este grafico, ya sea por intuicion o por formacion previa. Lo importante es que en este capitulo aclararemos estas ideas y las formalizaremos en terminos probabilisticos.
+Lo cierto es que la mayoría de estudiantes conocen de alguna manera la interpretación correcta de este gráfico, ya sea por intuición o por formación previa. Lo importante es que en este capítulo aclararemos estas ideas y las formalizaremos en términos probabilísticos.
 
-# Funcion de densidad
+# Función de densidad
 
-Las curvas presentadas en la figura \@ref(fig:fdmw) reciben el nombre tecnico de funcion de densidad. Son funciones matematicas comunes las cuales se representan en un plano cartesiano. Para repazar estos conceptos sugerimos revizar los siguientes recursos:
+Las curvas presentadas en la figura \@ref(fig:fdmw) reciben el nombre técnico de función de densidad. Son funciones matemáticas comunes las cuales se representan en un plano cartesiano. Para repasar estos conceptos sugerimos revisar los siguientes recursos:
 
 * https://www.profesorenlinea.cl/matematica/Funciones_matematicas.html
 * https://www.ck12.org/book/ck-12-conceptos-de-%c3%a1lgebra-i-en-espa%c3%b1ol/section/1.12/
 * https://www.ck12.org/book/ck-12-conceptos-de-%c3%81lgebra-nivel-b%c3%a1sico-en-espa%c3%b1ol/section/1.13/
 
-Es fundamental recordar los conceptos basicos al rededor de la representacion de funciones en el plano cartesiano para poder comprender plenamente los conceptos aqui tratados. 
+Es fundamental recordar los conceptos básicos alrededor de la representación de funciones en el plano cartesiano para poder comprender plenamente los conceptos aquí tratados. 
 
-De esta manera, las curvas presentadas en la \@ref(fig:fdmw) son simplemente funciones matematicas, por ejemplo para la funcion de densidad de las mujeres (que de ahora en adelante denominaremos por $f_F(x)$), el valor de la funcion para el peso de $55kg$ es de $0.05$, es decir: $f_F(55)=0.05$. De manera similar, para la funcion de densidad de los hombres (que de ahora en adelante denominaremos por $f_M(x)$), el valor de la funcion para el peso de $55kg$ es de $0.015$, es decir: $f_M(55)=0.015$.
+De esta manera, las curvas presentadas en la \@ref(fig:fdmw) son simplemente funciones matemáticas, por ejemplo para la función de densidad de las mujeres (que de ahora en adelante denominaremos por $f_F(x)$), el valor de la función para el peso de $55kg$ es de $0.05$, es decir: $f_F(55)=0.05$. De manera similar, para la función de densidad de los hombres (que de ahora en adelante denominaremos por $f_M(x)$), el valor de la función para el peso de $55kg$ es de $0.015$, es decir: $f_M(55)=0.015$.
 
-La pregunta fundamental que surge a continuacion es "¿que significa el valor $f(x)$?" en donde $f$ es una funcion de densidad? Dicho tambien de otro modo, en una primera aproximacion de los estudiantes al grafico de la figura \@ref(fig:fdmw), "¿Que significa el eje $y$ en la figura \@ref(fig:fdmw)?". Esta pregunta se responde de manera mucho mas facil cuando se estudian funciones de densidad para variables discretas.
+La pregunta fundamental que surge a continuación es "¿qué significa el valor $f(x)$?" en donde $f$ es una función de densidad? Dicho también de otro modo, en una primera aproximación de los estudiantes al gráfico de la figura \@ref(fig:fdmw), "¿Que significa el eje $y$ en la figura \@ref(fig:fdmw)?". Esta pregunta se responde de manera mucho más fácil cuando se estudian funciones de densidad para variables discretas.
 
 ## Funciones de densidad para variables discretas
 
-Empezaremos esta discucion con el siguiente ejemplo. Considerese la variable "Numero de hijos en un matrimonio". En la figura \@ref(fig:fdpois) se presenta la funcion de densidad para esta variable.
+Empezaremos esta discusión con el siguiente ejemplo. Considérese la variable "Número de hijos en un matrimonio". En la figura \@ref(fig:fdpois) se presenta la función de densidad para esta variable.
 
-```{r fdpois, echo=FALSE, results = 'asis',fig.width=7, fig.height=4, fig.cap="Funcion de densidad para la variable numero de hijos"}
+```{r fdpois, echo=FALSE, results = 'asis',fig.width=7, fig.height=4, fig.cap="Función de densidad para la variable número de hijos"}
 dtf_pois<-data.frame(x=factor(0:11),y=dpois(0:11,3))
 dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
   ylab("f(x)")+ theme_bw()+
@@ -78,7 +78,7 @@ dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
            label = paste0("(",dtf_pois$x,", ",round(dtf_pois$y,3),")"),parse=F , size=2.5 , fontface="bold")
   
 ```
-Para facilidad del lector, en la grafica aparecen las coordenadas $(x,f(x))$, en donde $x$ es el numero de hijos y $f(x)$ es el valor de la funcion de densidad respectiva. En el caso en el que la variable es discreta, la funcion de densidad resulta coincidri con la probabilidad. Es decir que la probabilidad de que el matrimonio no tenga hijos es de `r round(dtf_pois$y[1],3)`. El lector puede verificar que en efecto los valores de $f(x)$ son probabilidades, ya que al sumar todos los 12 valores el resultado es uno. Es decir $\sum_{i=0}^{11} f(x_i)=1$ (Lo invitamos a repasar el significado del simbolo $\sum$ visitando el siguiente recurso: https://www.profesorenlinea.cl/matematica/Sumatoria.html)
+Para facilidad del lector, en la gráfica aparecen las coordenadas $(x,f(x))$, en donde $x$ es el número de hijos y $f(x)$ es el valor de la función de densidad respectiva. En el caso en el que la variable es discreta, la función de densidad resulta coincidir con la probabilidad. Es decir que la probabilidad de que el matrimonio no tenga hijos es de `r round(dtf_pois$y[1],3)`. El lector puede verificar que en efecto los valores de $f(x)$ son probabilidades, ya que al sumar todos los 12 valores el resultado es uno. Es decir $\sum_{i=0}^{11} f(x_i)=1$ (Lo invitamos a repasar el significado del símbolo $\sum$ visitando el siguiente recurso: https://www.profesorenlinea.cl/matematica/Sumatoria.html)
 
 Es decir que en el caso en que la variable es discreta se tiene que
 
@@ -86,35 +86,35 @@ Es decir que en el caso en que la variable es discreta se tiene que
 Si\; x\; es \; una \; variable \; discreta\; entonces \; f(x)=P(X=x) (\#eq:discrfd)
 \end{equation}
 
-Donde $P(X=x)$ se interpreta como "la probabilidad de que la variable $X$ tome el valor $x$". Mas adelante profundizaremos en la notacion y diferencias entre $X$ y $x$.
+Donde $P(X=x)$ se interpreta como "la probabilidad de que la variable $X$ tome el valor $x$". Mas adelante profundizaremos en la notación y diferencias entre $X$ y $x$.
 
-Para este caso en el que la variable es discreta usted puede usar las reglas vistas en capitulos anteriores para hacer calculos de probabilidad. Por ejemplo, preguntemonos por lo siguiente:
+Para este caso en el que la variable es discreta usted puede usar las reglas vistas en capítulos anteriores para hacer cálculos de probabilidad. Por ejemplo, preguntémonos por lo siguiente:
 
-* ¿Cual es la probabilidad de que el numero de hijos sea menor a 4?
+* ¿Cuál es la probabilidad de que el número de hijos sea menor a 4?
 
-Esto en terminos de formulas equivale a $P(X<4)$. Para calcular esta probabilidad, simplemente sumamos las probabilidades de los numeros que cumplen la condicion $x<4$, es decir 
+Esto en términos de fórmulas equivale a $P(X<4)$. Para calcular esta probabilidad, simplemente sumamos las probabilidades de los números que cumplen la condición $x<4$, es decir 
 $$P(X<4)=\sum_{i=0}^{3}P(X=x_i)=\sum_{i=0}^{3}f(x_i)=$$
 $$0.05+0.149+0.224+0.224=0.647$$
 
-Puede usted intuir de manera rapida como se calculara $P(X \geq 4)$? Haciendo uso de la regla del complemento, se tiene que $P(X \geq 4)=1-P(X<4)=1-0.647=0.353$.
+Puede usted intuir de manera rápida como se calculara $P(X \geq 4)$? Haciendo uso de la regla del complemento, se tiene que $P(X \geq 4)=1-P(X<4)=1-0.647=0.353$.
 
 ## Funciones de densidad para variables continuas
 
-En el caso en que las variables son continuas, ya no se cumple que la equacion \@ref(eq:discrfd). Esto es debido a la naturaleza extraña de los numeros reales. Para cualquier numero real $x$ sucede que
+En el caso en que las variables son continuas, ya no se cumple que la ecuación \@ref(eq:discrfd). Esto es debido a la naturaleza extraña de los números reales. Para cualquier número real $x$ sucede que
 \begin{equation}
 Si\; x\; es \; un \; numero \; real \; entonces \; P(X=x)=0 (\#eq:realpo)
 \end{equation}
 
-La ecuacion \@ref(eq:realpo) parece contraintuitiva, sin embargo tiene sentido. Pensemos en la variable peso (medida en Kg). Cuando yo mido mi peso en una vascula obtenumos un valor como por ejemplo $78.3$. Es laro que la variable peso es una variable continua, y al serlo sus valores son numeros reales, numeros con una expancion en desimales infinita. Pero la vascula reporta solo un desimal, esto tiene que ver con la exactitud y presecion, conceptos discutidos anteriormente. el reporte de la vascula no es relamente un numero sino un rango:
+La ecuación \@ref(eq:realpo) parece contraintuitiva, sin embargo tiene sentido. Pensemos en la variable peso (medida en Kg). Cuando yo mido mi peso en una báscula obtenemos un valor como por ejemplo $78.3$. Es claro que la variable peso es una variable continua, y al serlo sus valores son números reales, números con una expansión en decimales infinita. Pero la báscula reporta solo un decimal, esto tiene que ver con la exactitud y precesión, conceptos discutidos anteriormente. El reporte de la báscula no es relamente un numero sino un rango:
 
 $$78.30000...., 78.39999....$$
-Es decir que la vascula esta reportando que mi peso es un numero real que se encuentra en el rango $78.30000...., 78.39999....$. De hecho el verdadero valor de mi peso es un numero real con una expancion decimal infinita que nunca llegaremos a conocer, y es debido a esa expancion en desimales infinita que la ecuacion \@ref(eq:realpo) se cumple. Cuando la variable es continua, no tiene sentido pensar en la probabilidad de que la variable tome un valor (un nunmero real) arbitrario, tiene mas sentido preguntarnos por la probabilidad de que la variable tome valores en un rango. Es decir que en ves de preguntarnos por la probabilidad de que el valor de peso sea igual a $78.3$ (es decir $P(X=78.3)$), es mas apropiado pensar en $P(78.30000....<X< 78.39999....)$. La pregunta que surge a continuacion es ¿como se calculan estas probabilidades?
+Es decir que la báscula está reportando que mi peso es un número real que se encuentra en el rango $78.30000...., 78.39999....$. De hecho el verdadero valor de mi peso es un número real con una expansión decimal infinita que nunca llegaremos a conocer, y es debido a esa expansión en decimales infinita que la ecuación \@ref(eq:realpo) se cumple. Cuando la variable es continua, no tiene sentido pensar en la probabilidad de que la variable tome un valor (un número real) arbitrario, tiene más sentido preguntarnos por la probabilidad de que la variable tome valores en un rango. Es decir que en vez de preguntarnos por la probabilidad de que el valor de peso sea igual a $78.3$ (es decir $P(X=78.3)$), es más apropiado pensar en $P(78.30000....<X< 78.39999....)$. La pregunta que surge a continuación es ¿cómo se calculan estas probabilidades?
 
 ### Probabilidades para variables continuas
 
-Los conjuntos a los cuales medimos probabilidades en variables continuas son segmentos de recta definidos como $x\leq 5$, $x< 4$, $x \ge 10$, $x>15$, $2<x <10$, $-3\leq x <15$, etc. Lo invitamos a repasar los conceptos asociados a los segmentos de recta en los numeros reales visitando el siguiente link: https://www.matesfacil.com/ESO/numeros/intervalos/concepto/concepto-intervalo-abierto-cerrado-numeros-reales-extremos-test-online.html
+Los conjuntos a los cuales medimos probabilidades en variables continuas son segmentos de recta definidos como $x\leq 5$, $x< 4$, $x \ge 10$, $x>15$, $2<x <10$, $-3\leq x <15$, etc. Lo invitamos a repasar los conceptos asociados a los segmentos de recta en los números reales visitando el siguiente link: https://www.matesfacil.com/ESO/numeros/intervalos/concepto/concepto-intervalo-abierto-cerrado-numeros-reales-extremos-test-online.html
 
-Las probabilidades en este contexto resultan ser areas bajo la funcion dedensidad, delimitados por los segmentos de recta a los cuales se les desea calcular la probabilidad. Por ejemplo, calcularemos la probabilidad de observar pesos entre 50 y 70 en ambos sexos:
+Las probabilidades en este contexto resultan ser áreas bajo la función de densidad, delimitados por los segmentos de recta a los cuales se les desea calcular la probabilidad. Por ejemplo, calcularemos la probabilidad de observar pesos entre 50 y 70 en ambos sexos:
 
 ```{r fdmwP1,echo=FALSE, results = 'asis',fig.width=8, fig.height=6, fig.cap="Probabilidad de peso entre 50 y 70"}
 xrange<-c(50,70)
@@ -139,13 +139,13 @@ p12<-p1+geom_segment(aes(x=xrange,xend=xrange,y=0,yend=dnorm(xrange,mm,sdm)),lin
 gridExtra::grid.arrange(grobs =list(p11,p12),nrow=2,ncol=1)
 ```
 
-Las areas bajo la curva se calculan mediante la operacion integracion (ver <http://hyperphysics.phy-astr.gsu.edu/hbasees/integ.html>).
+Las áreas bajo la curva se calculan mediante la operación integración (ver <http://hyperphysics.phy-astr.gsu.edu/hbasees/integ.html>).
 
-Sea $f_F(x)$ la funcion de densidad del peso de las mujeres y $f_M(x)$ la funcion de densidad del peso de los hombres. Estas funciones tienen las siguientes formulas:
+Sea $f_F(x)$ la función de densidad del peso de las mujeres y $f_M(x)$ la función de densidad del peso de los hombres. Estas funciones tienen las siguientes formulas:
 
 $$f_F(x)=\frac{1}{\sqrt{2\pi8^2}}exp\left(\frac{-(x-55)^2}{8^2}\right)$$
 $$f_M(x)=\frac{1}{\sqrt{2\pi12^2}}exp\left(\frac{-(x-70)^2}{12^2}\right)$$
-Estas son solo funciones matematicas como por ejemplo $f(x)=10+15x$ o$f(x)=x^2$.
+Estas son solo funciones matemáticas como por ejemplo $f(x)=10+15x$ o $f(x)=x^2$.
 
 Ahora, definimos las variables aleatorias $W_F$ y $W_M$ como los pesos de hombres y mujeres respectivamente. Entonces 
 
@@ -157,9 +157,9 @@ P(50<W_F<70)=\int_{50}^{70}f_F(x)dx=0.746 (\#eq:pwf1)
 P(50<W_M<70)=\int_{50}^{70}f_M(x)dx=0.452 (\#eq:pwm1)
 \end{equation}
 
-Donde $P(50<W_F<70)$ y $P(50<W_M<70)$ denotan simplmente la probabilidad de observar pesos entre 50 y 70 para mujeres y hombres respectivamente. Estas probabilidades corresponden a las areas mostradas en la figura \@ref(fig:fdmwP1). Notese como estas areas tienen su notacion respectiva en las formulas \@ref(eq:pwf1) y \@ref(eq:pwm1).
+Donde $P(50<W_F<70)$ y $P(50<W_M<70)$ denotan simplemente la probabilidad de observar pesos entre 50 y 70 para mujeres y hombres respectivamente. Estas probabilidades corresponden a las áreas mostradas en la figura \@ref(fig:fdmwP1). Nótese como estas áreas tienen su notación respectiva en las fórmulas \@ref(eq:pwf1) y \@ref(eq:pwm1).
 
-Otro tipo de calculos son por ejemplo $P(W_F < 45)$ o $P(W_M>90)$
+Otro tipo de cálculos son por ejemplo $P(W_F < 45)$ o $P(W_M>90)$
 
 ```{r fdmwP2,echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="Probabilidad de peso \"menor que\" y \"mayor que\""}
 xrange<-c(45,90)
@@ -195,7 +195,7 @@ $P(W_F<45)=0.11$ se interpreta de la siguiente forma: "11% de las mujeres tienen
 
 De forma similar, $P(W_M>90)=0.048$, significa que 4.8% de los hombres tienen pesos mayores a 90Kg o que la probabilidad de observar hombres con pesos mayores a 90kg es de 4.8%.
 
-Notese como estas areas tienen su notacion respectiva en las formulas \@ref(eq:pwf2) y \@ref(eq:pwm2).
+Nótese como estas áreas tienen su notación respectiva en las fórmulas \@ref(eq:pwf2) y \@ref(eq:pwm2).
 
 $$P(50<W_M<70)=0.452$$ Significaría que 45.2% de los hombres tiene pesos entre 50 y 70 o que la probabilidad de observar hombres con pesos entre 50 y 70 es de 45.2%
 
@@ -237,46 +237,46 @@ p12<-p1+geom_segment(aes(x=xrange[2],xend=xrange[2],y=c(0),yend=c(dnorm(xrange[2
 gridExtra::grid.arrange(grobs =list(p11,p12),nrow=2,ncol=1)
 ```
 
-finalmente, cabe preguntarse por lo siguiente: ¿Cuanto mide el area total bajo la funcion de densidad? Esta area tiene su notacion respectiva en terminos de integrales:
+Finalmente, cabe preguntarse por lo siguiente: ¿Cuánto mide el área total bajo la función de densidad? Esta área tiene su notación respectiva en términos de integrales:
 
 $$P(-\infty<W_M<\infty)=\int_{-\infty}^{\infty}f_M(x)dx$$
-Es decir la integral de menos infinito a infinito de la funcion de densidad $f_M(x)$. Como es de esperarse esta area (o probabilidad) mide $1$, de manera homologa al calso del axioma 2 de proabibilidad visto anteriormente. La probabilidad de observar cualquier valor posible es $1$.
+Es decir, la integral de menos infinito a infinito de la función de densidad $f_M(x)$. Como es de esperarse esta área (o probabilidad) mide $1$, de manera homologa al caso del axioma 2 de probabilidad visto anteriormente. La probabilidad de observar cualquier valor posible es $1$.
 
-Teneindo en cuenta esto, se da uno cuenta que el area bajo las funciones de densidad $f_F(x)$  y $f_M(x)$ es la misma y es de $1$. Por esta razon, se equivocan algunos estudiantes al pensar que la funcion de densidad $f_F(x)$ tiene mas area que $f_M(x)$  infiriendo que hay mas mujeres que hombres. Al tener ambas c¡funciones de densidad la misma area, el grafico que hemos venido discutiendo no nos puede dar informacion acerca del numero de hombres y mujeres.
+Teniendo en cuenta esto, se da uno cuenta que el área bajo las funciones de densidad $f_F(x)$  y $f_M(x)$ es la misma y es de $1$. Por esta razón, se equivocan algunos estudiantes al pensar que la función de densidad $f_F(x)$ tiene más área que $f_M(x)$ infiriendo que hay más mujeres que hombres. Al tener ambas funciones de densidad la misma área, el grafico que hemos venido discutiendo no nos puede dar información acerca del número de hombres y mujeres.
 
-Estas notaciones de integrales para representar el area bajo la curva son algo complicadas, las presentamos aca para dar un punto de referencia tecnico, sin embargo, lo importante es lo siguiente:
+Estas notaciones de integrales para representar el área bajo la curva son algo complicadas, las presentamos acá para dar un punto de referencia técnico, sin embargo, lo importante es lo siguiente:
 
-* Para las variables continuas, los conjuntos a los cuales se les mediran probabilidades son segmentos de recta.
-* Las probabilidades se miden como areas bajo la funcion de densidad delimitadas por los segmentos de recta.
-* Las areas bajo la funcion de densidad se miden a travez de la operacion de integracion.
+* Para las variables continuas, los conjuntos a los cuales se les medirán probabilidades son segmentos de recta.
+* Las probabilidades se miden como áreas bajo la función de densidad delimitadas por los segmentos de recta.
+* Las áreas bajo la función de densidad se miden a través de la operación de integración.
 
 # Variable aleatoria
 
-En las discuciones anteriores se ha mencionado el termino variable aleatoria, ¿Que es exactamente? La respuesta es sencilla. La definicion tecnica de una variable aleatoria es compleja, pero pare efectos practicos tomaremos la siguiente difenicion:
+En las discusiones anteriores se ha mencionado el termino variable aleatoria, ¿Qué es exactamente? La respuesta es sencilla. La definición técnica de una variable aleatoria es compleja, pero pare efectos prácticos tomaremos la siguiente definición:
 
-* *Se define una variable aleatoria como el sistema compuesto por un rango de valores y su funcion de densidad.*
+* *Se define una variable aleatoria como el sistema compuesto por un rango de valores y su función de densidad. *
 
-Esto quiere decir que, para una medida como el peso existen diferentes variables aleatorias. El grafico de las funciones de densidad del peso para hombres y mujeres asi lo demuestra, existe una variable aleatoria de peso para mujeres y otra de peso para los hombres. El peso de los colombianos no es el mismo peso de los norte americanos. Una variable aleatoria consiste en el conjunte de posibles valores que toma la variable junto con su funcion de densidad.
+Esto quiere decir que, para una medida como el peso existen diferentes variables aleatorias. El grafico de las funciones de densidad del peso para hombres y mujeres así lo demuestra, existe una variable aleatoria de peso para mujeres y otra de peso para los hombres. El peso de los colombianos no es el mismo peso de los norte americanos. Una variable aleatoria consiste en el conjunto de posibles valores que toma la variable junto con su función de densidad.
 
-Ahora, para referirnos a una variable aleatoria usamos letras mayusculas. Por ejemplo, en el ejemplo del peso tenemos dos variables aleatorias diferentes: $W_F$ y $W_M$. para referirnos  a posibles valores arbitrarios que pueden tomar estas variables aleatorias usamos letras minusculas. Veamos un ejemplo:
+Ahora, para referirnos a una variable aleatoria usamos letras mayúsculas. En el ejemplo del peso tenemos dos variables aleatorias diferentes: $W_F$ y $W_M$. para referirnos a posibles valores arbitrarios que pueden tomar estas variables aleatorias usamos letras minúsculas. Veamos un ejemplo:
 
 $$P(W_F < x)$$
 
-En esta expresion se traduce de la siguiente manera: La probabilidad de que la variable aleatoria peso de las mujeres ($W_F$) sea menor a un valor arbitrario ($x$).
+Esta expresión se traduce de la siguiente manera: La probabilidad de que la variable aleatoria peso de las mujeres ($W_F$) sea menor a un valor arbitrario ($x$).
 
-Es fundamental la diferencia en los significados de los simbolos. Por ejemplo en el caso de las variables aleatorias discretas habiamos verificado que 
+Es fundamental la diferencia en los significados de los símbolos. Por ejemplo, en el caso de las variables aleatorias discretas habíamos verificado que 
 
 $$P(X=x)=f(x)$$
 
-Es decir que la probabilidad de que la variable aleatoria $X$ tome un valor arbitrario $x$ es definida simplemente por su funcion de densidad $f(x)$.
+Es decir que la probabilidad de que la variable aleatoria $X$ tome un valor arbitrario $x$ es definida simplemente por su función de densidad $f(x)$.
 
-# Parametros
+# Parámetros
 
-En este punto, ya esta clara la representacion matematica que se emplea para expresar probabilidades en el caso de variables cuantitativas (bien sean discretas o continuas). La naturaleza de los conjuntos para los cuales se calculan probabilidades son segmentos de numeros (reales o enteros segun sea el caso). Y la forma de calcular las probabilidades es como areas bajo la funcion de densidad delimitados por los segmentos de numeros de interes. 
+En este punto, ya está clara la representación matemática que se emplea para expresar probabilidades en el caso de variables cuantitativas (bien sean discretas o continuas). La naturaleza de los conjuntos para los cuales se calculan probabilidades son segmentos de números (reales o enteros según sea el caso). Y la forma de calcular las probabilidades es como áreas bajo la función de densidad delimitados por los segmentos de números de interés. 
 
-Es hora de hablar con mayor detalle acerca de las formulas matematicas que se usan como funciones densidad. Empesaremos estudiando la funcion de densidad del numero de hijos estudiada anteriormente. Reproducimos la grafica a continuacion, para facilidad de lectura (figura \@ref(fig:fdpoisr)).
+Es hora de hablar con mayor detalle acerca de las fórmulas matemáticas que se usan como funciones densidad. Empezaremos estudiando la función de densidad del número de hijos estudiada anteriormente. Reproducimos la gráfica a continuación, para facilidad de lectura (figura \@ref(fig:fdpoisr)).
 
-```{r fdpoisr, echo=FALSE, results = 'asis',fig.width=7, fig.height=4, fig.cap="Funcion de densidad para la variable numero de hijos"}
+```{r fdpoisr, echo=FALSE, results = 'asis',fig.width=7, fig.height=4, fig.cap="Función de densidad para la variable número de hijos"}
 dtf_pois<-data.frame(x=factor(0:11),y=dpois(0:11,3))
 dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
   ylab("f(x)")+ theme_bw()+
@@ -286,36 +286,36 @@ dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
   
 ```
 
-La formula de esta funcion de densidad es la siguiente:
+La fórmula de esta función de densidad es la siguiente:
 
 \begin{equation}
 f(x)=\frac{3^x e^{-3}}{x!} (\#eq:pois1)
 \end{equation}
 
-En esta formula, $x$ es un posible valor arbitrario que puede tomar la variable aleatoria $X$ (numero de hijos), $e$ es el numero de *oiler*, $x!$ se denomina *equis factorial*, esto se define como
+En esta fórmula, $x$ es un posible valor arbitrario que puede tomar la variable aleatoria $X$ (número de hijos), $e$ es el número de *oiler*, $x!$ se denomina *equis factorial*, esto se define como
 
 $$n!=1\times 2 \times 3 ... \times n-1 \times n$$
 
-Y aparece tambien el numero $3$. Usted puede verificar que efectivamente al evaluar diferentes valores de $x$ en la formula se obtienen los valores que aparecen en la figura \@ref(fig:fdpoisr).
+Y aparece también el numero $3$. Usted puede verificar que efectivamente al evaluar diferentes valores de $x$ en la formula se obtienen los valores que aparecen en la figura \@ref(fig:fdpoisr).
 
-## Funcion de densidad Poisson
+## Función de densidad Poisson
 
-El numero $3$ es lo que se conoce como un parametro y la formula general de la ecuacion \@ref(eq:pois1) se conoce como la funcion de densidad *Poisson* y es la siguiente:
+El numero $3$ es lo que se conoce como un parámetro y la formula general de la ecuación \@ref(eq:pois1) se conoce como la función de densidad *Poisson* y es la siguiente:
 
 \begin{equation}
 f(x|\lambda)=\frac{\lambda^x e^{-\lambda}}{x!} (\#eq:poisg)
 \end{equation}
 
-Donde $f(x|\lambda)$ es una nueva notacion introducida, simplemente estamos definiendo que la funcion de densidad $f(x)$ depende de otra cantidad, $\lambda$ que se denomina parametro de la funcion de denisdad.
+Donde $f(x|\lambda)$ es una nueva notación introducida, simplemente estamos definiendo que la función de densidad $f(x)$ depende de otra cantidad, $\lambda$ que se denomina parámetro de la función de densidad.
 
-Veamos cual es elefecto del parametro $\lambda$ graficando diferentes funciones de densidad para diferentes valores de $\lambda$.
+Veamos cual es el efecto del parámetro $\lambda$ graficando diferentes funciones de densidad para diferentes valores de $\lambda$.
 <center>
 ```{r , echo=F,warning =F, fig.width=6, fig.height=4}
 gifdpois <- image_read("dpois.gif") 
 gifdpois
 ```
 
-```{r fdpoisr2, echo=FALSE, results = 'asis',fig.width=7, fig.height=4, fig.cap="Funcion de densidad para diferentes valores de <span>&lambda;</span>"}
+```{r fdpoisr2, echo=FALSE, results = 'asis',fig.width=7, fig.height=4, fig.cap="Función de densidad para diferentes valores de <span>&lambda;</span>"}
 xrange<-0:50
 dtf_pois2<-data.frame(x=rep(xrange,5),
                       y=c(dpois(xrange,3),
@@ -331,32 +331,32 @@ dtf_pois2%>%ggplot(aes(x=x,y=y,color=parameter))+geom_point()+
 ```
 </center>
 
-Observando la figura \@ref(fig:fdpoisr2), vemos que el valor de $\lambda$ afecta la forma de la funcion de densidad. Este es el concepto fundamental del parametro.
+Observando la figura \@ref(fig:fdpoisr2), vemos que el valor de $\lambda$ afecta la forma de la función de densidad. Este es el concepto fundamental del parámetro.
 
-* Definicion: *un * **_Parametro_** *es una cantidad que controla la forma de una funcion de densidad*
+* Definición: *un * **_Parámetro_** *es una cantidad que controla la forma de una función de densidad*
 
-¿Puede usted describir como el parametro $\lambda$ controla la forma de la funcion de denisdad *Poisson*?
+¿Puede usted describir como el parámetro $\lambda$ controla la forma de la funcion de denisdad *Poisson*?
 
-Existe otro aspecto importante de esta funcion de densidad y es el conjunto de valores para la cual esta definida. Esta funcion de densidad se define para numeros enteros positivos. Por ejemplo no tiene sentido pensar en $1.5$ hijos en un hogar. 
+Existe otro aspecto importante de esta función de densidad y es el conjunto de valores para la cual está definida. Esta función de densidad se define para números enteros positivos. Por ejemplo, no tiene sentido pensar en $1.5$ hijos en un hogar. 
 
-## Funcion de densidad Normal
+## Función de densidad Normal
 
-Vamos ahora a explorar la formula de la funcion de densidad normal, de la cual ya hemos visto un ejemplo, de hecho las formulas de las funciones de densidad para el peso de hombres y mujeres en el ejemplo tratado anteriormente pertenecen a esta clase.
+Vamos ahora a explorar la fórmula de la función de densidad normal, de la cual ya hemos visto un ejemplo, de hecho las fórmulas de las funciones de densidad para el peso de hombres y mujeres en el ejemplo tratado anteriormente pertenecen a esta clase.
 
-La funcion de densidad normal se define mediante la siguiente ecuacion:
+La función de densidad normal se define mediante la siguiente ecuación:
 
 \begin{equation}
 f(x|\mu, \sigma^{2})=\frac{1}{\sqrt{2\pi \sigma^2}}exp\left(\frac{-(x-\mu)^2}{\sigma^2}\right) (\#eq:dfnorm)
 \end{equation}
 
-en esta ecuacion hay dos parametros: $\mu$ y $\sigma^{2}$. A continuacion exploraremos la forma en que estos dos parametros contrlan la forma de la funcion de densidad.
+en esta ecuación hay dos parámetros: $\mu$ y $\sigma^{2}$. A continuación exploraremos la forma en que estos dos parámetros controlan la forma de la función de densidad.
 <center>
 ```{r , echo=F,warning =F, fig.width=6, fig.height=4}
 gifdnorm <- image_read("dnorm.gif") 
 gifdnorm
 ```
 
-```{r fdnorm1, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="diferentes funciones de densidad normal"}
+```{r fdnorm1, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="Diferentes funciones de densidad normal"}
 m1<-4
 m2<-10
 
@@ -380,16 +380,16 @@ pdnorm1<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
 pdnorm1
 ```
 </center>
-¿Puede usted describir como los parametros $\mu$ y $\sigma^2$ controlan la forma de la funcion de denisdad *Normal*?
-Notese finalmente, cual es el conjunto de valores para los cuales la funcion de densidad normal esta definida: todos los numeros reales, tanto positivos como negativos.
+¿Puede usted describir como los parámetros $\mu$ y $\sigma^2$ controlan la forma de la función de densidad *Normal*?
+Nótese finalmente, cual es el conjunto de valores para los cuales la función de densidad normal está definida: todos los números reales, tanto positivos como negativos.
 
-## funcion de densidad gamma
-Ahora estudiaremos una funcion de densidad que se encuentra exclusivamente definida para numeros reales positivos, la funcion de densidad gamma. Esta es su formula
+## Función de densidad gamma
+Ahora estudiaremos una función de densidad que se encuentra exclusivamente definida para números reales positivos, la función de densidad gamma. Esta es su formula
 
 $$f(x|\alpha,\beta)=\frac{1}{\beta^{\alpha}\Gamma(\alpha)}x^{\alpha-1}e^{-x/\beta}$$
-De nuevo, $x$ son los valores que puede tomar la variable aleatoria, $\alpha, \; \beta$ son parametros, y $\Gamma()$ (letra griega mayuscula gamma) es una funcion matematica especial. Esta formula matematica se ve complicada, a continuacion presentamos algunas funciones de densidad para diferentes valores de $\alpha, \; \beta$
+De nuevo, $x$ son los valores que puede tomar la variable aleatoria, $\alpha, \; \beta$ son parámetros, y $\Gamma()$ (letra griega mayúscula gamma) es una función matemática especial. Esta fórmula matemática se ve complicada, a continuación presentamos algunas funciones de densidad para diferentes valores de $\alpha, \; \beta$
 
-```{r fdgamma1, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="diferentes funciones de densidad gamma"}
+```{r fdgamma1, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="Diferentes funciones de densidad gamma"}
 apar<-c(1,2,7.5,9)
 bpar<-c(2,2,1.3,0.5)
 gmaxlim<-c(0, 25)
@@ -409,16 +409,16 @@ pgma1<-ggplot(data = data.frame(x = gmaxlim), aes(gmaxlim)) +
   theme_bw()
 pgma1
 ```
-En este caso es mas dificil comprender cual es el efecto de $\alpha$ y $\beta$ en la forma de la funcion de densidad.
+En este caso es más difícil comprender cual es el efecto de $\alpha$ y $\beta$ en la forma de la función de densidad.
 
-## funcion de densidad beta
+## Función de densidad beta
 
-Esta funcion de densidad es interesante porque esta definida para numeros reales exclusivamente entre $0$ y $1$. su formula es
+Esta función de densidad es interesante porque está definida para números reales exclusivamente entre $0$ y $1$. su fórmula es
 
 $$f(x|\alpha,\beta)=\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)}x^{\alpha-1}(1-x)^{\beta-1}$$
-veamos diferntes funciones de densidad para diferentes valores de $\alpha$ y $\beta$:
+veamos diferentes funciones de densidad para diferentes valores de $\alpha$ y $\beta$:
 
-```{r fdbeta1, echo=FALSE, results = 'asis',fig.width=5.5, fig.height=4, fig.cap="diferentes funciones de densidad gamma"}
+```{r fdbeta1, echo=FALSE, results = 'asis',fig.width=5.5, fig.height=4, fig.cap="Diferentes funciones de densidad beta"}
 apar<-c(0.7,1,2.5,5)
 bpar<-c(0.7,1,5,1)
 btaxlim<-c(0, 1)
@@ -438,15 +438,15 @@ pbta1<-ggplot(data = data.frame(x = btaxlim), aes(btaxlim)) +
   theme_bw()
 pbta1
 ```
-Similar al caso de la funcion de densidad gamma, es dificil comprender cual es el efecto de $\alpha$ y $\beta$ en la forma de la funcion de densidad.
+Similar al caso de la función de densidad gamma, es difícil comprender cual es el efecto de $\alpha$ y $\beta$ en la forma de la función de densidad.
 
-## Parametros de Localizacion y Dispercion
+## Parámetros de Localización y Dispersión
 
-Del estudio del effecto que tienen los parametros en la funcion de densidad poisson y normal queda claro que existen dos aspecto prinicpales en la forma de una funcion de densidad. El primer aspecto es el de la localizacion, los parametros que contrlan la localizacion en las funciones de densidad poisson y normal son $\lambda$ y $\mu$ respectivamente. Estos parametros controlan en donde se ubica la zona mas "alta" de la funcion de densidad en el eje x (tecnicamente hablando controlan en donde se presenta el mayor valor de la funcion de densidad en relacion con el eje x). 
+Del estudio del efecto que tienen los parámetros en la función de densidad poisson y normal queda claro que existen dos aspecto principales en la forma de una función de densidad. El primer aspecto es el de la localización, los parámetros que controlan la localización en las funciones de densidad poisson y normal son $\lambda$ y $\mu$ respectivamente. Estos parámetros controlan en donde se ubica la zona más "alta" de la función de densidad en el eje x (técnicamente hablando controlan en donde se presenta el mayor valor de la función de densidad en relación con el eje x). 
 
-Por otra parte, vemos como el parametro $\sigma^2$ controla un aspecto geomtrico en particular en la funcion de densidad normal. Controla la forma en que la funcion se concentra o no al rededor del parametro de localizacion $\mu$. Valores grandes de $\sigma^2$ hacen que la curva se "aplane", mientras que valores pequeños de $\sigma^2$ hacen que la curva se "empine". Recuerdese que el area bajo la curva para uno u otra funcion de densidad es la misma ($1$), sugiriendo que estos cambios de aplanamiento o empinamiento hacen que la probabilidad se destribuya de manera diferente en uno u otro caso.
+Por otra parte, vemos como el parametro $\sigma^2$ controla un aspecto geométrico en particular en la función de densidad normal. Controla la forma en que la función se concentra o no al rededor del parámetro de localización $\mu$. Valores grandes de $\sigma^2$ hacen que la curva se "aplane", mientras que valores pequeños de $\sigma^2$ hacen que la curva se "empine". Recuérdese que el área bajo la curva para uno u otra función de densidad es la misma ($1$), sugiriendo que estos cambios de aplanamiento o empinamiento hacen que la probabilidad se distribuya de manera diferente en uno u otro caso.
 
-Para aclarar esto considere el siguiente ejemplo
+Para aclarar esto, considere el siguiente ejemplo
 
 ```{r fdnormcompV,echo=FALSE, results = 'asis',fig.width=8, fig.height=4.5, fig.cap="Probabilidad de peso entre 50 y 90 para dos funciones de densidad diferentes"}
 weight_lim<-c(10,130)
@@ -481,9 +481,9 @@ p112<-p11+geom_segment(aes(x=xrange,xend=xrange,y=0,yend=.035),linetype=2)+
   theme_bw()
 p112
 ```
-En la figura \@ref(fig:fdnormcompV) las dos funciones de densidad tienen el mismo valor del parametro $\mu$, sin embargo, la funcion de densidad roja ($f_F(w)$) tiene el parametro $\sigma_F^2= `r (sdm+15)^2`$ mientras la negra ($f_M(w)$) tiene $\sigma_M^2=`r (sdm)^2`$. Para la funcion de densidad roja se tiene que $P(50< W_F <90)= `r round(prb2,3)`$ mientras que para la negra, el mismo intervalo tiene probabilidad $P(50<W_M<90)= `r round(prb1,3)`$. En cual de las dos funciones de densidad hay mayor incertidumbre de observar valores entre $50$ y $90$? Claramente en la roja en donde $\sigma_F^2$ es mayor.
+En la figura \@ref(fig:fdnormcompV) las dos funciones de densidad tienen el mismo valor del parámetro $\mu$, sin embargo, la función de densidad roja ($f_F(w)$) tiene el parámetro $\sigma_F^2= `r (sdm+15)^2`$ mientras la negra ($f_M(w)$) tiene $\sigma_M^2=`r (sdm)^2`$. Para la función de densidad roja se tiene que $P(50< W_F <90)= `r round(prb2,3)`$ mientras que para la negra, el mismo intervalo tiene probabilidad $P(50<W_M<90)= `r round(prb1,3)`$. ¿En cuál de las dos funciones de densidad hay mayor incertidumbre de observar valores entre $50$ y $90$? Claramente en la roja en donde $\sigma_F^2$ es mayor.
 
-Consideremos ahora otro enfoque. El objetivo ahora sera el de encontrar un intervalo que concetre el $90%$ de probabilidad para las dos funciones de densidad $f_M(w)$ y $f_F(w)$.
+Consideremos ahora otro enfoque. El objetivo ahora será el de encontrar un intervalo que concentre el $90%$ de probabilidad para las dos funciones de densidad $f_M(w)$ y $f_F(w)$.
 
 ```{r fdnormcompV2,echo=FALSE, results = 'asis',fig.width=8, fig.height=4.5, fig.cap="90% de probabilidad"}
 qdf<-qnorm(c(.05,.95),mm,sdm+15)
@@ -507,13 +507,13 @@ p113<-p11+geom_segment(aes(x=qdf,xend=qdf,y=0,yend=dnorm(qdf,mm,sdm+15)),linetyp
 p113
 ```
 
-En la figura \@ref(fig:fdnormcompV2) se presentan los rangos correspondientes para cada funcion de densidad. Ambas areas acumulan la misma probabilidad (90%). Sin embargo es claro que esta probabilidad se acumula en un rango mucho mas ampli en la funcion de densidad $f_F(w)$, en comparacion a $f_M(w)$. Decimos entonces, que hay mayor "dispercion" en $f_F(w)$ en comparacion con $f_M(w)$. Esta "dispercion" hace referencia a que los posibles valores que podemos observar para la variable $W_f$ son mucho mas disperos, o tienen un rango de variacion mayor en comparacion con la variable $W_M$.
+En la figura \@ref(fig:fdnormcompV2) se presentan los rangos correspondientes para cada función de densidad. Ambas áreas acumulan la misma probabilidad (90%). Sin embargo, es claro que esta probabilidad se acumula en un rango mucho más amplio en la función de densidad $f_F(w)$, en comparación a $f_M(w)$. Decimos entonces, que hay mayor "dispersión" en $f_F(w)$ en comparación con $f_M(w)$. Esta "dispersión" hace referencia a que los posibles valores que podemos observar para la variable $W_f$ son mucho más dispersos, o tienen un rango de variación mayor en comparación con la variable $W_M$.
 
-En conclucion, hemos presentado como se ve el efecto de parametros de localizacion y dispersion. Puede usted notar que el parametro $\lambda$ en la funcion de densidad poisson es, ademas de ser un parametro de localizacion, tambien un parametro de dispercion? (ver figura \@ref(fig:fdpoisr2))
+En conclusión, hemos presentado como se ve el efecto de parámetros de localización y dispersión. Puede usted notar que el parámetro $\lambda$ en la función de densidad poisson es, además de ser un parámetro de localización, también un parámetro de dispersión? (ver figura \@ref(fig:fdpoisr2))
 
-# Parametros generales
+# Parámetros generales
 
-Como vimos en la seccion anterior, dependiendo de la formula de la funcion de densidad pueden existir uno o dos parametros y su efecto en la forma de la funcion de densidad tambien depende de la formula matematica en cada caso. Sin embargo existen otro tipo de parametros que, en algunos casos, no se encuentran de manera explicita en estas formulas. Estos parametros, sin embargo, son calculados usando la funcion matematica que describe la funcion de densidad. Los parametros que estudiaremos a continuacion son **El Valor esperado, La Moda, La Mediana, La Varianza** y **La Desviacion Estandar**.
+Como vimos en la sección anterior, dependiendo de la fórmula de la función de densidad pueden existir uno o dos parámetros y su efecto en la forma de la función de densidad también depende de la formula matemática en cada caso. Sin embargo, existen otro tipo de parámetros que, en algunos casos, no se encuentran de manera explícita en estas fórmulas. Estos parámetros, sin embargo, son calculados usando la función matemática que describe la función de densidad. Los parámetros que estudiaremos a continuación son **El Valor esperado, La Moda, La Mediana, La Varianza** y **La Desviación Estándar**.
 
 ## Valor Esperado
 
@@ -528,15 +528,15 @@ En el caso de una variable aleatoria discreta y
 Valor \; Esperado \; de \; X=E(X)=\int_{-\infty}^{\infty}xf(x)dx (\#eq:EVcont)
 \end{equation}
 
-En el caso de una variable aleatoria continua. Estas forumulas parecen complicadas, empezaremos nuestra exploracion de este parametro en el caso de una variable aleatoria discreta.
-Recurdese que en el caso de una variable discreta $f(x_i)=P(X=x_i)$, luego la ecuacion \@ref(eq:EVdis) se puede reescribir como
+En el caso de una variable aleatoria continua. Estas fórmulas parecen complicadas, empezaremos nuestra exploración de este parámetro en el caso de una variable aleatoria discreta.
+Recuérdese que en el caso de una variable discreta $f(x_i)=P(X=x_i)$, luego la ecuación \@ref(eq:EVdis) se puede reescribir como
 
 $$E(X)=\sum_{i=1}^{n}f(x_i)\times x_i=$$
 $$\sum_{i=1}^{n}P(X=x_i) \times x_i$$
 
-Es decir que el valor esperado para una variable discreta consiste en la suma ponderada de todos sus posibles valores multiplicados por su probabilidad. Calculemos el valor esperado paraa la variable numero de hijos. Reproducimos la grafica a continuacion, para facilidad de lectura (figura \@ref(fig:fdpoisrr2)).
+Es decir que el valor esperado para una variable discreta consiste en la suma ponderada de todos sus posibles valores multiplicados por su probabilidad. Calculemos el valor esperado para la variable número de hijos. Reproducimos la gráfica a continuación, para facilidad de lectura (figura \@ref(fig:fdpoisrr2)).
 
-```{r fdpoisrr2, echo=FALSE, results = 'asis',fig.width=7, fig.height=4, fig.cap="Funcion de densidad para la variable numero de hijos"}
+```{r fdpoisrr2, echo=FALSE, results = 'asis',fig.width=7, fig.height=4, fig.cap="Función de densidad para la variable número de hijos"}
 dtf_pois<-data.frame(x=factor(0:11),y=dpois(0:11,3))
 dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
   ylab("f(x)")+ theme_bw()+
@@ -545,38 +545,38 @@ dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
            label = paste0("(",dtf_pois$x,", ",round(dtf_pois$y,3),")"),parse=F , size=2.5 , fontface="bold")
 ```
 
-Segun la formula \@ref(eq:EVdis) el calculo del valor esperado es el siguiente:
+Según la formula \@ref(eq:EVdis) el cálculo del valor esperado es el siguiente:
 
 $$E(X)=\sum_{i=1}^{n}f(x_i)\times x_i=$$
 $$E(X)=f(0)\times 0+f(1)\times 1+f(2)\times 2+ ... +f(11)\times 11=$$
 $$`r dtf_pois$x[1]` \times `r round(dtf_pois$y[1],3)`+`r dtf_pois$x[2]` \times `r round(dtf_pois$y[2],3)`+`r dtf_pois$x[3]` \times `r round(dtf_pois$y[3],3)`+...+`r dtf_pois$x[12]` \times `r round(dtf_pois$y[12],3)`=$$
 $$`r sum((0:11)*dtf_pois$y)` \approx 3$$
 
-El claculo de valores esperados para funciones de densidad continuas es mas complejo y no sera aborado aqui.
+El cálculo de valores esperados para funciones de densidad continuas es más complejo y no será abordado aquí.
 
 ### Valor esperado en algunas funciones de densidad
 
-A continuacion presentaremos los valores esperados para algunas funciones de densidad
+A continuación presentaremos los valores esperados para algunas funciones de densidad
 
-* Funcion de densidad Poisson: 
+* Función de densidad Poisson: 
 $$f(x|\lambda)=\frac{\lambda^x e^{-\lambda}}{x!}$$
 $$E(X)=\lambda$$
 
-* Funcion de densidad Normal: 
+* Función de densidad Normal: 
 $$f(x|\mu, \sigma^{2})=\frac{1}{\sqrt{2\pi \sigma^2}}exp\left(\frac{-(x-\mu)^2}{\sigma^2}\right)$$
 $$E(X)=\mu$$
 
-* Funcion de densidad Gamma: 
+* Función de densidad Gamma: 
 $$f(x|\alpha,\beta)=\frac{1}{\beta^{\alpha}\Gamma(\alpha)}x^{\alpha-1}e^{-x/\beta}$$
 $$E(X)=\alpha \beta$$
 
-* Funcion de densidad Beta: 
+* Función de densidad Beta: 
 $$f(x|\alpha,\beta)=\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)}x^{\alpha-1}(1-x)^{\beta-1}$$
 $$E(X)=\frac{\alpha}{\alpha+\beta}$$
 
-Notese que en el caso de las funciones de densidad Poisson y Normal, el valor esperado corresponde a un parametro natural ($\lambda$ y $\mu$ respectivamente) mientras que para el caso de las distribuciones Gamma y Beta el valor esperado no corresponde exactamente a ningun parametro natural, sin embargo se calculan en base a estos.
+Nótese que en el caso de las funciones de densidad Poisson y Normal, el valor esperado corresponde a un parámetro natural ($\lambda$ y $\mu$ respectivamente) mientras que para el caso de las distribuciones Gamma y Beta el valor esperado no corresponde exactamente a ningún parámetro natural, sin embargo se calculan en base a estos.
 
-A continuacion presentamos algunas distribuciones junto con su correspondiente valor esperado.
+A continuación presentamos algunas distribuciones junto con su correspondiente valor esperado.
 
 ```{r EVps, echo=FALSE, results = 'asis',fig.width=9, fig.height=7, fig.cap="Valores esperados para diferentes funciones de densidad"}
 dtf_pois<-data.frame(x=0:11,y=dpois(0:11,3))
@@ -686,23 +686,23 @@ gridExtra::grid.arrange(pdfpoissE1,pdfpoissE2, pdnormE, pgmaE1, pgmaE2, pgmaE3, 
 
 ¿Al observar la figura \@ref(fig:EVps) que podemos decir del valor esperado? 
 
-El hecho de que para las funciones de densidad Poisson y Normal el valor esperado coincida con los parametros $\lambda$ y $\mu$ nos indica que el valor esperado debe ser un parametro de localizacion. La figura \@ref(fig:EVps) confirma esta suposicion, sin embargo podria usted definir que es el valor esperado? La definicion tecnica del valor esperado esta fuera del alcance de este curso, sin embargo, daremos una definicion practica:
+El hecho de que para las funciones de densidad Poisson y Normal el valor esperado coincida con los parámetros $\lambda$ y $\mu$ nos indica que el valor esperado debe ser un parámetro de localización. La figura \@ref(fig:EVps) confirma esta suposición, sin embargo podría usted definir que es el valor esperado? La definición técnica del valor esperado esta fuera del alcance de este curso, sin embargo, daremos una definición practica:
 
 * El Valor Esperado es un valor al rededor del cual hay una alta densidad de probabilidad
 
-Esta definicion indica que el valor esperado es un numero que podemos ubicar en el conjunto de posibles valores de la variable aleatoria (en el eje x de los graficos de funcion de densidad) y ademas, que las zonas en donde la funcion de densidad toma sus mayores valores se encuentra cerca del valor esperado ("... un valor al rededor del cual hay una alta densidad de probabilidad").
+Esta definición indica que el valor esperado es un número que podemos ubicar en el conjunto de posibles valores de la variable aleatoria (en el eje x de los gráficos de función de densidad) y además, que las zonas en donde la función de densidad toma sus mayores valores se encuentra cerca del valor esperado ("... un valor al rededor del cual hay una alta densidad de probabilidad").
 
-Veamos como se ajusta esta definicion a los graficos de la figura \@ref(fig:EVps).
+Veamos cómo se ajusta esta definición a los gráficos de la figura \@ref(fig:EVps).
 
-En los graficos A, B, C el valor esperado coincide con el parametro natural y de hecho la funcion de densidad obtiene su mayor valor en ese mismo valor (el valor de las $x$ para la cual la curva es mas alta). Para las figuras D, E, F, H e I, el valor esperado no coincide exactamente con el valor de las $x$ en donde la funcion de densidad obtiene su mayor valorm sin embargo el valor esperado esta bastante cerca a este valor. Finalmente para la funcion de densidad de la figura G, de hecho el valor esperado se encuentra en el lugar donde la funcion de densidad obtiene su menor valor (donde la curva es mas baja). ¿Que sucede en este caso? Aun en este caso la definicion es apropiada, si bien en el valor esperado se encuentra en el lugar en donde la curva es mas baja, al rededor de el se encuentran regiones con alta desnsidad de probablidad.
+En los gráficos A, B, C el valor esperado coincide con el parámetro natural y de hecho la función de densidad obtiene su mayor valor en ese mismo valor (el valor de las $x$ para la cual la curva es más alta). Para las figuras D, E, F, H e I, el valor esperado no coincide exactamente con el valor de las $x$ en donde la función de densidad obtiene su mayor valor, sin embargo, el valor esperado está bastante cerca a este valor. Finalmente, para la función de densidad de la figura G, de hecho el valor esperado se encuentra en el lugar donde la función de densidad obtiene su menor valor (donde la curva es más baja). ¿Qué sucede en este caso? Aun en este caso la definición es apropiada, si bien en el valor esperado se encuentra en el lugar en donde la curva es más baja, alrededor de él, se encuentran regiones con alta densidad de probabilidad.
 
 ## Moda
 
-El siguiente parametro general que estudiaremos es la **Moda**. Su definicion es la siguiente:
+El siguiente parámetro general que estudiaremos es la **Moda**. Su definición es la siguiente:
 
-* La **Moda** se define como el valor en el cual la funcion de denisdad es maxima.
+* La **Moda** se define como el valor en el cual, la función de densidad es máxima.
 
-A continuacion presentamos las modas para diferentes funciondes de densidad
+A continuación presentamos las modas para diferentes funciones de densidad
 
 ```{r Modaps, echo=FALSE, results = 'asis',fig.width=9, fig.height=7, fig.cap="Modas para diferentes funciones de densidad"}
 dtf_pois<-data.frame(x=0:11,y=dpois(0:11,3))
@@ -810,25 +810,25 @@ gridExtra::grid.arrange(pdfpoissE1,pdfpoissE2, pdnormE, pgmaE1, pgmaE2, pgmaE3, 
                         ncol = 3, nrow = 3)
 ```
 
-En los graficos A, B, C la moda coincide con el parametro natural, por tanto el valor esperado y la moda son el mismo valor. En las otras figuras la moda es diferente del valor esperado. El caso de la figura G es especial. Esta funcion de densidad tiene dos modas: el valor 0 y 1. Esto implica que la moda puede no ser unica.
+En los gráficos A, B, C la moda coincide con el parámetro natural, por tanto el valor esperado y la moda son el mismo valor. En las otras figuras la moda es diferente del valor esperado. El caso de la figura G es especial. Esta función de densidad tiene dos modas: el valor 0 y 1. Esto implica que la moda puede no ser única.
 
 ## Mediana
  
- La definicion de la mediana es la siguiente:
+ La definición de la mediana es la siguiente:
  
- * La *mediana* es el valor para el cual, la probabilidad de observar valores menores o iguales a el, es del 50%
+ * La *mediana* es el valor para el cual, la probabilidad de observar valores menores o iguales a él, es del 50%
  
-En terminos de formulas se tiene que 
+En términos de fórmulas se tiene que 
 
 $$Mediana \; de \; X=med(X)$$ 
 \begin{equation}
 P(X \leq med(X))=0.5(\#eq:med)
 \end{equation}
 
-Para encontrar la mediana se debe despejar en $x$ la ecuacion $P(X \leq x)=0.5$. Esto no siempre es facil, y la estrategia consiste en evaluar $P(X \leq x)$ para diferentes valor de $x$ hasta encontrar el valor para el cual se acumula una probabilidad de 0.5, como se puede apreciar en la siguiente animacion.
+Para encontrar la mediana se debe despejar en $x$ la ecuación $P(X \leq x)=0.5$. Esto no siempre es fácil, y la estrategia consiste en evaluar $P(X \leq x)$ para diferentes valor de $x$ hasta encontrar el valor para el cual se acumula una probabilidad de 0.5, como se puede apreciar en la siguiente animación.
 
 <center>
-```{r , echo=F,warning =F, fig.width=6, fig.height=4,  fig.cap="Determinacion de la mediana"}
+```{r , echo=F,warning =F, fig.width=6, fig.height=4,  fig.cap="Determinación de la mediana"}
 med_dnorm <- image_read("med_dnorm.gif") 
 med_dnorm
 ```
@@ -836,7 +836,7 @@ med_dnorm
 
 Como lo muestra la animacion, se logra la acumulacion del 50% de probabilidad cuando el valor es $70$. Esto implica que la mediana para esta funcion de densidad es $70$.
 
-A continuacion presentamos las medianas para diferentes funciondes de densidad:
+A continuación presentamos las medianas para diferentes funciones de densidad:
 
 ```{r Medsps, echo=FALSE, results = 'asis',fig.width=9, fig.height=7, fig.cap="Medianas para diferentes funciones de densidad"}
 dtf_pois<-data.frame(x=0:11,y=dpois(0:11,3))
@@ -954,34 +954,34 @@ gridExtra::grid.arrange(pdfpoissMed1,pdfpoissMed2, pdnormMed, pgmaMed1, pgmaMed2
 
 ## Varianza
 
-El siguiente parametro que estudiaremos a continuacion se denomina varianza y su formula es la siguiente:
+El siguiente parámetro que estudiaremos a continuación se denomina varianza y su fórmula es la siguiente:
 
 \begin{equation}
 Varianza \; de \; X = Var(X) = E \left[ (X- E(X))^2 \right] (\#eq:var)
 \end{equation}
 
-Donde $E()$ indica el valor esperado. La varianza, segun la formula \@ref(eq:var), es el valor esperado de la diferencia de la variable aleatyoria menos su valor esperado al cuadrado. La interpretacion de esta formula no es directa, es mas facil ver su comportamiento en un grafico. De hecho en la distribucion normal ya nos habiamos topado con la varianza. En esta distribucion, la varianza es el mismo parametro $\sigma^2$.
+Donde $E()$ indica el valor esperado. La varianza, según la formula \@ref(eq:var), es el valor esperado de la diferencia de la variable aleatoria menos su valor esperado al cuadrado. La interpretación de esta fórmula no es directa, es más fácil ver su comportamiento en un gráfico. De hecho, en la distribución normal ya nos habíamos topado con la varianza. En esta distribución, la varianza es el mismo parámetro $\sigma^2$.
 
 <center>
-```{r dnormvar, echo=F,warning =F, fig.width=6, fig.height=4,  fig.cap="varianza ($\\sigma^2$) en la funcion de densidad normal"}
+```{r dnormvar, echo=F,warning =F, fig.width=6, fig.height=4,  fig.cap="varianza ($\\sigma^2$) en la función de densidad normal"}
 med_dnorm <- image_read("dnorm_var.gif") 
 med_dnorm
 ```
 </center>
 
-Observando la figura \@ref(fig:dnormvar) es claro que a mayor varianza, la funcion de densidad es mas plana y la probabilidad se distribuyen un ranog mas amplio de valores (ver tambien figura \@ref(fig:fdnormcompV2)).
+Observando la figura \@ref(fig:dnormvar) es claro que a mayor varianza, la función de densidad es más plana y la probabilidad se distribuye en un rango más amplio de valores (ver también figura \@ref(fig:fdnormcompV2)).
 
-## Desviacion Estandar
+## Desviación Estándar
 
-La desviacion estandar es simplemente la raiz cuadrada de la varianza, esto es:
+La desviación estándar es simplemente la raíz cuadrada de la varianza, esto es:
 
 \begin{equation}
 Desviacion \; Estandar \; de \; X = sd(X) = \sqrt{Var(X)} (\#eq:sd)
 \end{equation}
 
-La desviacion estandar es mas conveniente que la varianza, pues las unidades de la desviacion estandar son las mismas de la variable original, mientras que las unidades de la varianza estan en unidades originales al cuadrado. Por ejemplo si la varianza del peso es 729 (ver figura \@ref(fig:fdnormcompV2)), esto quiere decir que este valor de varianza tiene unidades de $kg^2$. Desde el punto de vista fisico, esto es dificil de interpretar, sin embargo $\sqrt{729 kg^2}=27kg$ seria la desviacion estandar asociada, la cual tiene unidades de medida en $kg$.
+La desviación estándar es más conveniente que la varianza, pues las unidades de la desviación estándar son las mismas de la variable original, mientras que las unidades de la varianza están en unidades originales al cuadrado. Por ejemplo si la varianza del peso es 729 (ver figura \@ref(fig:fdnormcompV2)), esto quiere decir que este valor de varianza tiene unidades de $kg^2$. Desde el punto de vista físico, esto es difícil de interpretar, sin embargo $\sqrt{729 kg^2}=27kg$ seria la desviación estándar asociada, la cual tiene unidades de medida en $kg$.
 
-La desviacion estandar, sin embargo, ofrece unas cotas minimas en las cuales se asegura la acumulacion de determinadas probabilidades. Esto es gracias a la Desigualdad de Chebychev:
+La desviación estándar, sin embargo, ofrece unas cotas mínimas en las cuales se asegura la acumulación de determinadas probabilidades. Esto es gracias a la Desigualdad de Chebychev:
 
 \begin{equation}
 P \left(|X-E(X)|\geq k \times sd(X) \right)\leq 1/k^2 (\#eq:chvineq)
@@ -992,7 +992,7 @@ Que es equivalente a
 P \left(E(X)-k \times sd(X)\leq X \leq E(X)+k \times sd(X) \right)\geq 1-1/k^2  (\#eq:chvineq2)
 \end{equation}
 
-En donde $E(X)$ es el valor esperado, $sd(X)$ es la desviacion estandar y $k$ es un numero constante positivo. En base a esta formula es posible decir que, por ejemplo, para cualquier variable aleatoria, no importa la forma de su funcion de densidad, se cumple que la probabilidad de observar valores a mas o menos 3 desviaciones estandar del valor esperado es de $1-1/3^2=0.8888$.
+En donde $E(X)$ es el valor esperado, $sd(X)$ es la desviación estándar y $k$ es un numero constante positivo. En base a esta fórmula es posible decir que, por ejemplo, para cualquier variable aleatoria, no importa la forma de su función de densidad, se cumple que la probabilidad de observar valores, a más o menos 3 desviaciones estándar del valor esperado es de $1-1/3^2=0.8888$.
 
 <center>
 ```{r chvif, echo=FALSE, results = 'asis',fig.width=5.5, fig.height=4, fig.cap="Desigualdad de Chebychev"}
@@ -1021,17 +1021,17 @@ ggplot(data = data.frame(myx_lim = myx_lim), aes(myx_lim)) +
   theme_bw()
 ```
 </center>
-A continuacion presentamos las probabilidades minimas para diferentes valores de $k$
+A continuación presentamos las probabilidades mínimas para diferentes valores de $k$
 
 ```{r pdtab, echo=FALSE}
 ###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
 cheb_tbl<-data.frame(k=1:4,PMA=1-1/(1:4)^2)
-res<-kable(cheb_tbl,caption="probabilidades minimas",row.names =F)
+res<-kable(cheb_tbl,caption="probabilidades mínimas",row.names =F)
 kable_styling(res,"striped", position = "center",full_width = F)
 ```
-Donde PMA hace referencia a probabilidad minima acumulada.
+Donde PMA hace referencia a probabilidad mínima acumulada.
 
-Veamos un ejemplo. Suponga que el valor esperado del peso en cierta poblacion es de $80kg$ y que la desviacion estandar es de $15kg$. Usando la formula \@ref(eq:chvineq2) podemos dar las siguientes cotas de probabilidad para valores de k igual a 2 y 3:
+Veamos un ejemplo. Suponga que el valor esperado del peso en cierta población es de $80kg$ y que la desviación estándar es de $15kg$. Usando la formula \@ref(eq:chvineq2) podemos dar las siguientes cotas de probabilidad para valores de k igual a 2 y 3:
 
 * Si $k=2$ entonces 
 
@@ -1039,7 +1039,7 @@ $$P \left(E(X)-k \times sd(X)\leq X \leq E(X)+k \times sd(X) \right)=$$
 $$P \left(80-2 \times 15\leq X \leq 80+2 \times 15 \right)=$$
 $$P \left(`r 80-2*15` \leq X \leq `r 80+2*15` \right)\geq 1-1/2^2=`r 1-1/2^2` $$
 
-Es decir que, para esta poblacion, la probabilida de observar pesos entre `r 80-2*15` y `r 80+2*15` es de almenos `r (1-1/2^2)*100`%.
+Es decir que, para esta población, la probabilidad de observar pesos entre `r 80-2*15` y `r 80+2*15` es de al menos `r (1-1/2^2)*100`%.
 
 * si $k=3$ entonces
 
@@ -1047,32 +1047,32 @@ $$P \left(E(X)-k \times sd(X)\leq X \leq E(X)+k \times sd(X) \right)=$$
 $$P \left(80-3 \times 15\leq X \leq 80+3 \times 15 \right)=$$
 $$P \left(`r 80-3*15` \leq X \leq `r 80+3*15` \right)\geq 1-1/3^2=`r 1-1/3^2` $$
 
-Es decir que, para esta poblacion, la probabilida de observar pesos entre `r 80-3*15` y `r 80+3*15` es de almenos `r round((1-1/3^2)*100,2)`%.
+Es decir que, para esta población, la probabilidad de observar pesos entre `r 80-3*15` y `r 80+3*15` es de al menos `r round((1-1/3^2)*100,2)`%.
 
-## Relacion entre parametros generales y parametros de localizacion y dispercion
+## Relación entre parámetros generales y parámetros de localización y dispersión
 
-Para este momento, es claro que los parametros generales estudiados anteriormente, pueden ser calsificados como de localizacion y dispercion de la siguiente manera:
+Para este momento, es claro que los parámetros generales estudiados anteriormente, pueden ser clasificados como de localización y dispersión de la siguiente manera:
 
-**Parametros generales de localizacion:**
+**Parámetros generales de localización:**
 
 * Valor Esperado: $E(X)$
 * Moda: $mod(X)$
 * Mediana: $med(X)$
 
-**Parametros generales de dispercion:**
+**Parámetros generales de dispersión:**
 
 * Varianza: $Var(X)$
-* Desviacion estandar: $sd(X)$
+* Desviación estándar: $sd(X)$
 
-# Descripcion general de la forma de una funcion de densidad
+# Descripción general de la forma de una función de densidad
 
-Como se puede apreciar en las figuras \@ref(fig:EVps), \@ref(fig:Modaps) y \@ref(fig:Medsps), las funciones de densidad tienen diferentes formas. A continuacion estudiaremos algunas de las formas mas comunes.
+Como se puede apreciar en las figuras \@ref(fig:EVps), \@ref(fig:Modaps) y \@ref(fig:Medsps), las funciones de densidad tienen diferentes formas. A continuación estudiaremos algunas de las formas más comunes.
 
-## Forma simetrica
+## Forma simétrica
 
-Las funciones de densidad simetricas son aquellas que poseen un eje de simetria al rededor del valor esperado. Ejemplos de estas funciones de denidad se presentan a continuacion:
+Las funciones de densidad simétricas son aquellas que poseen un eje de simetría al rededor del valor esperado. Ejemplos de estas funciones de densidad se presentan a continuación:
 
-```{r fdsim, echo=FALSE, results = 'asis',fig.width=12, fig.height=4, fig.cap="funciones de densidad simetricas"}
+```{r fdsim, echo=FALSE, results = 'asis',fig.width=12, fig.height=4, fig.cap="funciones de densidad simétricas"}
 weight_lim<-c(5, 55)
 mymu<-mean(weight_lim)
 sim_norm_p<-ggplot(data = data.frame(x = weight_lim), aes(x)) +
@@ -1108,13 +1108,13 @@ gridExtra::grid.arrange(sim_norm_p,sim_beta_p,sim_normmix_p,
              ncol = 3, nrow = 1)
 ```
 
-Para estas funciones el valor esperado y la mediana coinciden en el mismo valor siempre, y en el caso en que la funcion de densidad es unimodal (es decir que tiene una sola moda como en el caso de las figuras \@ref(fig:fdsim) A y \@ref(fig:fdsim) B) la moda tambien tiene el mismo valor del valor esperado y la mediana.
+Para estas funciones el valor esperado y la mediana coinciden en el mismo valor siempre, y en el caso en que la función de densidad es unimodal (es decir que tiene una sola moda como en el caso de las figuras \@ref(fig:fdsim) A y \@ref(fig:fdsim) B) la moda también tiene el mismo valor del valor esperado y la mediana.
 
-## Forma asimetrica
+## Forma asimétrica
 
-Aquellas funciones de densidad, para las cuales el valor esperado y la mediana no coinciden en el mismo valor se denominan funciones de desnidad asimetricas.
+Aquellas funciones de densidad, para las cuales el valor esperado y la mediana no coinciden en el mismo valor, se denominan funciones de densidad asimétricas.
 
-```{r fdasim, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="funciones de densidad asimetricas"}
+```{r fdasim, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="funciones de densidad asimétricas"}
 apar<-c(1,1.5,7.5,9)
 bpar<-c(2,20,1.3,0.5)
 
@@ -1157,7 +1157,7 @@ gridExtra::grid.arrange(asim_gamma_p,asim_beta_p,
 
 ## Forma multimodal
 
-Finalmente, el ultimo tipo de forma que estudiaremos son las funciones de desnidad multimodal. Estas funciones de densidad son aquellas con varias "modas" o picos en sus funciones de densidad. A continuacion presentamos algunos ejemplos.
+Finalmente, el ultimo tipo de forma que estudiaremos son las funciones de densidad multimodal. Estas funciones de densidad son aquellas con varias "modas" o picos en sus funciones de densidad. A continuación presentamos algunos ejemplos.
 
 ```{r fdmultimod, echo=FALSE, results = 'asis',fig.width=12, fig.height=4, fig.cap="funciones de densidad multimodales"}
 
@@ -1188,4 +1188,4 @@ gridExtra::grid.arrange(mm_normmix_p1,mm_normmix_p2,mm_normmix_p3,
              ncol = 3, nrow = 1)
 ```
 
-Notese que las funciones de densidad multimodales pueden ser simetricas (figura \@ref(fig:fdmultimod) A ) o asimetricas (figuras \@ref(fig:fdmultimod) B y C)
+Nótese que las funciones de densidad multimodales pueden ser simétricas (figura \@ref(fig:fdmultimod) A ) o asimétricas (figuras \@ref(fig:fdmultimod) B y C)
