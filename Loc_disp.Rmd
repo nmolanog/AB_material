@@ -1261,4 +1261,4 @@ gridExtra::grid.arrange(mm_normmix_p1,mm_normmix_p2,mm_normmix_p3,
              ncol = 3, nrow = 1)
 ```
 
-Nótese que las funciones de densidad multimodales pueden ser simétricas (figura \@ref(fig:fdmultimod) A ) o asimétricas (figuras \@ref(fig:fdmultimod) B y C)
+Nótese que las funciones de densidad multimodales pueden ser simétricas (figura \@ref(fig:fdmultimod) A ) o asimétricas (figuras \@ref(fig:fdmultimod) B y C). Aquellas funciones de densidad con una única moda reciben el nombre de **unimodales**
