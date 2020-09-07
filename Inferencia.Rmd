@@ -1,0 +1,83 @@
+---
+title: "Inferencia"
+author: "Nicolás Molano Gonzalez"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  bookdown::html_document2: default
+bibliography: references.bib  
+---
+
+```{r echo=F, message = FALSE, warning =F}
+library(pacman)
+p_load(tidyverse)
+p_load(kableExtra)
+p_load(knitr)
+p_load(latex2exp)   
+p_load(ggrepel)
+p_load(magick)
+set.seed(150)
+```
+
+# Introducción
+
+En capitulos anteriores hemos estudiado como se caracteriza y se calculan probabilidades en poblaciones. Vimos como las probabilidades se comportan y se calculan de manera diferente dependiendo de la naturalza de la variable (cualitativa o cuantitativa). Sin embargo, en la pratica, la poblacion no se conoce de manera total, de tal forma que, las funciones de densidad o probabilidades de ciertos eventos son, realmente, desconocidos para nosotros. De hecho, uno de los objetivos principales de la estadistica es el de "aproximarnos" a las verdaderas probabilidades que existen en la poblacion, a traves del estudio de solo una parte minima de la poblacion total. Este ejercicio se denomina inferencia o estimacion y sera el objeto de estudio de este capitulo.
+
+# La Muestra y La Poblacion
+
+La aproximacion a las probabilidades poblacionales comienza con el concepto de la **muestra**. Esta se define como 
+
+* Un subconjunto de unidades de estudio pertenecientes a un poblacion de interes
+
+Es decir que la muestra siempre se suscribe en el marco de una poblacion, la cual se desea estudiar. Todo estudio estadistico parte de la intencion de estudiar o caracterizar una o varias variables en una poblacion determinada. Veamos algunos ejemplos de esto.
+
+* En una tesis de doctorado se desea conocer la proporcion de sujetos que padece algun tipo de enfermedad autoinmune. Este rasgo se estudiara en los habitantes de Bogota.
+* En una tesis de pregrado se desea estudiar como se distribuye el indice de masa corporal en los estudiantes del programa de ciencias de la reahibilitacion en la universidad del rosario.
+* En un proyecto de investigacion pagado por colciencias, se desea conocer la probabilidad de desarrollar algun tipo de cancer de pulmon en los trabajadores de las diferentes plantas petroquimicas de ecopetrol durante el periodo de tiempo 1985-2000.
+
+Notese que en todos los ejemplos anteriores se define una poblacion de interes (ciudadanos de Bogota, estudiantes del programa de ciencias de la reahibilitacion en la universidad del rosario o trabajadores de las diferentes plantas petroquimicas de ecopetrol durante el periodo de tiempo 1985-2000). Como vimos en el capitulo anterior, existen infinitas variables aleatorias (es decir un conjunto de valores con su respectiva funcion de densidad) de una misma medida, como por ejemplo el IMC. Es claro que exite una funcion de densidad del IMC para los hombres colombianos, otra para las mujeres europeas, otra para los niños de edades entre los 10 y 15 años, etc. 
+
+Cada una de estas variables aleatorias, desde el punto de vista estadistico, corresponden a poblaciones diferentes. Es aqui cuando el concepto comun de poblacion y el concepto estadistico de poblacion difieren. El concepto comun de poblacion hace referencia al conjunto total de individuos delimitado por regiones geograficas, criterios culturales, politicos, etc. 
+
+Desde el punto de vista de la estadistica, una poblacion es sinonimo, de una funcion de densidad y por ende de una variable aleatoria.
+
+De manera similar, el concepto comun de muestra, se entiende como un subconjunto de individuos que pertenecen a una poblacion determinada. Sin embargo desde el punto de vista estadistico, la muestra es un subconjunto de posibles valores en una variable aleatoria. En la estadistica el individuo se ve representado por un numero, una medicion.
+
+# Inferencia
+
+Una vez comprendido los aspectos tecnicos al rededor de la poblacion y la muestra desde el punto de vista estadistico, es posible introducir el concepto de inferencia.
+
+* La inferencia es el proceso mediante el cual se utiliza informacion de una muestra, para deducir propiedades o caracteristicas en una poblacion
+
+Es decir que la inferencia usa datos (operacionalizacion estadistica de la muestra) para conocer la funcion de densidad subyacente (operacionalizacion estadistica de la poblacion).
+
+<center>
+```{r sampling1,echo=F,warning =F, fig.width=4, fig.height=2, fig.cap="Concepto de inferencia poblacional"}
+knitr::include_graphics("sampling1.png")
+```
+```{r sampling2,echo=F,warning =F, fig.width=4, fig.height=2, fig.cap="Concepto de inferencia estadistica"}
+knitr::include_graphics("sampling2.png")
+```
+</center>
+
+La pregunta que surge a continuacion es ¿Como se puede extraer informacion de los datos (obtenidos de la muestra) para conocer aspectos de la funcion de densidad en la poblacion, objetivo de estudio?
+
+La respuesta es atravez del calculo de estimadores. Un estimador se define de la siguiente forma:
+
+* Un estimador es una serie de operaciones matematicas aplicadas sobre un conjunto de datos, que bajo supuestos teoricos, se garantiza la obtencion de un valor aproximado al verdadero parametro que desea estimar.
+
+Es asi como el proceso de la estimacion funciona:
+
+1. Una muestra de la poblacion es obtenida.
+2. Datos son medidos en la muestra (por ejemplo IMC)
+3. Se calcula un estimador para un parametro de interes (los vistos el capitulo anterior, Valores esperado, Varianza, etc).
+
+Queda claro entonces, que el interes principal de la inferencia es conocer la forma (es decir los parametros) de la funcion de densidad poblacional. Esto se hace atraves del caclulo de estimadores sobre la muestra. Los estimadores son operaciones matematicas sobre los datos, que bajo supuestos teoricos garantizan la obtencion de valores cercanos a los verdaderos valores de los parametros en la poblacion de estudio.
+
+Empezaremos nuestro estudio de los estimadores con el histograma
+
+## El histograma
+
+Para repasar que es un histograma sugerimos revizar el siguiente recurso: [Histograma](https://es.wikipedia.org/wiki/Histograma#:~:text=En%20estad%C3%ADstica%2C%20un%20histograma%20es,frecuencia%20de%20los%20valores%20representados.)
+
+En pocas palabras, el histograma es el estimador grafico de la funcion de densidad.
+
