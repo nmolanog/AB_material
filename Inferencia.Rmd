@@ -79,5 +79,36 @@ Empezaremos nuestro estudio de los estimadores con el histograma
 
 Para repasar que es un histograma sugerimos revizar el siguiente recurso: [Histograma](https://es.wikipedia.org/wiki/Histograma#:~:text=En%20estad%C3%ADstica%2C%20un%20histograma%20es,frecuencia%20de%20los%20valores%20representados.)
 
-En pocas palabras, el histograma es el estimador grafico de la funcion de densidad.
+En pocas palabras, el histograma es el estimador grafico de la funcion de densidad. Nos concentraremos en mostrar el comportamiento del histograma respecto a la hipotetica funcion de densidad que desea estimar y el efecto que tiene el tamaño de la muestra en la calidad (es decir que tanto se parece el histograma a la verdadera funcion de densidad) de la estimacion. Para esto tomaremos como ejemplo una distribucion normal con valor esperado 70 y varianza 225, para una poblacion hipotetica. Se tomaran diferentes tamaños de muestra y para cada una se construira un hitograma. Los resultados se presentan a continuacion.
+
+<center>
+```{r dnormhistgif, echo=F,warning =F, fig.width=4, fig.height=3.5,fig.cap="Comportamiento del histograma para diferentes tamaños de muestra"}
+dnorm_hist <- image_read("dnorm_hist.gif") 
+dnorm_hist
+```
+</center>
+
+Como se puede observar en la figura \@ref(fig:dnormhistgif),  a medida que el tamaño de muestra aumenta, el numero de barras que se pueden construir aumenta y, mas importante aun el histograma se asemeja cada vez mas a la funcion de densidad subyancente en la poblacion.
+
+Como puede verse el histograma es un muy buen estimador de la funcion de densidad, ya que se asemaje mucho al objeto que desea estimar. Al referirnos a la similitud entre el histograma y la funcion de densidad, vale la pena dar dos ejemplos de cosas que no suceceden con un histograma y la funcion de densidad que desea estimar:
+
+```{r dnormweird,echo=FALSE, results = 'asis',fig.width=8, fig.height=3.3, fig.cap="Cosas que no pasan con un histograma"}
+xrange<-c(50,70)
+weight_lim<-c(30, 120)
+
+
+rngdf<-data.frame(x=rnorm(500,90,10))
+p1<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
+  ylab("f(x)") +xlab("x") + geom_histogram(data = rngdf,aes(x=x,y=..density..),color="black",fill="white",bins=nclass.scott(rngdf$x))+
+  stat_function(fun = dnorm, n = 101, args = list(mean = 70, sd = 10),color="blue") +
+  theme_bw()
+
+rngdf<-data.frame(x=rnorm(500,70,20))
+p2<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
+  ylab("f(x)") +xlab("x") + geom_histogram(data = rngdf,aes(x=x,y=..density..),color="black",fill="white",bins=nclass.scott(rngdf$x))+
+  stat_function(fun = dnorm, n = 101, args = list(mean = 70, sd = 10),color="blue") +
+  theme_bw()
+
+gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
+```
 
