@@ -144,6 +144,8 @@ Pensemos en el siguiente problema de investigacion:
 
 Pensemos ahora en cuantas posibles muestras de tamaño 100 pueden ser extraidas de un conjunto de 5000 personas. Esta fuera del alcance de este curso determinar este numero, sin embargo, es un numero tan grande que tiene 200 digitos. Para efectos practicos imaginemos que almenos existen millones de posibles muestras. Entonces, para cada una de estas posibles muestras existen diferentes valores del promedio. Esta variacion de una muestra a otra surge debido a que diferentes personas con diferentes valores de IMC componen las muestras y por ende, los valores de los promedios calculados diferiran.
 
+### Caracterizacion de la funcion de densidad del promedio
+
 Esta variacion de los promedios, debida a la posibilidad muchas muestras, explica de manera intuitiva, como el promedio es realmente una variable aleatoria. Teniendo en cuenta esto, es totalmente plausible preguntarnos acerca del valor esperado del promedio y la varianza del promedio, es decir
 
 $$E(\bar{X}) \; y \; Var(\bar{X})$$
@@ -170,3 +172,95 @@ dnorm_prom
 </center>
 
 En la practica, todo esto garantiza que los valores de los promedios calculados se encuentran al rededor del verdadero valor esperado que se desea estimar y ademas el rango de posibles valores que se pueden observar se concentra cada vez mas, a medida que el tamaño de muestra aumenta. Esto es lo mismo que sucede con el histograma, a medida que el tamaño de muestra aumenta, la calidad de la estimacion aumenta, en este caso, la diferencia entre el verdadero valor esperado y el promedio calculado sera menor.
+
+Por ejemplo, si el promedio se calcula con una muestra de tamaño 10, el 90% de los promedios que se pueden observar se encontraran en el intervalo $`r round(qnorm(.05,23,3/sqrt(10)),2)`- `r  round(qnorm(1-.05,23,3/sqrt(10)),2)`$ mientras que si el promedio se calcula con una muestra de tamaño 100, el 90% de los promedios que se pueden observar se encontraran en el intervalo $`r round(qnorm(.05,23,3/sqrt(100)),2)`- `r  round(qnorm(1-.05,23,3/sqrt(100)),2)`$, ver figura \@ref(fig:dnormprom2)
+
+<center>
+```{r dnormprom2,echo=FALSE, results = 'asis',fig.width=9.5, fig.height=3.3,warning =F, fig.cap="Funciones de densidad para promedios con diferente tamaño de muestra"}
+weight_lim<-c(11, 36)
+
+
+p1<-ggplot(data = data.frame(weight = c(13,33)), aes(weight)) +
+  ylab("f(imc)") +xlab("imc") + 
+  stat_function(fun = dnorm, n = 101, args = list(mean = 23, sd = 3),aes(color="blue")) +
+  stat_function(fun = dnorm, n = 1000, args = list(mean = 23, sd = 3/sqrt(10)),aes(color="red")) +
+  scale_color_identity(name = "",
+                       breaks = c("blue", "red"),
+                       labels = c("IMC","prom. n=10"),
+                       guide = "legend")+
+  ylim(0,.45)+
+  scale_x_continuous(breaks=seq(11,36,by=2))+
+  geom_segment(aes(x=23,xend=23,y=0,yend=.025),linetype=1)+
+  stat_function(fun = dnorm, args = list(mean = 23,sd=3/sqrt(10)),
+                xlim = c(qnorm(.05,23,3/sqrt(10)),qnorm(1-.05,23,3/sqrt(10))),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = c(23), y = c(.04), 
+           label ="E(IMC)", size=3)+
+  annotate("text", x = c(23), y = c(.45), 
+           label =substitute(paste("P(", v," < ",bar(IMC)," < ",s,")= 0.9"),
+                             list(v=round(qnorm(.05,23,3/sqrt(10)),2),s=round(qnorm(1-.05,23,3/sqrt(10)),2))), size=4)+
+  theme_bw()
+
+
+p2<-ggplot(data = data.frame(weight = c(13,33)), aes(weight)) +
+  ylab("f(imc)") +xlab("imc") + 
+  stat_function(fun = dnorm, n = 101, args = list(mean = 23, sd = 3),aes(color="blue")) +
+  stat_function(fun = dnorm, n = 1000, args = list(mean = 23, sd = 3/sqrt(100)),aes(color="darkgreen")) +
+  scale_color_identity(name = "",
+                       breaks = c("blue", "darkgreen"),
+                       labels = c("IMC","prom. n=100"),
+                       guide = "legend")+
+  scale_x_continuous(breaks=seq(11,36,by=2))+
+  geom_segment(aes(x=23,xend=23,y=0,yend=.025),linetype=1)+
+  stat_function(fun = dnorm, args = list(mean = 23,sd=3/sqrt(100)),
+                xlim = c(qnorm(.05,23,3/sqrt(100)),qnorm(1-.05,23,3/sqrt(100))),
+                geom = "area",fill="darkgreen",alpha=0.5)+
+  annotate("text", x = c(23), y = c(.04), 
+           label ="E(IMC)", size=3)+
+  annotate("text", x = c(23), y = c(1.38), 
+           label =substitute(paste("P(", v," < ",bar(IMC)," < ",s,")= 0.9"),
+                             list(v=round(qnorm(.05,23,3/sqrt(100)),2),s=round(qnorm(1-.05,23,3/sqrt(100)),2))), size=4)+
+  theme_bw()
+
+p3<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
+  ylab("f(imc)") +xlab("imc") + 
+  stat_function(fun = dnorm, n = 101, args = list(mean = 23, sd = 3),aes(color="blue")) +
+  stat_function(fun = dnorm, n = 1000, args = list(mean = 23, sd = 3/sqrt(10)),aes(color="red")) +
+  stat_function(fun = dnorm, n = 1000, args = list(mean = 23, sd = 3/sqrt(100)),aes(color="darkgreen")) +
+  scale_color_identity(name = "",
+                       breaks = c("blue", "red","darkgreen"),
+                       labels = c("IMC","prom. n=10","prom. n=100"),
+                       guide = "legend")+
+  ylim(0,.5)+
+  scale_x_continuous(breaks=seq(11,36,by=2))+
+  geom_segment(aes(x=23,xend=23,y=0,yend=.025),linetype=1)+
+  geom_segment(aes(x=23,xend=23,y=0,yend=.025),linetype=1)+
+  annotate("text", x = c(23), y = c(.04), 
+           label ="E(IMC)", size=3)+
+  annotate("text", x = c(31), y = c(.75), 
+           label =paste0("n= ",50), size=6)+
+  theme_bw()
+
+gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
+```
+</center>
+
+Si el mismo promedio se calculara con una muestra de tamaño mil, el 90% de los promedios que se pueden observar se encontraran en el intervalo $`r round(qnorm(.05,23,3/sqrt(1000)),2)`- `r  round(qnorm(1-.05,23,3/sqrt(1000)),2)`$. Con todo esto, queda claro que entre mayor sea el tamaño de muestra, mas cerca estara el promedio del verdadero valor esperado que se desea estimar.
+
+Estos argumentos teoricos, son los garantizan la idoneidad del promedio como estimador del valor esperado.
+
+## Estimador de la Varianza y la desviacion estandar
+
+El estimador de la Varianza se denomina varianza muestral y se define como 
+
+\begin{equation}
+S^2=\frac{\sum_{i=1}^n (x_i-\bar{x})^2}{n-1}  (\#eq:s2)
+\end{equation}
+
+El estimador de la desviacion estandar se denomina desviacion estandar muestral y se define como 
+
+\begin{equation}
+S=\sqrt{ \frac{\sum_{i=1}^n (x_i-\bar{x})^2}{n-1} } (\#eq:s)
+\end{equation}
+
+Los argumentos de por que estas formulas son estimadores idoneos siguen las mismas lineas de los argumentos presentados para el promedio, estimador del valor esperado, y no se discutiran en este curso.
