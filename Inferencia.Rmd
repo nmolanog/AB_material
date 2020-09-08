@@ -92,7 +92,7 @@ Como se puede observar en la figura \@ref(fig:dnormhistgif),  a medida que el ta
 
 Como puede verse el histograma es un muy buen estimador de la funcion de densidad, ya que se asemaje mucho al objeto que desea estimar. Al referirnos a la similitud entre el histograma y la funcion de densidad, vale la pena dar dos ejemplos de cosas que no suceceden con un histograma y la funcion de densidad que desea estimar:
 
-```{r dnormweird,echo=FALSE, results = 'asis',fig.width=8, fig.height=3.3, fig.cap="Cosas que no pasan con un histograma"}
+```{r dnormweird,echo=FALSE, results = 'asis',fig.width=8, fig.height=3.3, fig.cap="histogramas sesgados"}
 xrange<-c(50,70)
 weight_lim<-c(30, 120)
 
@@ -112,3 +112,61 @@ p2<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
 gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
 ```
 
+Como se puede apreciar en la figura \@ref(fig:dnormweird), estos histogramas no se asemejan a la verdadera funcion de densidad, las discrepancias presentadas son en localizacion y dispercion. La teoria de inferencia estadistica asegura que esto no sucede siempre y cuando se cumplan algunos supuestos sobre la muestra que se usa para realizar la estimacion. Estos supuestos seran discutidos al final del capitulo.
+
+# Estimadores de parametros
+
+En la seccion anterior estudiamos nuestro primer estimador, el histograma, y el objeto al cual el histograma estima es la funcion de densidad. En el capitulo anterior vimos que las funciones de densidad pueden ser descritas en terminos de parametros de localizacion y dispercion, por tanto, sera natural querer estimar estos parametros con los datos de una muestra. Cada uno de los parametros estudiados posee un estimador, sin embargo en este capitulo solo estudiaremos los estimadores del vlaor esperado, la varianza y la desviacion estandar. Tambien discutiremos brevemente la estimacion de los cuantiles, la cual, claramente involucra a la mediana.
+
+## Estimador del valor esperado
+
+El estimador del valor esperado es el promedio y se define como 
+
+\begin{equation}
+\bar{x}=\frac{\sum_{i=1}^n x_i}{n}  (\#eq:prom)
+\end{equation}
+
+Es decir la suma de todos los datos de la muestra dividio por el tamaño de la muestra. Sera comun encontrarnos con la notacion $x_i$. Esto simbolisa una observacion de la variable aleatoria $X$ para el sujeto $i-esimo$ de la muestra. De tal forma que la ecuacion \@ref(eq:prom), indica que se deben sumar los datos de los individuos $i=1$ hasta $i=n$ de la variable $x$ y dividirlo sobre el numero total de datos $n$.
+
+Las pregunta que surge ahora es:
+
+* ¿Porque el promedio es un estimador del valor esperado?
+
+Trataremos de dar respuesta a esta pregunta estudiando algunas caracteristicas del promedio.
+
+### El promedio como variable aleatoria
+
+Nuestro camino para enteder porque el promedio es un buen estimador del valor esperado empieza por darnos cuenta que el promedio es una variable aleatoria. Esto significa que existe una funcion de densidad que describe el comportamiento probabilistico del promedio. Es decir que existe $\bar{X}$ y el promedio que calculamos con una muestra, $\bar{x}$ es simplemente un posible valor de muchos posibles.
+
+Pensemos en el siguiente problema de investigacion:
+
+* Se desea estudiar la distribucion del indice de masa corporal en los estudiantes de la Escuela de Medicina y Ciencias de la Salud de la universidad del Rosario. Esta poblacion de interes posee al rededor de 5000 estudiantes. Para este estudio se ha seleccionado una muestra de 100 estudiantes a los cuales se les medira el peso y se calculara el promedio para estimar el valor esperado del IMC.
+
+Pensemos ahora en cuantas posibles muestras de tamaño 100 pueden ser extraidas de un conjunto de 5000 personas. Esta fuera del alcance de este curso determinar este numero, sin embargo, es un numero tan grande que tiene 200 digitos. Para efectos practicos imaginemos que almenos existen millones de posibles muestras. Entonces, para cada una de estas posibles muestras existen diferentes valores del promedio. Esta variacion de una muestra a otra surge debido a que diferentes personas con diferentes valores de IMC componen las muestras y por ende, los valores de los promedios calculados diferiran.
+
+Esta variacion de los promedios, debida a la posibilidad muchas muestras, explica de manera intuitiva, como el promedio es realmente una variable aleatoria. Teniendo en cuenta esto, es totalmente plausible preguntarnos acerca del valor esperado del promedio y la varianza del promedio, es decir
+
+$$E(\bar{X}) \; y \; Var(\bar{X})$$
+
+Los estadisticos han determinado el valor de estos parametros para el promedio y son los siguientes:
+
+\begin{equation}
+E(\bar{X})=E(X) \;y \; Var(\bar{X})=\frac{Var(X)}{n} (\#eq:prom)
+\end{equation}
+
+En donde $E(X)$ y $Var(X)$ son el valor esperado y la varianza de la variable aleatoria original que se desea estudiar a traves de una muestra. En nuestro ejemplo corresponderia al IMC en los estudiantes de la EMCS del rosario.
+
+Recapitulando, nuestro objetivo es estimar el valor esperado del IMC, es decir $E(IMC)$. Para esto se medira el IMC en 100 estudiantes seleccionados al asar para conformar una muestra de tamaño 100. con estos 100 valores podemos calcular un promedio ($\overline{imc}$). Sin embargo, somos concientess de que el promedio obtenido es un de muchos posibles debido al gran numero de muestras posibles que se pueden obtener. Luego, es claro que existe una funcion de densidad para el IMC promedio, es decir existe la variable aleatoria $\overline{IMC}$. Y ahora, segun los criterios estadisticos tenemos que 
+
+$$E(\overline{IMC})=E(IMC) \; y \; Var(\overline{IMC})=\frac{Var(IMC)}{n}$$
+
+¿Que quiere decir esto? Quiere decir que el valor esperado del promedio del IMC es el mismo valor esperado que se queria estimar y por otra parte que la varianza del promedio es la misma varianza del IMC en la poblacion de interes pero dividida sobre el tamaño de la muestra. Esto se representa en la siguiente animacion.
+
+<center>
+```{r dnormpromgif, echo=F,warning =F, fig.width=4, fig.height=3.5,fig.cap="funcion de densidad del promedio"}
+dnorm_prom <- image_read("dnorm_prom.gif") 
+dnorm_prom
+```
+</center>
+
+En la practica, todo esto garantiza que los valores de los promedios calculados se encuentran al rededor del verdadero valor esperado que se desea estimar y ademas el rango de posibles valores que se pueden observar se concentra cada vez mas, a medida que el tamaño de muestra aumenta. Esto es lo mismo que sucede con el histograma, a medida que el tamaño de muestra aumenta, la calidad de la estimacion aumenta, en este caso, la diferencia entre el verdadero valor esperado y el promedio calculado sera menor.
