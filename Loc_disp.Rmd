@@ -1262,3 +1262,26 @@ gridExtra::grid.arrange(mm_normmix_p1,mm_normmix_p2,mm_normmix_p3,
 ```
 
 Nótese que las funciones de densidad multimodales pueden ser simétricas (figura \@ref(fig:fdmultimod) A ) o asimétricas (figuras \@ref(fig:fdmultimod) B y C). Aquellas funciones de densidad con una única moda reciben el nombre de **unimodales**
+
+# Funcion de distribucion
+
+En la literatura, se hace referencia a las distribuciones normal, poisson, gamma, etc. Sin embargo el termino "distribución" no ha sido introducido hasta el momento. La función de distribución $F(x)$ se define de la siguiente forma:
+
+\begin{equation}
+F(x)=\int_{-\infty}^{x}f(x)dx =P(X<x)  (\#eq:dist)
+\end{equation}
+
+Es decir que la función de distribución $F(x)$ es la misma probabilidad de observar valores menores a $x$, $P(X<x)$. Esto se ilustra en la siguiente animación:
+
+<center>
+```{r pnormgif, echo=F,warning =F, fig.width=6, fig.height=3,  fig.cap="Función de densidad y función de distribución"}
+pnorm_gif <- image_read("pnorm.gif") 
+pnorm_gif
+```
+</center>
+
+Es bastante común referirse a las funciones de densidad como funciones de distribución, ya que desde el punto de vista matemático, son equivalentes, es decir que si se conoce una se puede conocer la otra.
+
+De esta forma, muchos autores suelen decir cosas como “el peso medido en kilogramos en una población adulta, tiene una distribución normal”, refiriéndose al hecho de que esa variable aleatoria tiene asociada una función de densidad del tipo normal.
+
+De ahora en adelante, al referirnos a la distribución de una variable, se entenderá  implícitamente que se esta hablando de una función de densidad.
