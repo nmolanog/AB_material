@@ -19,9 +19,9 @@ set.seed(150)
 ```
 En este documento presentamos la teoría y motivación detrás de los intervalos de confianza (IC).
 
-#Motivación
+# Motivación
 
-EL punto de partida es la construcción de la siguiente expresionismo:
+EL punto de partida es la construcción de la siguiente expresion:
 
 $$P(L \leq \delta \leq U)=1-\alpha$$
 Donde $\delta$ es un parámetro poblacional, como por ejemplo, el valor esperado $E(X)$ o la varianza $V(X)$. ¿Qué hay detrás de esta expresión? Básicamente, esta expresión dice lo siguiente:
@@ -34,7 +34,7 @@ Sin embargo, esto no es posible, ya que el parámetro poblacional $\delta$ no es
 
 A pesar de esta imposibilidad técnica, existe una aproximación para llegar a una expresión de este estilo. A continuación presentaremos, como ejemplo el IC para el valor esperado.
 
-#IC para el valor esperado.
+# IC para el valor esperado.
 
 Existe una cantidad llamada el "estadístico T de student" el cual se define de la siguiente forma:
 
@@ -132,7 +132,7 @@ ci_df%>%ggplot(aes(x=Sample,y=mean,color=out))+geom_point()+
   theme_bw()
 ```
 
-##Ejemplo
+## Ejemplo
 
 A continuación se presentan algunos datos de un estudio sobre pH de la orina en una muestra de 79 pacientes en un a UCI:
 
