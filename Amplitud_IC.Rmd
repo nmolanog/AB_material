@@ -72,7 +72,7 @@ t1<-kable(data.frame(GL=c(70,35,10,5),t_0.05=qt(.05,c(70,35,10,5))))
 kable_styling(t1,"striped", position = "center")
 
 ```
-#Factores que afectan la amplitud del intervalo de confianza
+# Factores que afectan la amplitud del intervalo de confianza
 
 Al estudiar la formula del intervalo de confianza, observamos que existen tres cantidades que determinan su amplitud:
 
@@ -81,7 +81,7 @@ $$\Bigg( \bar{X}-t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}},\bar{X}-t_{n
 El tamaño de la muestra $n$, El nivel de confianza (es decir $1-\alpha$) y la desviación estándar de los datos $S$. 
 A continuación exploraremos el efecto de cada una de estas cantidades sobre la amplitud del intervalo.
 
-##Tamaño de la muestra
+## Tamaño de la muestra
 
 Considere la siguiente función de densidad del peso para una población en particular.
 
@@ -128,7 +128,7 @@ ci_df%>%ggplot(aes(x=n,y=mean))+geom_point()+
 
 En azul se destaca el verdadero valor esperado de la población. Es claro que a mayor tamaño de muestra, la amplitud del intervalo de confianza disminuye.
 
-##Nivel de confianza
+## Nivel de confianza
 
 Para observar cual es el efecto del nivel de confianza en la amplitud del intervalo de confianza primero observemos lo siguiente:
 
@@ -183,7 +183,7 @@ ci_df%>%ggplot(aes(x=conf,y=mean))+geom_point()+
   theme_bw()
 
 ```
-##Varianza
+## Varianza
 
 Para observar cual es el efecto de la varianza en la amplitud del intervalo de confianza, estudiaremos varias poblaciones con diferentes varianzas:
 
