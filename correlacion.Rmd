@@ -9,6 +9,7 @@ bibliography: references.bib
 
 ```{r echo=F, message = FALSE, warning =F}
 library(pacman)
+p_load(mvtnorm)
 p_load(tidyverse)
 p_load(kableExtra)
 p_load(knitr)
@@ -67,7 +68,8 @@ z0_bmd %>% ggplot(aes(x=age,y=BMD))+geom_point()+theme_bw()+
 
 Valores del score T bajos se asocian con una baja densidad mineral osea. En este grafico se puede observar que a mayor edad, la BMD disminuye.
 
-Por lo general, el comportamiento de las figuras \@ref(fig:dispagewght) y \@ref(fig:dispbmd) se suele describir como "direcatamente" o "inversamente" proporcional. Esta descripcion aplica para relaciones lineales entre las variables de estudio, pero esto raramente es la norma. A que nos referimos con "comportamientos lineales"? Basicamente, estamos hablando que la relacion de las variables de interes puede ser descrita, mas o menos a travez de una linea recta
+Por lo general, el comportamiento de las figuras \@ref(fig:dispagewght) y \@ref(fig:dispbmd) se suele describir como "direcatamente" o "inversamente" proporcional. Esta descripcion aplica para relaciones lineales entre las variables de estudio, pero esto raramente es la norma. A que nos referimos con "comportamientos lineales"? Basicamente, estamos hablando que la relacion de las variables de interes puede ser descrita, mas o menos a travez de una linea recta (por favor repace los conceptos matematicos relacionas con funciones lineales en el siguiente [enlace](https://sites.google.com/site/portafoliodeerick26/parcial-2/division-sintetica)
+)
 
 <center>
 ```{r displin, echo=FALSE, warning =F, results = 'asis',fig.width=8.5, fig.height=4, fig.cap="comportamientos lineales"}
@@ -149,3 +151,69 @@ z0_aw %>% ggplot(aes(x=age,y=weight))+geom_point()+theme_bw()+
 Ademas de una clara tendencia lineal, algomas esta ocurriendo, algo que en los casos anteriores no habiamos visto antes. Como podria explicar usted el comportamiento observado?
 
 En este punto, deberia ser claro que las posibles relaciones exitentes entre un par de variables cuantitativas van mas alla de un simple "direcatamente" o "inversamente" proporcional.
+
+# Correlacion
+
+A continuacion estudiaremos la correlacion. La correlacion es un parametro poblacional, sin embargo, estudiaremos primero su estimador, la correlacion muestral y posteriormente veremos como se comporta el parametro a nivel poblacional.
+
+Definicion
+
+* La correlación, denotada por la letra griega $\rho$ (rho), indica la fuerza y la dirección de una relación lineal y proporcionalidad entre dos variables aleatorias.
+
+Veamos como se comportan los datos para diferentes valores para el parametro de correlacion:
+
+<center>
+```{r corsim, echo=FALSE, results = 'asis',fig.width=5, fig.height=5, fig.cap="datos simulados para diferentes correlaciones"}
+
+n<-100
+my_mean<-c(25,65)
+mycors<-seq(-1,1,by=.25)
+
+data_list<-list()
+
+sd_vec<-c(5,7)
+for(i in seq_along(mycors)){
+  temp_cor<-matrix(c(1,mycors[i],
+                     mycors[i],1),
+                   byrow = T,ncol=2)
+  V<-sd_vec %*% t(sd_vec) *temp_cor
+  data_list[[i]]<-data.frame(rmvnorm(n,mean=my_mean,sigma=V),cor=mycors[i])
+}
+
+z0_cor<-data_list %>% reduce(rbind) %>% as.data.frame()
+colnames(z0_cor)[1:2]<-c("X","Y")
+z0_cor$cor<-factor(z0_cor$cor,labels = paste0("list(rho == ",mycors,")"))
+
+z0_cor %>% ggplot(aes(x=X,y=Y))+
+  geom_point()+geom_smooth(method = lm, se = FALSE,formula = y ~x)+
+  facet_wrap(~cor,labeller = label_parsed)+
+  theme_bw()
+
+```
+</center>
+
+Lo primero que debemos destacar es que la correlacion toma valores entre $-1$ y $1$. Podria usted describir caul es el efecto del valor de la correlacion sobre el comportamiento de las dos variables?
+
+Vemos que el signo de la correlacion se asocia con el signo de la pendiente de la recta que mejor describe a los datos. Tambien podemos observar que, amedida que el valor de la correlacion se aproxima a 1 (o -1) los puntos tienden a estar cada vez mas proximos a la linea recta, de tal forma que cuando el valor de la correalcion es exactamente 1 o -1, todos los puntos caen de manera exacta sobre la linea recta.
+
+La definicion de correlacion hace enfasis en que la relacion evaluada se enfoca en patrones lineales. Veamos algunos ejemplos de datos con relaciones intrinsecamente no lineales:
+
+<center>
+```{r corsim2, echo=FALSE, results = 'asis',fig.width=8, fig.height=8, fig.cap="datos no lineales simulados"}
+source("plot_r.R")
+plot_r(r = 0.7, n = 250)
+```
+</center>
+
+En la figura \@ref(fig:corsim2) todos los datos poseen un valor de correlacionde $0.7$, sin embargo, es claro que las relaciones no se ajustan a un patron lineal en ningun caso. Aun mas, es posible obtener valores de correlacion de $0$ y aun asi esxitir relaciones no lienales entre las variables 
+
+<center>
+```{r corsim3, echo=FALSE, results = 'asis',fig.width=8, fig.height=8, fig.cap="datos no lineales simulados, correlacion de 0"}
+source("plot_r.R")
+plot_r(r = 0, n = 250)
+```
+</center>
+
+Es un error comun pensar que un valor de correlacion igual a 0 implica automaticamente una falta de relacion disernible entre las variables de estudio. Lo cierto es que no es adecuado fiarce del valor de la correlacion. Es necezario insoeccionar el diagrama de dispercion para poder confiar en el valor de la correlacion.
+
+En conclucion, la correlacion es util e informativa _**si y solamente si**_ el comportamiento de las variables sigue una funcion lineal. En caso contrario, la correlacion carece de un sentido propio.
