@@ -1,0 +1,151 @@
+---
+title: "Correlacion"
+author: "Nicolás Molano Gonzalez"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  bookdown::html_document2: default
+bibliography: references.bib  
+---
+
+```{r echo=F, message = FALSE, warning =F}
+library(pacman)
+p_load(tidyverse)
+p_load(kableExtra)
+p_load(knitr)
+p_load(latex2exp)   
+p_load(ggrepel)
+p_load(magick)
+p_load(reshape2)
+set.seed(150)
+```
+
+# Introducción
+
+Hasta el momento hemos estudiado el comportamiento de una variable aleatoria, su distribucion, a realizar calculos de intervalos de confianza y pruebas de hipotesis para los parametros de valor esperado y varianza. Sin embargo en la practica muchas veces intereza estudiar no una, sino dos variables simulataneamente. Por ejemplo, intereza estudiar el IMC dependiendo de si el paciente presenta o no un antecedente cardiovascular, la severidad de la enfermedad en funcion del sexo, o como se comporta el peso en funcion de la edad. 
+
+Existen tres tipos de combinaciones posibles, de dos variables, dependeindo de su escala:
+
+* Cualitativa vs Cualitativa
+* Cualitativa vs Cuantitativa
+* Cuantitativa vs Cuantitativa
+
+El tratamiento de las relaciones entre pares de variables caulitativas, se reduce a la exploracion de las probabilidades condicionales, tema visto anteriormente en detalle. Ahondaremos en el estudio de las dos restantes posibilidades y empezaremos por el estudio de las relaciones existentes entre pares de variables cuantitativas. Empezaremos nuestro estudio de enfocandonos en la situacion a nivel muestral, despues exploraremos el contexto teorico de esto a nivel poblacional.
+
+# Representacion grafica
+
+Empesaremos con un ejemplo. Un biologo se encuentra estudiando el peso y la edad en una especie de carabajos estercoleros determinada. Para este estudio el ha medio el peso y la edad en una muestra de 100 escarabajos. A continuacion el investigador presenta los resultados de estas mediciones en un grafico de dispercion.
+
+<center>
+```{r dispagewght, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad vs peso escarabajos"}
+n<-100
+age<-runif(n,0,25)
+wght<-100+.8*age+rnorm(n,0,4)
+
+z0_aw<-data.frame(age,weight=wght)
+
+z0_aw %>% ggplot(aes(x=age,y=weight))+geom_point()+theme_bw()+
+  ylab("weight (mlg)")+xlab("age (days)")
+```
+</center>
+
+Cada punto en la figura \@ref(fig:dispagewght) representa las mediciones de edad y peso para un escarabajo en particular. En este grafico, se peude apreciar que para edades mayores se observan pesos mayores, lo cual tiene sentido pues a medida que los escarabajos envejecen, estos van creciendo en tamaño. 
+
+Veamos otro ejemplo. En un hospital, se esta estudiando la densidad mineral osea (BMD por sus siglas en ingles) de 200 mujeres. Se ha medido su BMD a travez del score T y se ha registrado su edad, a continuacion se presentan los resultados.
+
+<center>
+```{r dispbmd, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad vs peso escarabajos"}
+n<-200
+age<-runif(n,35,85)
+bmd<- -0.9 -.015*age+rnorm(n,0,.5)
+
+z0_bmd<-data.frame(age,BMD=bmd)
+
+z0_bmd %>% ggplot(aes(x=age,y=BMD))+geom_point()+theme_bw()+
+  ylab("BMD (T-score)")+xlab("age (years)")
+```
+</center>
+
+Valores del score T bajos se asocian con una baja densidad mineral osea. En este grafico se puede observar que a mayor edad, la BMD disminuye.
+
+Por lo general, el comportamiento de las figuras \@ref(fig:dispagewght) y \@ref(fig:dispbmd) se suele describir como "direcatamente" o "inversamente" proporcional. Esta descripcion aplica para relaciones lineales entre las variables de estudio, pero esto raramente es la norma. A que nos referimos con "comportamientos lineales"? Basicamente, estamos hablando que la relacion de las variables de interes puede ser descrita, mas o menos a travez de una linea recta
+
+<center>
+```{r displin, echo=FALSE, warning =F, results = 'asis',fig.width=8.5, fig.height=4, fig.cap="comportamientos lineales"}
+displin<-list()
+displin[[1]]<-z0_aw %>% ggplot(aes(x=age,y=weight))+geom_point()+theme_bw()+
+   geom_smooth(method = lm, se = FALSE,formula = y ~x)+
+  ylab("weight (mlg)")+xlab("age (days)")
+
+displin[[2]]<-z0_bmd %>% ggplot(aes(x=age,y=BMD))+geom_point()+theme_bw()+
+  geom_smooth(method = lm, se = FALSE,formula = y ~x)+
+  ylab("BMD (T-score)")+xlab("age (years)")
+gridExtra::grid.arrange(grobs =displin,nrow=1,ncol=2)
+```
+</center>
+
+Existen otro tipos de patrones diferentes a los lineales en donde las descripciones de "direcatamente" o "inversamente" proporcional son insuficientes. Retomemos el ejemplo de los escarabajos. Esta ves el investigador a extendido el periodo de estudio y a incluido mas escarabajos con edades mayores en su tabla de datos. A continuacion se presentan los datos actualizados
+
+<center>
+```{r dispagewght2, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad vs peso escarabajos"}
+n<-75
+age2<-runif(n,25,45)
+wght2<-120+rnorm(n,0,4)
+
+z0_aw2<-rbind(z0_aw,data.frame(age=age2,weight=wght2))
+
+z0_aw2 %>% ggplot(aes(x=age,y=weight))+geom_point()+theme_bw()+
+  ylab("weight (mlg)")+xlab("age (days)")
+```
+</center>
+
+Claramente, una linea recta ya no describe de manera adecuada, la relacion entre la edad y el peso. Como interpretaria usted los resultados aqui presnetados?
+
+Veamos otro ejemplo. En una ips especialisada en enfermedades autoinmunes se han registrado los datos de la edad de inicio de la enfermedad y la duracion de la misma en un conjunto de pacientes. Los resultados se presentan a continuacion:
+
+<center>
+```{r dispAO, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad de inicio de la enfermedad vs. duracion"}
+n<-500
+AO<-runif(n,25,65)
+z0_AOdur<-data.frame(AO,Dur=NA)
+z0_AOdur[z0_AOdur$AO < 35,"Dur"]<-rnorm(length(z0_AOdur[z0_AOdur$AO < 35,"Dur"]),10,4)
+z0_AOdur[z0_AOdur$AO >= 35,"Dur"]<-rnorm(length(z0_AOdur[z0_AOdur$AO >= 35,"Dur"]),5,2)
+z0_AOdur$Dur[z0_AOdur$Dur<0]<-0
+z0_AOdur %>% ggplot(aes(x=AO,y=Dur))+geom_point()+theme_bw()+
+  ylab("Duration")+xlab("Age at onset")
+```
+</center>
+
+Claramente una linea recta no es una descripcion adecuada para estos resultados. Como podria explicar usted el comportamiento observado?
+
+Veamos otro ejemplo. En una institucion educativa se han selecionado 150 estudiantes de toda la institucion y se les ha medido el peso y se ha registrado su edad. Los resultados se presentan a continuacion:
+<center>
+```{r dispclustw, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad vs peso"}
+z0_cl1<-data.frame(Age=rnorm(75,10,3),wght=rnorm(75,25,7))
+z0_cl2<-data.frame(Age=rnorm(75,16.5,3.5),wght=rnorm(75,70,9))
+z0_cl<-rbind(z0_cl1,z0_cl2)
+
+z0_cl %>% ggplot(aes(x=Age,y=wght))+geom_point()+theme_bw()+
+  ylab("weight (kg)")+xlab("age (years)")
+```
+</center>
+
+En este caso una linea recta, o inclusive una curva, no parecen proveer mucha informacion sobre lo que esta sucediendo. Como podria explicar usted el comportamiento observado?
+
+Terminaremos nuestra exploracon de patrones con un ultimo ejemplo. En otra especie de escarabajos el investigador ha realizado el mismo estudio: peso y edad. los resultados se presentan a continuacion:
+
+<center>
+```{r dispagewght3, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad vs peso escarabajos, nueva especie"}
+n<-500
+age<-runif(n,0,25)
+wght<-100+.8*age+rnorm(n,0,0.5+0.23*age)
+
+z0_aw<-data.frame(age,weight=wght)
+
+z0_aw %>% ggplot(aes(x=age,y=weight))+geom_point()+theme_bw()+
+  ylab("weight (mlg)")+xlab("age (days)")
+```
+</center>
+
+Ademas de una clara tendencia lineal, algomas esta ocurriendo, algo que en los casos anteriores no habiamos visto antes. Como podria explicar usted el comportamiento observado?
+
+En este punto, deberia ser claro que las posibles relaciones exitentes entre un par de variables cuantitativas van mas alla de un simple "direcatamente" o "inversamente" proporcional.
