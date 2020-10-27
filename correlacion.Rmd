@@ -1,6 +1,6 @@
 ---
-title: "Correlacion"
-author: "Nicolás Molano Gonzalez"
+title: "Correlación"
+author: "Nicolás Molano González"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   bookdown::html_document2: default
@@ -22,20 +22,19 @@ set.seed(150)
 
 # Introducción
 
-Hasta el momento hemos estudiado el comportamiento de una variable aleatoria, su distribucion, a realizar calculos de intervalos de confianza y pruebas de hipotesis para los parametros de valor esperado y varianza. Sin embargo en la practica muchas veces intereza estudiar no una, sino dos variables simulataneamente. Por ejemplo, intereza estudiar el IMC dependiendo de si el paciente presenta o no un antecedente cardiovascular, la severidad de la enfermedad en funcion del sexo, o como se comporta el peso en funcion de la edad. 
+Hasta el momento hemos estudiado el comportamiento de una variable aleatoria, su distribución, a realizar cálculos de intervalos de confianza y pruebas de hipótesis para los parámetros de valor esperado y varianza. Sin embargo en la practica muchas veces interesa estudiar no una, sino dos variables simultáneamente. Por ejemplo, interesa estudiar el IMC dependiendo de si el paciente presenta o no un antecedente cardiovascular, la severidad de la enfermedad en función del sexo, o como se comporta el peso en función de la edad. 
 
-Existen tres tipos de combinaciones posibles, de dos variables, dependeindo de su escala:
+Existen tres tipos de combinaciones posibles, de dos variables, dependiendo de su escala:
 
 * Cualitativa vs Cualitativa
 * Cualitativa vs Cuantitativa
 * Cuantitativa vs Cuantitativa
 
-El tratamiento de las relaciones entre pares de variables caulitativas, se reduce a la exploracion de las probabilidades condicionales, tema visto anteriormente en detalle. Ahondaremos en el estudio de las dos restantes posibilidades y empezaremos por el estudio de las relaciones existentes entre pares de variables cuantitativas. Empezaremos nuestro estudio de enfocandonos en la situacion a nivel muestral, despues exploraremos el contexto teorico de esto a nivel poblacional.
+El tratamiento de las relaciones entre pares de variables cualitativas, se reduce a la exploración de las probabilidades condicionales, tema visto anteriormente en detalle. Ahondaremos en el estudio de las dos restantes posibilidades y empezaremos por el estudio de las relaciones existentes entre pares de variables cuantitativas. Empezaremos nuestro estudio, enfocándonos en la situación a nivel muestral, después exploraremos el contexto teórico de esto a nivel poblacional.
 
-# Representacion grafica
+# Representación grafica
 
-Empesaremos con un ejemplo. Un biologo se encuentra estudiando el peso y la edad en una especie de carabajos estercoleros determinada. Para este estudio el ha medio el peso y la edad en una muestra de 100 escarabajos. A continuacion el investigador presenta los resultados de estas mediciones en un grafico de dispercion.
-
+Empezaremos con un ejemplo. Un biólogo se encuentra estudiando el peso y la edad en una especie de escarabajos estercoleros determinada. Para este estudio el ha medio el peso y la edad en una muestra de 100 escarabajos. A continuación el investigador presenta los resultados de estas mediciones en un grafico de dispersión.
 <center>
 ```{r dispagewght, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad vs peso escarabajos"}
 n<-100
@@ -49,12 +48,12 @@ z0_aw %>% ggplot(aes(x=age,y=weight))+geom_point()+theme_bw()+
 ```
 </center>
 
-Cada punto en la figura \@ref(fig:dispagewght) representa las mediciones de edad y peso para un escarabajo en particular. En este grafico, se peude apreciar que para edades mayores se observan pesos mayores, lo cual tiene sentido pues a medida que los escarabajos envejecen, estos van creciendo en tamaño. 
+Cada punto en la figura \@ref(fig:dispagewght) representa las mediciones de edad y peso para un escarabajo en particular. En este grafico, se puede apreciar que para edades mayores se observan pesos mayores, lo cual tiene sentido pues a medida que los escarabajos envejecen, estos van creciendo en tamaño. 
 
-Veamos otro ejemplo. En un hospital, se esta estudiando la densidad mineral osea (BMD por sus siglas en ingles) de 200 mujeres. Se ha medido su BMD a travez del score T y se ha registrado su edad, a continuacion se presentan los resultados.
+Veamos otro ejemplo. En un hospital, se esta estudiando la densidad mineral osea (BMD por sus siglas en ingles) de 200 mujeres. Se ha medido su BMD a través del score T y se ha registrado su edad, a continuación se presentan los resultados.
 
 <center>
-```{r dispbmd, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad vs peso escarabajos"}
+```{r dispbmd, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad vs BMD"}
 n<-200
 age<-runif(n,35,85)
 bmd<- -0.9 -.015*age+rnorm(n,0,.5)
@@ -68,8 +67,7 @@ z0_bmd %>% ggplot(aes(x=age,y=BMD))+geom_point()+theme_bw()+
 
 Valores del score T bajos se asocian con una baja densidad mineral osea. En este grafico se puede observar que a mayor edad, la BMD disminuye.
 
-Por lo general, el comportamiento de las figuras \@ref(fig:dispagewght) y \@ref(fig:dispbmd) se suele describir como "direcatamente" o "inversamente" proporcional. Esta descripcion aplica para relaciones lineales entre las variables de estudio, pero esto raramente es la norma. A que nos referimos con "comportamientos lineales"? Basicamente, estamos hablando que la relacion de las variables de interes puede ser descrita, mas o menos a travez de una linea recta (por favor repace los conceptos matematicos relacionas con funciones lineales en el siguiente [enlace](https://sites.google.com/site/portafoliodeerick26/parcial-2/division-sintetica)
-)
+Por lo general, el comportamiento de las figuras \@ref(fig:dispagewght) y \@ref(fig:dispbmd) se suele describir como "directamente" o "inversamente" proporcional. Esta descripción aplica para relaciones lineales entre las variables de estudio, pero esto raramente es la norma. A que nos referimos con "comportamientos lineales"? Básicamente, estamos hablando que la relación de las variables de interés puede ser descrita, mas o menos a través de una linea recta (por favor repace los conceptos matemáticos relacionas con funciones lineales en el siguiente [enlace](https://sites.google.com/site/portafoliodeerick26/parcial-2/division-sintetica)
 
 <center>
 ```{r displin, echo=FALSE, warning =F, results = 'asis',fig.width=8.5, fig.height=4, fig.cap="comportamientos lineales"}
@@ -85,7 +83,7 @@ gridExtra::grid.arrange(grobs =displin,nrow=1,ncol=2)
 ```
 </center>
 
-Existen otro tipos de patrones diferentes a los lineales en donde las descripciones de "direcatamente" o "inversamente" proporcional son insuficientes. Retomemos el ejemplo de los escarabajos. Esta ves el investigador a extendido el periodo de estudio y a incluido mas escarabajos con edades mayores en su tabla de datos. A continuacion se presentan los datos actualizados
+Existen otro tipos de patrones diferentes a los lineales en donde las descripciones de "directamente" o "inversamente" proporcional son insuficientes. Retomemos el ejemplo de los escarabajos. Esta ves el investigador a extendido el periodo de estudio y a incluido mas escarabajos con edades mayores en su tabla de datos. A continuación se presentan los datos actualizados
 
 <center>
 ```{r dispagewght2, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad vs peso escarabajos"}
@@ -100,12 +98,12 @@ z0_aw2 %>% ggplot(aes(x=age,y=weight))+geom_point()+theme_bw()+
 ```
 </center>
 
-Claramente, una linea recta ya no describe de manera adecuada, la relacion entre la edad y el peso. Como interpretaria usted los resultados aqui presnetados?
+Claramente, una linea recta ya no describe de manera adecuada, la relación entre la edad y el peso. Como interpretaría usted los resultados aquí presentados?
 
-Veamos otro ejemplo. En una ips especialisada en enfermedades autoinmunes se han registrado los datos de la edad de inicio de la enfermedad y la duracion de la misma en un conjunto de pacientes. Los resultados se presentan a continuacion:
+Veamos otro ejemplo. En una ips especializada en enfermedades autoinmunes se han registrado los datos de la edad de inicio de la enfermedad y la duración de la misma en un conjunto de pacientes. Los resultados se presentan a continuación:
 
 <center>
-```{r dispAO, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad de inicio de la enfermedad vs. duracion"}
+```{r dispAO, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad de inicio de la enfermedad vs. duración"}
 n<-500
 AO<-runif(n,25,65)
 z0_AOdur<-data.frame(AO,Dur=NA)
@@ -117,9 +115,10 @@ z0_AOdur %>% ggplot(aes(x=AO,y=Dur))+geom_point()+theme_bw()+
 ```
 </center>
 
-Claramente una linea recta no es una descripcion adecuada para estos resultados. Como podria explicar usted el comportamiento observado?
+Claramente una linea recta no es una descripción adecuada para estos resultados. Como podría explicar usted el comportamiento observado?
 
-Veamos otro ejemplo. En una institucion educativa se han selecionado 150 estudiantes de toda la institucion y se les ha medido el peso y se ha registrado su edad. Los resultados se presentan a continuacion:
+Veamos otro ejemplo. En una institución educativa se han seleccionado 150 estudiantes de toda la institución y se les ha medido el peso y se ha registrado su edad. Los resultados se presentan a continuación:
+
 <center>
 ```{r dispclustw, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad vs peso"}
 z0_cl1<-data.frame(Age=rnorm(75,10,3),wght=rnorm(75,25,7))
@@ -131,9 +130,9 @@ z0_cl %>% ggplot(aes(x=Age,y=wght))+geom_point()+theme_bw()+
 ```
 </center>
 
-En este caso una linea recta, o inclusive una curva, no parecen proveer mucha informacion sobre lo que esta sucediendo. Como podria explicar usted el comportamiento observado?
+En este caso una linea recta, o inclusive una curva, no parecen proveer mucha información sobre lo que esta sucediendo. Como podría explicar usted el comportamiento observado?
 
-Terminaremos nuestra exploracon de patrones con un ultimo ejemplo. En otra especie de escarabajos el investigador ha realizado el mismo estudio: peso y edad. los resultados se presentan a continuacion:
+Terminaremos nuestra exploración de patrones con un ultimo ejemplo. En otra especie de escarabajos el investigador ha realizado el mismo estudio: peso y edad. Los resultados se presentan a continuación:
 
 <center>
 ```{r dispagewght3, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad vs peso escarabajos, nueva especie"}
@@ -148,19 +147,19 @@ z0_aw %>% ggplot(aes(x=age,y=weight))+geom_point()+theme_bw()+
 ```
 </center>
 
-Ademas de una clara tendencia lineal, algomas esta ocurriendo, algo que en los casos anteriores no habiamos visto antes. Como podria explicar usted el comportamiento observado?
+Ademas de una clara tendencia lineal, algo mas esta ocurriendo, algo que en los casos anteriores no habíamos visto antes. Como podría explicar usted el comportamiento observado?
 
-En este punto, deberia ser claro que las posibles relaciones exitentes entre un par de variables cuantitativas van mas alla de un simple "direcatamente" o "inversamente" proporcional.
+En este punto, debería ser claro que las posibles relaciones existentes entre un par de variables cuantitativas van mas allá de un simple "directamente" o "inversamente" proporcional.
 
-# Correlacion
+# Correlación
 
-A continuacion estudiaremos la correlacion. La correlacion es un parametro poblacional, sin embargo, estudiaremos primero su estimador, la correlacion muestral y posteriormente veremos como se comporta el parametro a nivel poblacional.
+A continuación estudiaremos la correlación. La correlación es un parámetro poblacional, sin embargo, estudiaremos primero su estimador, la correlación muestral y posteriormente veremos como se comporta el parámetro a nivel poblacional.
 
-Definicion
+Definición
 
 * La correlación, denotada por la letra griega $\rho$ (rho), indica la fuerza y la dirección de una relación lineal y proporcionalidad entre dos variables aleatorias.
 
-Veamos como se comportan los datos para diferentes valores para el parametro de correlacion:
+Veamos como se comportan los datos para diferentes valores para el parámetro de correlación:
 
 <center>
 ```{r corsim, echo=FALSE, results = 'asis',fig.width=5, fig.height=5, fig.cap="datos simulados para diferentes correlaciones"}
@@ -192,11 +191,11 @@ z0_cor %>% ggplot(aes(x=X,y=Y))+
 ```
 </center>
 
-Lo primero que debemos destacar es que la correlacion toma valores entre $-1$ y $1$. Podria usted describir caul es el efecto del valor de la correlacion sobre el comportamiento de las dos variables?
+Lo primero que debemos destacar es que la correlación toma valores entre $-1$ y $1$. Podría usted describir cual es el efecto del valor de la correlación sobre el comportamiento de las dos variables?
 
-Vemos que el signo de la correlacion se asocia con el signo de la pendiente de la recta que mejor describe a los datos. Tambien podemos observar que, amedida que el valor de la correlacion se aproxima a 1 (o -1) los puntos tienden a estar cada vez mas proximos a la linea recta, de tal forma que cuando el valor de la correalcion es exactamente 1 o -1, todos los puntos caen de manera exacta sobre la linea recta.
+Vemos que el signo de la correlación se asocia con el signo de la pendiente de la recta que mejor describe a los datos. También podemos observar que, a medida que el valor de la correlación se aproxima a 1 (o -1) los puntos tienden a estar cada vez mas próximos a la linea recta, de tal forma que cuando el valor de la correlación es exactamente 1 o -1, todos los puntos caen de manera exacta sobre la linea recta.
 
-La definicion de correlacion hace enfasis en que la relacion evaluada se enfoca en patrones lineales. Veamos algunos ejemplos de datos con relaciones intrinsecamente no lineales:
+La definición de correlación hace énfasis en que la relación evaluada se enfoca en patrones lineales. Veamos algunos ejemplos de datos con relaciones intrínsecamente no lineales:
 
 <center>
 ```{r corsim2, echo=FALSE, results = 'asis',fig.width=8, fig.height=8, fig.cap="datos no lineales simulados"}
@@ -205,7 +204,7 @@ plot_r(r = 0.7, n = 250)
 ```
 </center>
 
-En la figura \@ref(fig:corsim2) todos los datos poseen un valor de correlacionde $0.7$, sin embargo, es claro que las relaciones no se ajustan a un patron lineal en ningun caso. Aun mas, es posible obtener valores de correlacion de $0$ y aun asi esxitir relaciones no lienales entre las variables 
+En la figura \@ref(fig:corsim2) todos los datos poseen un valor de correlación de $0.7$, sin embargo, es claro que las relaciones no se ajustan a un patrón lineal en ningún caso. Aun mas, es posible obtener valores de correlación de $0$ y aun así existir relaciones no lineales entre las variables 
 
 <center>
 ```{r corsim3, echo=FALSE, results = 'asis',fig.width=8, fig.height=8, fig.cap="datos no lineales simulados, correlacion de 0"}
@@ -214,6 +213,6 @@ plot_r(r = 0, n = 250)
 ```
 </center>
 
-Es un error comun pensar que un valor de correlacion igual a 0 implica automaticamente una falta de relacion disernible entre las variables de estudio. Lo cierto es que no es adecuado fiarce del valor de la correlacion. Es necezario insoeccionar el diagrama de dispercion para poder confiar en el valor de la correlacion.
+Es un error común pensar que un valor de correlación igual a 0 implica automáticamente una falta de relación discernible entre las variables de estudio. Lo cierto es que no es adecuado fiarse del valor de la correlación. Es necesario inspeccionar el diagrama de dispersión para poder confiar en el valor de la correlación.
 
-En conclucion, la correlacion es util e informativa _**si y solamente si**_ el comportamiento de las variables sigue una funcion lineal. En caso contrario, la correlacion carece de un sentido propio.
+En conclusión, la correlación es útil e informativa _**si y solamente si**_ el comportamiento de las variables sigue una función lineal. En caso contrario, la correlación carece de un sentido propio.
