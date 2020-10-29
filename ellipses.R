@@ -19,7 +19,7 @@ library(mvtnorm)
 
 x1<-seq(-3,3,length.out = 50)
 y1<-x1
-f1<-function(x,y){dmvnorm(c(x,y),sigma =zigma)}
+f1<-function(x,y){dmvnorm(c(x,y),c(0,0),zigma)}
 zigma<-matrix(c(1,.8,.8,1),ncol = 2)
 z1<-outer(x1,y1,Vectorize(f1))
 
@@ -30,3 +30,4 @@ plot(ellipse(0.8,level = .9), type = 'l',asp = 1,xlim = c(-3,3),ylim= c(-3,3))
 for(i in seq(0.01,.9,length.out = 10)){
   points(ellipse(0.8,level=i), type = 'l')
 }
+
