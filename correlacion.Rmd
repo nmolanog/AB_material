@@ -233,7 +233,7 @@ bivardnorm
 
 Ya que este objeto matematico se aloja en un espacio de tres dimenciones, es comun usar diferentes tecnicas para representarlo en dos dimenciones, nosotros usaremos la representacion en curvas de nivel. En esta aproximacion se dibujan curvas o contornos de puntos en el plano cartesiano que poseen un mismo valor de la funcion de densidad, dando una idea del comportamiento de la superfisio en tres dimenciones (ver figura \@ref(fig:contours)). 
 
-```{r echo = F, results = 'hide',fig.show='hide'}
+```{r echo = F, results = 'hide',fig.show='hide',warning =F}
 my_mean<-c(25,65)
 mycors<-seq(-1,1,by=.25)
 sd_vec<-c(5,7)
@@ -258,8 +258,12 @@ cols <- jet.colors(length(my_levels) - 1)
 zzz <- cut(zz, breaks = my_levels, labels = cols)
 
 
-persp(my_x, my_y, my_z, theta = -25, phi = 45, expand = 0.5,xlab="x",ylab="y",zlab="f(x,y)",col = as.character(zzz))
+par_store <- par()
+par(mar = c(0, 0, 0, 0))
+persp(my_x, my_y, my_z, theta = -25, phi = 45, expand = 0.5,
+      xlab = "x", ylab = "y", zlab = "f(x,y)", col = as.character(zzz))
 p1 <- recordPlot()  
+par(par_store)
 
 data.grid <- expand.grid(x = seq(my_mean[1]-3*sd_vec[1], my_mean[1]+3*sd_vec[1], length.out=200),
                          y = seq(my_mean[2]-3*sd_vec[2], my_mean[2]+3*sd_vec[2], length.out=200))
