@@ -17,29 +17,42 @@ V<-sd_vec %*% t(sd_vec) *temp_cor
 my_int<-(my_mean[2]-(V[1,2]*my_mean[1]/V[1,1]))
 my_slp<-V[1,2]/V[1,1]
 
-my_int2<-(my_mean[2]-sqrt(V[2,2]/V[1,1])*mycors[i]*my_mean[1])
-my_slp2<-sqrt(V[2,2]/V[1,1])*mycors[i]
-
-my_dnorm<- function(x, mean = 0, sd = 1, log = FALSE, new_loc, multplr){
-  new_loc+dnorm(x, mean , sd, log)*multplr
-}
-
 ###data for vertical curve
 my_dnorm<- function(x, mean = 0, sd = 1, log = FALSE, new_loc, multplr){
   new_loc+dnorm(x, mean , sd, log)*multplr
 }
 
-yden<-data.frame(y=seq(48,82,length.out = 100),x=my_dnorm(seq(48,82,length.out = 100),my_mean[2],sd_vec[2],new_loc=8,multplr=100))
+##margina Y distribution
+yden<-data.frame(y=seq(48,82,length.out = 100),x=my_dnorm(seq(48,82,length.out = 100),my_mean[2],sd_vec[2],new_loc=0,multplr=100))
 
-data.grid <- expand.grid(s.1 = seq(my_mean[1]-3*sd_vec[1], my_mean[1]+3*sd_vec[1], length.out=200),
-                         s.2 = seq(my_mean[2]-3*sd_vec[2], my_mean[2]+3*sd_vec[2], length.out=200))
+##conditional distribution
+givenX<-34
+mu_givenX<-my_int+givenX*my_slp
+sigma2_givenX<-(1-mycors[i]^2)*V[2,2]
+y_givenX_range<-seq(mu_givenX-3*sqrt(sigma2_givenX),mu_givenX+3*sqrt(sigma2_givenX),length.out = 100)
+
+# yden_x<-data.frame(y=y_givenX_range,
+#                    x=my_dnorm(y_givenX_range,mu_givenX,sqrt(sigma2_givenX),new_loc=givenX,multplr=80))
+
+yden_x<-data.frame(y=y_givenX_range,
+                   x=my_dnorm(y_givenX_range,mu_givenX,sqrt(sigma2_givenX),new_loc=0,multplr=80))
+
+
+data.grid <- expand.grid(x = seq(my_mean[1]-3*sd_vec[1], my_mean[1]+3*sd_vec[1], length.out=200),
+                         y = seq(my_mean[2]-3*sd_vec[2], my_mean[2]+3*sd_vec[2], length.out=200))
 q.samp <- cbind(data.grid, prob = dmvnorm(data.grid, mean = my_mean, sigma = V))
-ggplot(q.samp, aes(x=s.1, y=s.2, z=prob)) + 
+ggplot(q.samp, aes(x=x, y=y, z=prob)) + 
   geom_contour() + theme_bw()+ 
-  geom_abline(intercept = my_int2, slope = my_slp2, color="red", 
+  geom_abline(intercept = my_int, slope = my_slp, color="red", 
                                            linetype="dashed")+
   stat_function(fun = my_dnorm, n = 101, args = list(mean = my_mean[1], sd = sd_vec[1], new_loc=35,multplr=100),color=1) +
-  geom_path(aes(x=x,y=y), data = yden,inherit.aes = FALSE) 
+  geom_path(aes(x=x,y=y), data = yden,inherit.aes = FALSE) +
+  geom_path(aes(x=x,y=y), data = yden_x,inherit.aes = FALSE,color=1,linetype="dashed") +
+  
+  geom_vline(xintercept = givenX,linetype="dashed")+ xlim(0, 50)+
+  annotate("segment", x = c(givenX), xend = c(max(yden_x[,"x"])), 
+           y = c(mu_givenX), yend = c(mu_givenX), colour = "red", size=.5, alpha=0.6, arrow=arrow(length = unit(0.03, "npc")))
+
 
 
 
