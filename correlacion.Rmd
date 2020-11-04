@@ -220,18 +220,18 @@ Es un error común pensar que un valor de correlación igual a 0 implica automá
 
 En conclusión, la correlación es útil e informativa _**si y solamente si**_ el comportamiento de las variables sigue una función lineal. En caso contrario, la correlación carece de un sentido propio.
 
-# La correlacion poblacional
+# La correlación poblacional
 
-Hemos visto la correlacion y su comportamiento en el ambito muestral, es hora  de estudiart su comportamiento a nivel poblacional, lo cual nos lleva a introducir el concepto de funcion de densidad de un vector aleatorio. En matematicas un vector es simplemente un par ordenado de elementos, porejemplo $(2,5)$. Este par ordenado se ubica en el plano cartesiano como un punto, unas coordenadas $(x,y)$. Ahora este concepto se extiende a variables aleatorias en donde un vector aleatorio es un par ordenado de variables aleatorias $(X,Y)$. Nosotros hemos estudiado el caso de una sola variable aleatoria, ahora los mismos coneptos se extienden para un vector aleatorio y la funcion de densidad de un vector aleatorio se representa con una superficie en tres dimensiones, como se puede apreciar en la siguiente figura:
+Hemos visto la correlación y su comportamiento en el ámbito muestral, es hora  de estudiar su comportamiento a nivel poblacional, lo cual nos lleva a introducir el concepto de función de densidad de un vector aleatorio. En matemáticas un vector es simplemente un par ordenado de elementos, por ejemplo $(2,5)$. Este par ordenado se ubica en el plano cartesiano como un punto, unas coordenadas $(x,y)$. Ahora este concepto se extiende a variables aleatorias en donde un vector aleatorio es un par ordenado de variables aleatorias $(X,Y)$. Nosotros hemos estudiado el caso de una sola variable aleatoria, ahora los mismos conceptos se extienden para un vector aleatorio y la función de densidad de un vector aleatorio se representa con una superficie en tres dimensiones, como se puede apreciar en la siguiente figura:
 
 <center>
-```{r bivardnorm, echo=F,warning =F, fig.width=6, fig.height=5, fig.cap="funcion de densidad de un vector aleatorio"}
+```{r bivardnorm, echo=F,warning =F, fig.width=6, fig.height=5, fig.cap="función de densidad de un vector aleatorio"}
 bivardnorm <- image_read("bivar_norm_surf.gif") 
 bivardnorm
 ```
 </center>
 
-Ya que este objeto matematico se aloja en un espacio de tres dimenciones, es comun usar diferentes tecnicas para representarlo en dos dimenciones, nosotros usaremos la representacion en curvas de nivel. En esta aproximacion se dibujan curvas o contornos de puntos en el plano cartesiano que poseen un mismo valor de la funcion de densidad, dando una idea del comportamiento de la superfisio en tres dimenciones (ver figura \@ref(fig:contours)). 
+Ya que este objeto matemático se aloja en un espacio de tres dimensiones, es común usar diferentes técnicas para representarlo en dos dimensiones, nosotros usaremos la representación en curvas de nivel o contornos de nivel. En esta aproximación se dibujan curvas o contornos de puntos en el plano cartesiano que poseen un mismo valor de la función de densidad, dando una idea del comportamiento de la superficie en tres dimensiones (ver figura \@ref(fig:contours)). 
 
 ```{r echo = F, results = 'hide',fig.show='hide',warning =F}
 my_mean<-c(25,65)
@@ -277,26 +277,26 @@ p2<-ggplot(q.samp, aes(x, y, z = prob)) +
 ```
 
 <center>
-```{r contours, echo=F,warning =F, fig.width=9, fig.height=4, fig.cap="Representacion de una superfice en curvas de nivel"}
+```{r contours, echo=F,warning =F, fig.width=9, fig.height=4, fig.cap="Representación de una superficie en curvas de nivel"}
 plot_grid(p1, p2)
 ```
 </center>
 
-De igual manera que en el caso de una variable aleatoria, los valores mas probables se encuentran en zonas de alta densidad de probabilidad. comparese los contornos de nivel, que representan la funcion de densidad de probabilidad con unos datos obtenidos a travez de una muestra (ver figura \@ref(fig:contoursandsample)). 
+De igual manera que en el caso de una variable aleatoria, los valores mas probables se encuentran en zonas de alta densidad de probabilidad. Comparece los contornos de nivel, que representan la función de densidad de probabilidad con unos datos obtenidos a través de una muestra (ver figura \@ref(fig:contoursandsample)). 
 
 
 <center>
-```{r contoursandsample, echo=F,warning =F, fig.width=5, fig.height=4, fig.cap="funcion d densidad vs datos de la muestra"}
+```{r contoursandsample, echo=F,warning =F, fig.width=5, fig.height=4, fig.cap="función de densidad vs datos de la muestra"}
 z0_sim<-rmvnorm(250,my_mean,V) %>% data.frame()
 colnames(z0_sim)<-c("x","y")
 p2+geom_point(data=z0_sim,aes(x=x,y=y,z=0),alpha=0.3)
 ```
 </center>
 
-En secciones anteriores habiamos visto que un parametro controla la forma de la funcion de densidad. Ahora veremos como se afecta la forma de la funcion de densidad conjunta de dos variables aleatorias cuando cambia la correlacion: 
+En secciones anteriores habíamos visto que un parámetro controla la forma de la función de densidad. Ahora veremos como se afecta la forma de la función de densidad conjunta de dos variables aleatorias cuando cambia la correlación: 
 
 <center>
-```{r corrpop, echo=F,warning =F, fig.width=5, fig.height=5, fig.cap="efecto de la correlacion en la funcion de densidad conjunta"}
+```{r corrpop, echo=F, message = F,warning =F, fig.width=5, fig.height=5, fig.cap="efecto de la correlación en la función de densidad conjunta"}
 my_mean<-c(25,65)
 mycors<-seq(-.95,.95,length.out = 9)
 sd_vec<-c(5,7)
@@ -340,4 +340,210 @@ gridExtra::grid.arrange(grobs =pl_list,
 ```
 </center>
 
-# Funciones de densidad condicional y la recta de regresion
+Finalmente, los mismos argumentos sobre el comportamiento lineal de la relación  entre las variables aplica también a nivel poblacional. Si la relación entre las variables no es del tipo lineal, la correlación carece de sentido propio, como se aprecia en la figura \@ref(fig:nonlindens)
+
+<center>
+```{r nonlindens, echo=F,warning =F, fig.width=3.8, fig.height=3.8, fig.cap="Relación no lineal a nivel poblacional"}
+n<-1000
+x<-rnorm(n)
+y<-(x)^2+rnorm(n,0,.3)
+x0<-seq(-2,2,length.out = n)
+y0<-x0^2
+
+z0<-data.frame(x,y,x0,y0)
+z0 %>% ggplot(aes(x,y))+geom_density_2d()+
+  geom_path(aes(x=x0,y=y0))+
+  theme_bw()
+```
+</center>
+
+
+# Funciones de densidad marginal y condicional
+
+En este punto queda claro el concepto de función de densidad conjunta para dos variables aleatorias y su representación como una superficie en un espacio de 3 dimensiones y su proyección en 2d a través de contornos de nivel. Ahora discutiremos dos tipos de funciones de densidad asociadas: la función de densidad marginal y la función de densidad condicional
+
+## Función de densidad marginal
+
+Retomemos el ejemplo de la figura \@ref(fig:contoursandsample). En ella, tenemos los contornos de nivel de la función de densidad junto con unos datos de una muestra. Con los datos de la muestra se pueden calcular histogramas para las variables $X$ y $Y$, como se muestra en la figura \@ref(fig:marginals1).
+
+<center>
+```{r marginals1, echo=F, message = F,warning =F, fig.width=10, fig.height=3.5, fig.cap="Histogramas marginales"}
+pl_list2<-list(p2+geom_point(data=z0_sim,aes(x=x,y=y,z=0))+ theme(legend.position = "none"),
+               z0_sim %>% ggplot(aes(x=x))+
+                 geom_histogram(color="black", fill="white")+theme_bw(),
+               z0_sim %>% ggplot(aes(x=y))+
+                 geom_histogram(color="black", fill="white")+theme_bw())
+
+
+gridExtra::grid.arrange(grobs =pl_list2, 
+                        ncol = 3, nrow = 1)
+```
+</center>
+
+Como vimos anteriormente, detrás de los histogramas existe una función de densidad poblacional, lo cual nos lleva a concluir que además de la función de densidad conjunta, existen funciones de densidad independientes para la variable $X$ y la variable $Y$. Estas funciones de densidad se llaman _**funciones de densidad marginales**_.
+
+<center>
+```{r marginals2, echo=F, message = F,warning =F, fig.width=3.8, fig.height=3.5, fig.cap="función de densidad conjunta y funciones de densidad marginales"}
+my_mean<-c(25,65)
+mycors<-seq(-1,1,by=.25)
+sd_vec<-c(5,7)
+
+i<-3
+temp_cor<-matrix(c(1,mycors[i],
+                   mycors[i],1),
+                 byrow = T,ncol=2)
+V<-sd_vec %*% t(sd_vec) *temp_cor
+
+my_int<-(my_mean[2]-(V[1,2]*my_mean[1]/V[1,1]))
+my_slp<-V[1,2]/V[1,1]
+
+###data for vertical curve
+my_dnorm<- function(x, mean = 0, sd = 1, log = FALSE, new_loc, multplr){
+  new_loc+dnorm(x, mean , sd, log)*multplr
+}
+
+##margina Y distribution
+yden<-data.frame(y=seq(48,82,length.out = 100),x=my_dnorm(seq(48,82,length.out = 100),my_mean[2],sd_vec[2],new_loc=0,multplr=100))
+
+##conditional distribution
+givenX<-34
+mu_givenX<-my_int+givenX*my_slp
+sigma2_givenX<-(1-mycors[i]^2)*V[2,2]
+y_givenX_range<-seq(mu_givenX-3*sqrt(sigma2_givenX),mu_givenX+3*sqrt(sigma2_givenX),length.out = 100)
+
+# yden_x<-data.frame(y=y_givenX_range,
+#                    x=my_dnorm(y_givenX_range,mu_givenX,sqrt(sigma2_givenX),new_loc=givenX,multplr=80))
+
+yden_x<-data.frame(y=y_givenX_range,
+                   x=my_dnorm(y_givenX_range,mu_givenX,sqrt(sigma2_givenX),new_loc=0,multplr=80))
+
+
+data.grid <- expand.grid(x = seq(my_mean[1]-3*sd_vec[1], my_mean[1]+3*sd_vec[1], length.out=200),
+                         y = seq(my_mean[2]-3*sd_vec[2], my_mean[2]+3*sd_vec[2], length.out=200))
+q.samp <- cbind(data.grid, prob = dmvnorm(data.grid, mean = my_mean, sigma = V))
+
+ggplot(q.samp, aes(x=x, y=y, z=prob)) + 
+  geom_contour() + theme_bw()+ 
+  stat_function(fun = my_dnorm, n = 101, args = list(mean = my_mean[1], sd = sd_vec[1], new_loc=35,multplr=100),color=1) +
+  geom_path(aes(x=x,y=y), data = yden,inherit.aes = FALSE) +
+  xlim(0, 50)
+```
+</center>
+
+## Función de densidad conjunta
+
+Existe un tercer tipo de función de densidad (ademas de la función de densidad conjunta y las marginales). Estas se denominan funciones de densidad condicional. Para introducirlas, veamos un ejemplo. suponga que conocemos la función de densidad conjunta del peso y la edad para una población determinada. La función de densidad se representa en la figura \@ref(fig:conditional1). Podría usted deducir cual es el valor esperado de la edad y el valor esperado del peso?
+
+<center>
+```{r conditional1, echo=F, message = F,warning =F, fig.width=3.8, fig.height=3.5, fig.cap="función de densidad conjunta para la edad y el peso"}
+my_mean<-c(25,65)
+mycors<-seq(-1,1,by=.25)
+sd_vec<-c(5,7)
+
+i<-8
+temp_cor<-matrix(c(1,mycors[i],
+                   mycors[i],1),
+                 byrow = T,ncol=2)
+V<-sd_vec %*% t(sd_vec) *temp_cor
+
+my_int<-(my_mean[2]-(V[1,2]*my_mean[1]/V[1,1]))
+my_slp<-V[1,2]/V[1,1]
+
+###data for vertical curve
+my_dnorm<- function(x, mean = 0, sd = 1, log = FALSE, new_loc, multplr){
+  new_loc+dnorm(x, mean , sd, log)*multplr
+}
+
+##margina Y distribution
+yden<-data.frame(y=seq(48,82,length.out = 100),x=my_dnorm(seq(48,82,length.out = 100),my_mean[2],sd_vec[2],new_loc=0,multplr=100))
+
+##conditional distribution
+givenX<-30
+mu_givenX<-my_int+givenX*my_slp
+sigma2_givenX<-(1-mycors[i]^2)*V[2,2]
+y_givenX_range<-seq(mu_givenX-3*sqrt(sigma2_givenX),mu_givenX+3*sqrt(sigma2_givenX),length.out = 100)
+
+# yden_x<-data.frame(y=y_givenX_range,
+#                    x=my_dnorm(y_givenX_range,mu_givenX,sqrt(sigma2_givenX),new_loc=givenX,multplr=80))
+
+yden_x<-data.frame(y=y_givenX_range,
+                   x=my_dnorm(y_givenX_range,mu_givenX,sqrt(sigma2_givenX),new_loc=0,multplr=80))
+
+
+data.grid <- expand.grid(x = seq(my_mean[1]-3*sd_vec[1], my_mean[1]+3*sd_vec[1], length.out=200),
+                         y = seq(my_mean[2]-3*sd_vec[2], my_mean[2]+3*sd_vec[2], length.out=200))
+q.samp <- cbind(data.grid, prob = dmvnorm(data.grid, mean = my_mean, sigma = V))
+
+pcond1<-ggplot(q.samp, aes(x=x, y=y, z=prob)) + 
+  geom_contour() + theme_bw()+ 
+  xlim(0, 50)+
+  ylim(40, 90)+xlab("age")+ylab("weight")
+
+pcond1
+```
+</center>
+
+Piense ahora en la siguiente pregunta: Cual es la distribución del peso para personas con 30 años de edad?,  Cual es la distribución del peso para personas con 20 años de edad? La respuesta se presenta en la figura \@ref(fig:conditional2)
+
+<center>
+```{r conditional2, echo=F, message = F,warning =F, fig.width=8, fig.height=3.5, fig.cap="función de densidad condicional del peso para edad de 30 y 20 años"}
+pcond2<-pcond1+geom_path(aes(x=x,y=y), data = yden_x,inherit.aes = FALSE,color=1,linetype="dashed") +
+  geom_vline(xintercept = givenX,linetype="dashed")
+
+givenX<-20
+mu_givenX<-my_int+givenX*my_slp
+sigma2_givenX<-(1-mycors[i]^2)*V[2,2]
+y_givenX_range<-seq(mu_givenX-3*sqrt(sigma2_givenX),mu_givenX+3*sqrt(sigma2_givenX),length.out = 100)
+
+# yden_x<-data.frame(y=y_givenX_range,
+#                    x=my_dnorm(y_givenX_range,mu_givenX,sqrt(sigma2_givenX),new_loc=givenX,multplr=80))
+
+yden_x<-data.frame(y=y_givenX_range,
+                   x=my_dnorm(y_givenX_range,mu_givenX,sqrt(sigma2_givenX),new_loc=0,multplr=80))
+
+pcond3<-pcond1+geom_path(aes(x=x,y=y), data = yden_x,inherit.aes = FALSE,color=1,linetype="dashed") +
+  geom_vline(xintercept = givenX,linetype="dashed")
+
+gridExtra::grid.arrange(grobs =list(pcond2,pcond3), 
+                        ncol = 2, nrow = 1)
+```
+</center>
+
+En base a la figura \@ref(fig:conditional2), puede usted decir cual es el valor esperado del peso cuando la edad es de 30 años? cual es el valor esperado del peso cuando la edad es de 20 años?
+
+### Notación
+
+Recordemos que las letras mayúsculas denotan variables aleatorias, las cuales prácticamente, denotan funciones de densidad. Hablamos de una variable aleatoria $X$ y su función de densidad correspondiente $f(x)$. Ahora si es un vector aleatorio usamos la notación $(X,Y)$ y su función de densidad correspondiente $f(x,y)$. En este contexto, $f(x)$ seria la función de densidad marginal de la variable $X$ descontando la información de la variable $Y$, de manera similar, $f(y)$ seria la función de densidad marginal de la variable $Y$ descontando la información de la variable $X$.
+
+Finalmente la notación para las funciones de densidad condicionales es la siguiente: 
+
+Si hablamos de una variable aleatoria condicional, por ejemplo $Y$ condicionado a un valor arbitrario $c$ de la variable aleatoria $X$ entonces la notación correspondiente es 
+
+$$Y|X=c$$
+Y la función de densidad condicional correspondiente es 
+
+$$f(y|x=c)$$
+En el ejemplo anterior, hablaríamos de la variable aleatoria peso condicionado a edades de 30 y 20 años respectivamente. En notación de variables aleatorias tendríamos
+
+$$Peso|Edad=30, \; Peso|Edad=20$$
+
+Y las funciones de densidad correspondientes tendrían la siguiente notación:
+
+$$f(peso|edad=30), \; f(peso|edad=20)$$
+
+Finalmente. hablaremos del valor esperado condicional, el cual no es mas que el valor esperado de la función de densidad condicional. Si nos fijamos en la figura \@ref(fig:conditional2), podemos ver que 
+
+$$E(Peso|Edad=30)=71 kg \; y \; E(Peso|Edad=20)=58kg$$
+
+Aproximadamente.
+
+## Valor esperado condicional
+
+Una ves comprendido el concepto de funciones de densidad marginal y condicionales, podemos estudiar un poco mas en detalle el valor esperado condicional. Cuando la relación entre las variables es del tipo lineal, resulta que los valores esperados condicionales se encuentran en una linea recta. Esta recta se denomina la recta de regresión. Su estimación sera el tema de la siguiente sección.
+
+<center>
+```{r bivardnormres, echo=F,warning =F, fig.width=6, fig.height=5, fig.cap="Recta de regresión - Valor esperado condicional"}
+bivardnorm_res <- image_read("biv_norm.gif") 
+bivardnorm_res
+```
+</center>

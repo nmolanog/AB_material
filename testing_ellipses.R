@@ -107,7 +107,15 @@ colnames(z0_sim)<-c("x","y")
 p3<-z0_sim %>% ggplot(aes(x=x,y=y))+geom_point()+theme_bw()
 p2+geom_point(data=z0_sim,aes(x=x,y=y,z=0))
 
+pl_list2<-list(p2+geom_point(data=z0_sim,aes(x=x,y=y,z=0))+ theme(legend.position = "none"),
+               z0_sim %>% ggplot(aes(x=x))+
+                 geom_histogram(color="black", fill="white")+theme_bw(),
+               z0_sim %>% ggplot(aes(x=y))+
+                 geom_histogram(color="black", fill="white")+theme_bw())
 
+
+gridExtra::grid.arrange(grobs =pl_list2, 
+                        ncol = 3, nrow = 1)
 
 ###############
 rm(list=ls())
