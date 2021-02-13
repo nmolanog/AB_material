@@ -27,7 +27,7 @@ set.seed(150)
 ca_ctr_r<-.3
 n<-250
 nCA<-round(n*ca_ctr_r)
-z0<-data.frame(status=c(rep("CA",nCA),rep("CTR",n-nCA)))
+z0<-data.frame(status=factor(c(rep("CA",nCA),rep("CTR",n-nCA))))
 z0$exposition<-NA
 exp_CA<-.45
 exp_CTR<-.19
@@ -225,7 +225,7 @@ A continuación listamos algunas propiedades generales que se surgen a partir de
 
 * $A \cap U =A$
 
-* Si $A \subset B$ entonces $A \cup B =B$ y $A \cap B =B$
+* Si $A \subset B$ entonces $A \cup B =B$ y $A \cap B =A$
 
 * $A \cup A^c =U$
 
@@ -434,10 +434,10 @@ La probabilidad de desarrollar artritis reumatoide ($AR$) en la población gener
 
 Veamos un ejemplo del cálculo de una probabilidad condicional. Teniendo en cuenta la información de la tabla \@ref(tab:conttablz1rep), cual es la probabilidad de que una prótesis reprobara la prueba dado que fue construida en la fábrica $A$?
 
-La probabilidad en mención es $P(R|A)$ y según la formula \@ref(eq:A6) su calculo es $P(R|A)=\frac{P(R \cap A)}{P(A)}$. Según la tabla, $P(R \cap A)=\frac{21}{1000}$ y $P(A)=\frac{200}{1000}$ luego 
+La probabilidad en mención es $P(R|A)$ y según la formula \@ref(eq:A6) su calculo es $P(R|A)=\frac{P(R \cap A)}{P(A)}$. Según la tabla, $P(R \cap A)=\frac{23}{1000}$ y $P(A)=\frac{240}{1000}$ luego 
 
-$$P(R|A)=\frac{P(R \cap A)}{P(A)}=\frac{\frac{21}{1000}}{\frac{200}{1000}}=\frac{21}{200}=0.105$$
-Es decir que la probabilidad de que una prótesis construida en la fábrica $A$ falle la prueba es del 10.5%
+$$P(R|A)=\frac{P(R \cap A)}{P(A)}=\frac{\frac{23}{1000}}{\frac{240}{1000}}=\frac{23}{240}=0.0958$$
+Es decir que la probabilidad de que una prótesis construida en la fábrica $A$ falle la prueba es del 9.58%
 
 ### Axioma 7: independencia de eventos
 
