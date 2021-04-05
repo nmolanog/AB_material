@@ -1,7 +1,7 @@
 ---
 title: "Introducción a las Pruebas de hipótesis"
 author: "Nicolás Molano Gonzalez"
-date: "18 de Septiembre de 2018"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
   html_document:
     fig_caption: true
@@ -135,7 +135,7 @@ sample_dif1%>%gather()%>%filter(!key %in% "Dif") %>%
 
 De nuevo vemos evidencia de la nula diferencia entre las medidas _pre_ y _post_
 
-##Caso 2
+## Caso 2
 Ahora presentamos una muestra de la población en donde $E(Dif)>0$.
 
 ```{r , echo=F, fig.width=10, fig.height=8}
@@ -169,7 +169,7 @@ sample_dif2$Dif%>%t.test()%>%{c(.$conf.int[1],.$conf.int[2])}
 ```
 Claramente, el intervalo de confianza esta por encima de 0 y no tendríamos dudas de que el medicamento aumenta la _glu_.
 
-##Caso 3
+## Caso 3
 Ahora presentamos una muestra de la población en donde $E(Dif)<0$.
 
 ```{r , echo=F, fig.width=10, fig.height=8}
@@ -274,7 +274,7 @@ Es decir, el hecho que el valor del estadístico $t$ observado se encuentre un u
 
 Pero que pensaríamos si el valor del estadístico observado fuera `r round(t_new,3)`? abría gente que pensaría que ese valor esta en una región de baja probabilidad pero para otras persona, esa región no tiene una probabilidad despreciable. En esta situación se hace difícil tomar una decisión acerca de la plausibilidad de los datos bajo el escenario de la hipótesis nula.
 
-##Limites de Aceptacion y Rechazo
+## Limites de Aceptacion y Rechazo
 
 Ya que juzgar si el estadístico de prueba observado (EPO de aque en adelante) se encuentra en una zona de alta o baja probabilidad se hace subjetivo, debemos establecer una regla objetiva para determinar si el EPO se encuentra en una zona de alta o baja probabilidad, es decir, si se acepta o se rechaza la hipótesis nula.
 
@@ -317,12 +317,12 @@ p2<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
 gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
 ```
 
-##Error tipo I
+## Error tipo I
 
 Una vez establecidos los limites de aceptación y rechazo, debemos caer en cuenta de la posibilidad de equivocarnos en nuestra decisión. Que error podríamos cometer al establecer esta regla de decisión? En primera instancia podríamos rechazar $H_{0}$ cuando esta es en realidad verdadera. Las zonas de baja probabilidad del estadístico $T$ que hemos delimitado con los cauntiles $t_{n-1,\alpha/2}$ y $t_{n-1,1-\alpha/2}$, acumulan en conjunto una probabilidad de $\alpha$, por lo general $\alpha$ es un numero pequeño, al rededor de $0.05$. Esto quiere decir que si $H_0$ es cierta, existe la posibilidad de observar EPO en la zona de rechazo, en concreto la probabilidad de observar esto es de $\alpha=0.05$. De esta forma, y asumiendo que $H_0$ es cierta, con esta regla de decisión la probabilidad de equivocarnos es $\alpha$. El error de rechazar $H_0$ cuando esta es verdadera se llama __Error Tipo I__ y $\alpha$ se conoce como __Nivel de significancia__ y es en realidad la probabilidad de cometer el error tipo I, claro, en el caso en que $H_0$ es verdadera.
 $$\alpha=P_{H_0}(Error~Tipo~I)$$
 
-##Vovliendo al ejemplo
+## Vovliendo al ejemplo
 
 Establezcamos los limites de aceptación y rechazo para el caso de nuestro estudio, asumiendo una probabilidad de error tipo I o nivel de significancia $\alpha$ de $0.05$. Debemos encontrar los cuantiles $t_{99,\alpha/2=0.025}$ y $t_{9,1-\alpha/2=0.975}$. Estos tienen los siguientes valores: $t_{99,0.025} =$ `r round(qt(0.025,99),3)` y $t_{99,0.975} =$ `r round(qt(0.975,99),3)`.
 
@@ -351,7 +351,7 @@ Para las muestras de los casos 2 y 3 el EPO cae en las zonas de rechazo y por en
 
 La interpretación de estos resultados, es que al rechazar la hipótesis nula mostramos que, según la información de la muestra, $E(Dif) \neq 0$ y por ende el tratamiento cambia de alguna forma (aun por determinar) la _glu_.
 
-##Como plantear sistemas de hipotesis
+## Como plantear sistemas de hipotesis
 
 En el ejemplo anterior, vimos que el sistema de hipótesis empleado fue:
 
@@ -394,7 +394,7 @@ Si nos interesa mostrar que el medicamento cambia los niveles de _glu_, sin impo
 
 Por lo general, y a no ser que se especifique lo contrario, la condición que se quiera demostrar debe ir en la hipótesis alternativa.
 
-##Zonas de aceptación y rechazo en función del sistema de hipótesis
+## Zonas de aceptación y rechazo en función del sistema de hipótesis
 
 En el ejemplo del estudio metformina + glibenclamida discutimos los limites de aceptación y rechazo de la hipótesis nula para el sistema de hipótesis $H_{0}: E(Dif)=0$ vs $H_{a}: E(Dif)\neq0$. Sin embargo, estos limites cambian para los sistemas numero 2 y 3.
 
@@ -600,12 +600,12 @@ $$EPO~para~E(X):~\frac{\sqrt{n}\Big(\overline{x}-c\Big)}{S}~~~o~~~EPO~para~V(X):
 
 7. Determine si el EPO calculado en el paso anterior cae o no en la zona de rechazo, para finalmente determinar si $H_0$ se puede o no rechazar.
 
-#Ejemplos
+# Ejemplos
 
 A continuación presentaremos algunos ejemplos ilustrando el proceso de las pruebas de hipótesis.
 
 
-###Ejemplo 1
+## Ejemplo 1
 Un agricultor tiene un gallinero con 5000 gallinas. El afirma que para tener ganancias vendiéndolas como carne, las gallinas deben tener un valor esperado de peso mayor a $300g$. Con el fin de Probar si su población de gallinas cumple con este requerimiento, a extraído una muestra de 71 gallinas y las ha pesado. A continuación presentamos el histograma de estos datos:
 ```{r , echo=F, fig.width=6, fig.height=4}
 ggplot(chickwts, aes(x=weight)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
@@ -651,7 +651,7 @@ kable_styling(res,"striped", position = "center")
 
 ```
 
-####Solución:
+### Solución:
 
 1. Del problema se identifica que el parámetro que se desea evaluar es $E(Peso)$ es decir el valor esperado del peso de las gallinas.
 2. Ya que se desea demostrar que $E(Peso) > 300g$ el sistema de hipótesis apropiado es 
@@ -682,7 +682,7 @@ ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
 
 7. Conclusión: el agricultor no obtendrá ganancia.
 
-#P-valor
+# P-valor
 
 Hasta ahora hemos visto que para determinar si la hipotesis nula se rechaza o no en base a unos datos, debemos delimitar la zona de rechaso, calcular el EPO y verificar en donde se encuentra en relacion a la zona de rechazo. A continuacion presentarmos otra criterio para de determinar si se rechaza o no la hipotesis nula, el cual se basa en el uso del _p-valor_.
 
@@ -780,3 +780,16 @@ p2<-ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
   theme_bw()
 gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
 ```
+
+# Notas finales
+
+De manera similar al calculo de los intervalos de confianza, vemos que es necesario determinar los cuantiles de las distribuciones $T$ de student, $\chi^2$ y la distribución normal estándar en el cálculo de las pruebas de hipótesis. Estos cuantiles pueden ser calculados en R usando las funciones `` qt(), qchisq()``. Invitamos a los lectores a consultar el uso y funcionamiento de estas funciones en R
+
+`` ?qt ``
+\
+`` ?qchisq ``
+
+
+Por otra parte, es importante discutir algunos supuestos que existen entorno a los cálculos dde las pruebas de hipótesis para el valor esperado y la varianza. Como se vio anteriormente, en su derivación aparecieron los estadísticos $T_{n-1}$ y $\chi^2_{n-1}$ y gracias a que estos estadísticos poseen una distribución conocida, fue posible derivar las formulas de las pruebas de hipótesis. Sin embargo, las distribuciones de estos estadísticos son las descritas, si y solamente si, la variable aleatoria original, objeto de estudio, posee una distribución normal. Esto se conoce como el supuesto de normalidad.
+
+Esto quiere decir que, las pruebas de hipótesis calculadas, en particular la decisión de aceptar o rechazar la hipótesis nula, es correcta si y solamente si la variable original, a nivel población también posee una distribución normal. Algunos estudios han demostrado que, cuando la variable no posee una distribución normal, los errores incurridos en la decisión tomada en la prueba de hipótesis pueden ser mínimos en algunos casos. Mas adelante veremos algunas formas de evaluar si la distribución de una variable puede ser considerada como normal o no usando los datos de la muestra.
