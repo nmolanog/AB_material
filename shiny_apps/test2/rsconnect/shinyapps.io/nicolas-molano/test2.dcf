@@ -1,0 +1,11 @@
+name: test2
+title:
+username:
+account: nicolas-molano
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4385762
+bundleId: 4819567
+url: https://nicolas-molano.shinyapps.io/test2/
+when: 1626284097.39687
+lastSyncTime: 1626284097.39688
