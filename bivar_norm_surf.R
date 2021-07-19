@@ -1,4 +1,5 @@
 rm(list=ls())
+library(mvtnorm)
 library(animation)
 library(tidyverse)
 library(GA)
@@ -37,3 +38,19 @@ saveGIF({
     ani.pause()   ## pause for a while ('interval')
   }
 }, interval = 0.05, movie.name = 'bivar_norm_surf.gif', ani.width = 600, ani.height = 500)
+
+res<-list()
+###export data
+for(i in seq_along(my_x) ){
+  for(j in seq_along(my_y)){
+    res[[paste0(i,"_",j)]]<-c(my_x[i],my_y[j],my_z[i,j])
+  }
+}
+
+res_df<-res %>% reduce(rbind)
+colnames(res_df)<-c("x","y","z")
+
+wb <- openxlsx::createWorkbook()
+openxlsx::addWorksheet(wb, sheetName = "data")
+openxlsx::writeData(wb,x=res_df , sheet = "data")
+openxlsx::saveWorkbook(wb,"/home/nicolas/Downloads/data_surf_v0.xlsx",TRUE)
