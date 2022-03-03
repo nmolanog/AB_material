@@ -269,7 +269,7 @@ pf<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
   annotate("segment", x = c(45), xend = c(40), 
            y = c(0.01), yend = c(.03), colour = "red", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
   annotate("text", x = 36, y = .033, 
-           label = "P(X>q)==0.25",parse=T , size=5 , fontface="bold")+
+           label = "P(X<q)==0.25",parse=T , size=5 , fontface="bold")+
   theme_bw()
 pf
 ```
@@ -302,7 +302,7 @@ pf<-ggplot(data = data.frame(weight = c(30,90)), aes(weight)) +
   annotate("segment", x = c(45), xend = c(40), 
            y = c(0.01), yend = c(.03), colour = "red", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
   annotate("text", x = 35, y = .033, 
-           label = "P(X>q[p])==p",parse=T , size=5 , fontface="bold")+
+           label = "P(X<q[p])==p",parse=T , size=5 , fontface="bold")+
   theme_bw()
 pf
 ```
