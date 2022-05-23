@@ -1,0 +1,70 @@
+---
+title: "Tamaño de muestra"
+author: "Nicolás Molano Gonzalez"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  bookdown::html_document2: default
+bibliography: references.bib  
+---
+
+```{r echo=F, message = FALSE, warning =F}
+library(pacman)
+p_load(tidyverse)
+p_load(kableExtra)
+p_load(knitr)
+p_load(latex2exp)   
+p_load(ggrepel)
+p_load(magick)
+p_load(reshape2)
+p_load(cowplot)
+set.seed(150)
+```
+
+# Introducción
+En capítulos anteriores vimos cual es el efecto del tamaño de muestra sobre las propiedades de un estimador. En general, a medida que un tamaño de muestra aumenta, los posibles valores que pueden tomar estos estimadores se encuentran más próximos al verdadero parámetro que se desea estimar. 
+
+<center>
+```{r dnormhistgif, echo=F,warning =F, fig.width=4, fig.height=3.5,fig.cap="Comportamiento del histograma para diferentes tamaños de muestra"}
+dnorm_hist <- image_read("dnorm_hist.gif") 
+dnorm_hist
+```
+</center>
+<center>
+```{r dnormpromgif, echo=F,warning =F, fig.width=4, fig.height=3.5,fig.cap="función de densidad del promedio"}
+dnorm_prom <- image_read("dnorm_prom.gif") 
+dnorm_prom
+```
+</center>
+
+<center>
+```{r dnormhistgif2, echo=F,warning =F, fig.width=4, fig.height=3.5,fig.cap="Comportamiento del histograma para diferentes tamaños de muestra"}
+p1 <- ggdraw() + draw_image("dnorm_hist.gif")
+p2 <- ggdraw() + draw_image("dnorm_prom.gif")
+
+plot_grid(p1, p2)
+```
+</center>
+
+
+Esta noción es fundamental ya que nos permitirá determinar un tamaño de muestra para una precisión deseada. Supóngase que usted desea realizar un estudio en donde desea estimar el valor esperado del IMC en una población determinada. Usted desea estimar este valor esperado con una precisión o margen de error de $\pm 0.5$ unidades de IMC.
+
+¿Como lograr este objetivo? En primera instancia debemos traducir estos requerimientos a un lenguaje estadístico compatible con los conceptos desarrollados hasta el momento. Como podríamos traducir el requerimiento de “$\pm 0.5$ unidades de IMC.” Una aproximación podría ser considerar el $\pm 0.5$ como la mitad de la amplitud total del intervalo de confianza para el $E(IMC)$. Esto tiene sentido ya que en su momento establecimos que la amplitud del intervalo de confianza es una medida indirecta de la precisión de una estimación. 
+
+# Amplitud media del intervalo de confianza en función del tamaño de muestra
+
+Recordemos que la formula del intervalo de confianza para el valor esperado es la siguiente:  
+
+\begin{equation}
+\left(\bar{X}-t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}},\bar{X}-t_{n-1,\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}\right)  (\#eq:ICVE)
+\end{equation}
+
+La amplitud media del intervalo de confianza está dada por las expresiones alternativas 
+
+$$t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}$$
+$$-t_{n-1,\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}$$
+Las cuales son identicas ya que $t_{n-1,\frac{\alpha}{2}}=-t_{n-1,1-\frac{\alpha}{2}}$. Tomaremos la primera exprecion y definiremos
+\begin{equation}
+\epsilon =t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}(\#eq:eVE)
+\end{equation}
+
+Esta cantidad se denomina el error de estimación o la precisión de la estimación.  Es claro que esta cantidad se ve afectada por tres términos: $t_{n-1,1-\frac{\alpha}{2}}$, $n$ y $S$  Sin embargo, el cuantil $t_{n-1,1-\frac{\alpha}{2}}$ está relacionado con $n$ y adicionalmente con $\alpha$. De tal forma que la amplitud media del intervalo de confianza está determinada por las cantidades $\alpha$, $n$ y $S$. 
