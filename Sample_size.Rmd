@@ -17,6 +17,8 @@ p_load(ggrepel)
 p_load(magick)
 p_load(reshape2)
 p_load(cowplot)
+p_load(samplingbook)
+p_load(plotly)
 set.seed(150)
 ```
 
@@ -68,3 +70,46 @@ Las cuales son identicas ya que $t_{n-1,\frac{\alpha}{2}}=-t_{n-1,1-\frac{\alpha
 \end{equation}
 
 Esta cantidad se denomina el error de estimación o la precisión de la estimación.  Es claro que esta cantidad se ve afectada por tres términos: $t_{n-1,1-\frac{\alpha}{2}}$, $n$ y $S$  Sin embargo, el cuantil $t_{n-1,1-\frac{\alpha}{2}}$ está relacionado con $n$ y adicionalmente con $\alpha$. De tal forma que la amplitud media del intervalo de confianza está determinada por las cantidades $\alpha$, $n$ y $S$. 
+
+El paso siguiente seria despejar $n$ en función de $\epsilon$, $\alpha$ y $S$: 
+
+\begin{equation}
+\epsilon =t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}} \Leftrightarrow \\
+ \sqrt{n}=t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\epsilon} \Leftrightarrow \\
+ n=\pm \left(t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\epsilon}\right)^2
+(\#eq:nVEdev)
+\end{equation}
+
+Sin embargo, nos enfrentamos a un problema esta solucion para $n$ no es util ya que $S$ y $t_{n-1,1-\frac{\alpha}{2}}$ tambien dependen de los datos observados de la muestra y en particular de $n$. Que podemos hacer? 
+
+## Simulacion
+
+Ante la imposibilidad de generar una formula exacta para hallar el tamaño de muestra en función de $\alpha$, $\epsilon$ y $S$, procederemos a explorar el comportamiento de $n$ explorando varios escenarios. Lo primero que debemos hacer es asumir los valores de $\alpha$ y $S$. Supongamos que $\alpha=0.05$ (valor usual), $\epsilon =0.5$ y $S=3$. Para estos valores graficaremos el valor de $\epsilon$ en funcion de $n$. A continuacion presentamos el codigo para generar esta simulacion:
+
+```{r }
+my_alpha<-0.05
+my_S<-3
+my_n<-seq(100,10000,by=1)
+my_e<-qt(1-(my_alpha/2),my_n-1)*my_S/sqrt(my_S)
+z0<-data.frame(n=my_n,e=my_e)
+summary(z0)
+```
+
+<center>
+```{r nvse, echo=T,warning =F, fig.width=4, fig.height=3.5,fig.cap="Error de estimación en función del tamaño de muestra"}
+(z0 %>% ggplot(aes(x=n,y=e))+geom_point() )%>% ggplotly()
+```
+</center>
+
+Lo que hemos hecho en este código es simplemente calcular posibles valores de $\epsilon$ para diferentes valores de $n$ aplicando la formula \@ref(eq:eVE). Estos cálculos se encuentran almacenados en el data.frame `z0`. Podemos ver que para el rango de tamaños de muestra “simulados” ($`r min(my_n)`-`r max(my_n)`$) los valores del error de estimación posibles van desde $`r min(my_e) %>% round(4)`$ hasta $`r max(my_e) %>% round(4)`$
+
+Ahora simplemente, lo que debemos hacer es buscar el valor de $\epsilon$ deseado y obtener el valor de $n$ correspondiente. En nuestro estudio de $IMC$, se había definido que $\epsilon = 0.5$ luego: 
+
+```{r }
+z0[z0$e==0.5,]
+```
+Lamentablemente no encontramos ningún valor exactamente igual a $0.5$, así que ampliaremos un poco la búsqueda:
+
+```{r }
+z0[z0$e>0.5-0.01 & z0$e<0.5+0.01,]
+```
