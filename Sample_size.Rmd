@@ -89,8 +89,8 @@ Ante la imposibilidad de generar una formula exacta para hallar el tamaño de mu
 ```{r }
 my_alpha<-0.05
 my_S<-3
-my_n<-seq(100,10000,by=1)
-my_e<-qt(1-(my_alpha/2),my_n-1)*my_S/sqrt(my_S)
+my_n<-seq(10,1000,by=1)
+my_e<-qt(1-(my_alpha/2),my_n-1)*my_S/sqrt(my_n)
 z0<-data.frame(n=my_n,e=my_e)
 summary(z0)
 ```
@@ -111,5 +111,66 @@ z0[z0$e==0.5,]
 Lamentablemente no encontramos ningún valor exactamente igual a $0.5$, así que ampliaremos un poco la búsqueda:
 
 ```{r }
-z0[z0$e>0.5-0.01 & z0$e<0.5+0.01,]
+z0[z0$e>0.5-0.001 & z0$e<0.5+0.001,]
 ```
+Según los resultados obtenidos, el tamaño de muestra apropiado para obtener una precisión de 0.5 es de 141 sujetos. 
+<center>
+```{r nvsesol, echo=T,warning =F, fig.width=4, fig.height=3.5,fig.cap="Determinación de tamaño de muestra para e=0.5 "}
+(z0 %>% ggplot(aes(x=n,y=e))+geom_point() +
+   geom_hline(yintercept=0.5, linetype="dashed", color = "red")+
+   geom_vline(xintercept=141, linetype="dashed", color = "red"))%>% ggplotly()
+```
+</center>
+
+De las figuras \@ref(fig:nvse) y \@ref(fig:nvsesol) debería ser claro que a mayor precisión (es decir menor $\epsilon$) mayor es el tamaño de muestra necesario. 
+
+## Formula aproximada para este problema 
+
+El análisis que acabamos de realizar sería la mejor manera de determinar el tamaño de muestra para el problema en mención. Sin embargo, nótese que para hacer estos cálculos se necesita cierta destreza y competencia manejando un computador y un lenguaje de programación como R. Claramente, no todo el mundo tiene estas competencias, e inclusive hace 50 años, no se disponían de las herramientas informáticas que hoy disponemos. Por tal razón, es deseable poder proveer de una formula sencilla para obtener un cálculo de tamaño de muestra aproximado en función de los valores de $\alpha$, $\epsilon$ y $S$. Para esto los estadísticos han desarrollado las siguiente formula la cual es una solucion aproximada para este problema: 
+
+\begin{equation}
+n=\frac{z_{1-\frac{\alpha}{2}}^2 \times S^2}{\epsilon^2}  
+(\#eq:nVEaprox)
+\end{equation}
+
+En donde $z_{1-\frac{\alpha}{2}}$ es el cuantil $1-\frac{\alpha}{2}$ de la distribución normal estándar. Apliquemos esta fórmula y veamos cual sería el tamaño de muestra para nuestro problema: 
+
+$$n=\left(\frac{z_{1-\frac{0.05}{2}} \times 3}{0.5}\right)^2=$$
+$$\left(\frac{`r qnorm(1-(0.05/2)) %>% round(3)` \times 3}{0.5}\right)^2=`r (qnorm(1-(0.05/2))*3/0.5)^2 %>% round(3)`$$
+
+Vemos que este valor es ligeramente menor, aunque no por mucho con respecto al valor anteriormente obtenido. 
+
+## Algunas consideraciones
+
+Nótese que, en ambas aproximaciones al cálculo del tamaño de muestra para la estimación de un valor esperado para un valor de precisión dada, se requirió del valor de la varianza muestral $S^2$. Este valor seguramente será desconocido, pues en la mayoría de los casos se está planeando un estudio precisamente porque se desconoce la distribución de la variable de interés, en particular se desconoce el valor esperado que se desea estimar y también se desconocerá la varianza de dicha distribución. 
+
+Esto será un problema recurrente en el cálculo del tamaño muestral, no solo para estimar el valor esperado, también para otro tipo de parámetros de interés. El problema fundamental del cálculo de un tamaño de muestra es que se necesita proveer valores de aquello que queremos estimar. En este caso se necesita proveer la varianza de la variable de interés, la cual obviamente desconocemos, porque precisamente estamos planeando un estudio para conocer las características de la distribución de la variable de interés. 
+
+Para solucionar este problema existen varias alternativas. La primera es realizar una pequeña prueba piloto en donde realizamos el estudio en un grupo de sujetos limitado y calculamos el estimador de la varianza y usaríamos este valor para el cálculo del tamaño de muestra final para nuestro estudio. Otra alternativa seria tomar información de estudios anteriores (literatura científica) y utilizar la información reportada para nuestros cálculos. 
+
+Si ninguna de las dos opciones anteriores es posible de ser ejecutada por alguna razón, entonces lo que se suele hacer es realizar diferentes cálculos del tamaño muestral asumiendo diferentes valores de la varianza de la variable de interés. Ilustraremos esta técnica a continuación, siguiendo con nuestro ejemplo del estudio del IMC. 
+
+Pero antes de esto, discutiremos un asunto adicional alrededor de los cálculos de tamaño muestral presentados hasta el momento: los supuestos. Las dos aproximaciones presentadas hasta el momento asumen que la distribución de la variable de interés es de tipo normal (como la mayoría de los análisis y modelos estadísticos que hemos visto hasta el momento). Si la distribución de la variable de interés no es del tipo normal, los cálculos anteriormente presentados no son del todo correctos.  
+
+## Cálculo del tamaño muestral bajo diferentes escenarios 
+
+Supóngase que se desconoce por completo el valor de la varianza para el IMC en nuestro problema de investigación. No se dispone de recursos para realizar una prueba piloto y darnos una idea aproximada de cuál sería el valor de la varianza, ni tampoco se dispone de estudios en donde se halla reportado la varianza para esta variable. En este caso lo que haremos será calcular diferentes tamaños de muestra para diferentes valores de la varianza. Asumiremos que la varianza del IMC puede tomar valores entre $1.5^2$ y $5^2$. 
+
+Tomaremos 5 valores arbitrarios dentro de este rango y calcularemos los tamaños de muestra aproximados para diferentes valores de $\epsilon$ y los graficaremos para presentar de manera compacta toda esta información. A continuación, presentamos el código: 
+
+```{r }
+my_alpha<-0.05
+my_S<-seq(1.5,5,length.out=5)
+my_n<-seq(10,1000,by=1)
+z1<-expand.grid(n=my_n,S=my_S)
+z1$e<-qt(1-(my_alpha/2),z1$n-1)*z1$S/sqrt(z1$n)
+summary(z1)
+```
+
+<center>
+```{r nvseS, echo=T,warning =F, fig.width=5, fig.height=4.5,fig.cap="tamaño de muestra para diferentes escenarios"}
+(z1 %>% ggplot(aes(x=n,y=e,color=factor(S)))+geom_point()+theme_bw() )%>% ggplotly()
+```
+</center>
+
+Con esta información, la decisión de que tamaño de muestra tomar quedara al criterio de los investigadores, en donde deberán considerar varias cosas, además de la varianza que se pueda observar en la población, los costos asociados al estudio de cada uno de los individuos, el presupuesto disponible entre otros. 
