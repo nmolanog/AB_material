@@ -37,7 +37,7 @@ dnorm_prom <- image_read("dnorm_prom.gif")
 dnorm_prom
 ```
 </center>
-
+<!-- 
 <center>
 ```{r dnormhistgif2, echo=F,warning =F, fig.width=4, fig.height=3.5,fig.cap="Comportamiento del histograma para diferentes tamaños de muestra"}
 p1 <- ggdraw() + draw_image("dnorm_hist.gif")
@@ -46,6 +46,7 @@ p2 <- ggdraw() + draw_image("dnorm_prom.gif")
 plot_grid(p1, p2)
 ```
 </center>
+--> 
 
 
 Esta noción es fundamental ya que nos permitirá determinar un tamaño de muestra para una precisión deseada. Supóngase que usted desea realizar un estudio en donde desea estimar el valor esperado del IMC en una población determinada. Usted desea estimar este valor esperado con una precisión o margen de error de $\pm 0.5$ unidades de IMC.
