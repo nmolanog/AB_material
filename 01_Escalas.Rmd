@@ -12,9 +12,6 @@ library(pacman)
 p_load(tidyverse)
 p_load(kableExtra)
 p_load(knitr)
-p_load(latex2exp)  
-p_load(ggrepel)
-p_load(magick)
 p_load(reshape2)
 set.seed(150)
 ```
@@ -154,7 +151,7 @@ En un laboratorio, el técnico debe evaluar la precisión y exactitud de 4 bascu
 ```{r pdtab, echo=FALSE}
 ###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
 z0<-data.frame(A=rnorm(10,30,3),B=rnorm(10,30,9),C=rnorm(10,20,3),D=rnorm(10,40,9))
-res<-kable(z0,caption="mediciones repetidas de peso en diferentes básculas",row.names =F)
+res<-kbl(z0,caption="mediciones repetidas de peso en diferentes básculas",row.names =F)
 kable_styling(res,"striped", position = "center",full_width = F)
 ```
 Presentamos también una representación grafica de estos datos:
