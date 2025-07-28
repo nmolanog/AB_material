@@ -58,7 +58,7 @@ A continuación presentamos una parte de la tabla de datos correspondiente a est
 
 ```{r pdtab, echo=FALSE}
 ###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
-res<-kable(z0[sample(1:nrow(z0),10,replace =T),1:3],caption="Tabla de datos para el experimento de prueba diagnóstica",row.names =F)
+res<-kbl(z0[sample(1:nrow(z0),10,replace =T),1:3],caption="Tabla de datos para el experimento de prueba diagnóstica",row.names =F)
 kable_styling(res,"striped", position = "center",full_width = F)
 ```
 La columna *Id* es un identificador del sujeto, la variable *Dis* determina si el sujeto tiene o no cáncer según el estándar de oro y la variable *Test* determina el resultado de la prueba diagnóstica. Una primera aproximación al análisis de este experimento será construir una tabla de contingencia que relacione el estado del sujeto (Dis+ o Dis-) con los resultados de la prueba (Test+ o Test-), ver tabla \@ref(tab:contpdtab).
@@ -66,7 +66,7 @@ La columna *Id* es un identificador del sujeto, la variable *Dis* determina si e
 ```{r contpdtab, echo=FALSE}
 ###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
 temp_table<-table(z0$Test,z0$Dis)
-res2<-kable((temp_table%>%addmargins),caption="Tabla de contingencia Dis vs Test")
+res2<-kbl((temp_table%>%addmargins),caption="Tabla de contingencia Dis vs Test")
 kable_styling(res2,"striped", position = "center",full_width = F)
 ```
 
@@ -74,7 +74,7 @@ Como ustedes podrán saber, para este tipo de experimentos existen varios índic
 
 ```{r pdmtrics, echo=FALSE, results = 'asis', message=FALSE}
 temp_table2<-matrix(c("TP","FN","FP","TN"),nrow = 2,dimnames = list(c("Test+","Test-"),c("Dis+","Dis-")))
-res22<-kable(temp_table2,caption="Tabla de contingencia para pruebas diagnósticas")
+res22<-kbl(temp_table2,caption="Tabla de contingencia para pruebas diagnósticas")
 kable_styling(res22,"striped", position = "center",full_width = F)
 ```
  Aqui, **TP** son los verdaderos positivos (True Postive), **FN** falsos negativos (False Negative), **FP** falsos positivos (False Positive) y **TN** los verdaderos negativos (True Negative). Para nuestro ejemplo tenemos que $TP=$ `r temp_table[1,1]`, $FN=$ `r temp_table[2,1]`, $FP=$ `r temp_table[1,2]`, $TN=$ `r temp_table[2,2]`.
@@ -152,7 +152,7 @@ Retomando nuestro ejemplo de prueba diagnóstica para cáncer, la prueba propues
 
 ```{r pdtabtrue, echo=FALSE}
 ###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
-resT<-kable(z0[sample(1:nrow(z0),10,replace =T),c(1:2,4)],caption="Tabla de datos para el experimento de prueba diagnostica",row.names =F)
+resT<-kbl(z0[sample(1:nrow(z0),10,replace =T),c(1:2,4)],caption="Tabla de datos para el experimento de prueba diagnostica",row.names =F)
 kable_styling(resT,"striped", position = "center",full_width = F)
 ```
 La variable **cons** es la concentración de la molécula en la sangre de cada uno de los sujetos de prueba. Ahora el investigador se enfrenta a una pregunta fundamental: ¿Cuál será el valor umbral adecuado para determinar si el test se considera Positivo o Negativo?
@@ -164,7 +164,7 @@ Para este caso el valor mínimo de la concentración es `r mincons%>%round(3)` y
 for(i in seq_along(examplumb)){
   z0[,paste0("Um_",i)]<-factor(ifelse(z0$cons<examplumb[i],"Test-","Test+"),levels = c("Test+","Test-"))
 }
-resTUMB<-kable(z0[sample(1:nrow(z0),10,replace =T),c(-3)],caption="Tabla de datos con resultados del test para diferentes umbrales",row.names =F)
+resTUMB<-kbl(z0[sample(1:nrow(z0),10,replace =T),c(-3)],caption="Tabla de datos con resultados del test para diferentes umbrales",row.names =F)
 kable_styling(resTUMB,"striped", position = "center",full_width = F)
 ```
 
@@ -179,15 +179,20 @@ for(i in paste0("Um_",1:5)){
   ana_list[[i]]<-epi.tests(cont_tabl_list[[i]])
 }
 desp_df<-paste0("Um_",1:5)%>%map_df(function(x){
-  data.frame(Umb=x,Sens=ana_list[[x]]$rval$se$est,Esp=ana_list[[x]]$rval$sp$est,vpp=ana_list[[x]]$rval$ppv$est,vpn=ana_list[[x]]$rval$npv$est,vpg=ana_list[[x]]$rval$diag.acc$est)
+  data.frame(Umb=x,Sens=ana_list[[x]]$detail[ana_list[[x]]$detail$statistic %in% "se","est"],
+             Esp=ana_list[[x]]$detail[ana_list[[x]]$detail$statistic %in% "sp","est"],
+             vpn=ana_list[[x]]$detail[ana_list[[x]]$detail$statistic %in% "pv.neg","est"],
+             vpp=ana_list[[x]]$detail[ana_list[[x]]$detail$statistic %in% "pv.pos","est"],
+             vpg=ana_list[[x]]$detail[ana_list[[x]]$detail$statistic %in% "diag.ac","est"])
+  
 })
 cont_tblUMB<-cont_tabl_list%>%reduce(rbind)%>%{cbind(.,UM=rep(paste0("Um_",1:5),each=2))}
-resCTUMB<-kable(cont_tblUMB,caption="Tablas de contingencia para diferentes umbrales",row.names =T)
+resCTUMB<-kbl(cont_tblUMB,caption="Tablas de contingencia para diferentes umbrales",row.names =T)
 kable_styling(resCTUMB,"striped",full_width = F,position = "center")
 ```
 
 ```{r contresumbdes, echo=FALSE}
-depCTUMB<-kable(desp_df,caption="Métricas de desempeño para diferentes umbrales",row.names =T)
+depCTUMB<-kbl(desp_df,caption="Métricas de desempeño para diferentes umbrales",row.names =T)
 kable_styling(depCTUMB,"striped",full_width = F,position = "center")
 ```
 
@@ -302,7 +307,7 @@ auc_m2 <- performance(pred2, measure = "auc")@y.values[[1]]
 auc_m3 <- performance(pred3, measure = "auc")@y.values[[1]]
 auc_m4 <- performance(pred4, measure = "auc")@y.values[[1]]
 auc_res<-data.frame(molecula=paste0("m",1:4),AUC=c(auc_m1,auc_m2,auc_m3,auc_m4))
-AUCkab<-kable(auc_res[order(auc_res$AUC),],caption="AUC para las 4 moléculas",row.names =F)
+AUCkab<-kbl(auc_res[order(auc_res$AUC),],caption="AUC para las 4 moléculas",row.names =F)
 kable_styling(AUCkab,"striped",full_width = F,position = "center")
 ```
 

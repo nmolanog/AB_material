@@ -45,10 +45,10 @@ summary(z0)
 Para visualizar mejor la información, construiremos una tabla de contingencia para las dos variables, ver tabla \@ref(tab:conttabl)
 ```{r conttabl, echo=FALSE}
 ###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
-res<-kable(t(table(z0)%>%addmargins),caption="Tabla de contingencia status vs exposition")
+res<-kbl(t(table(z0)%>%addmargins),caption="Tabla de contingencia status vs exposition")
 kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_above(c("exposition","status"=2," "))
 # res<-t(table(z0)%>%addmargins)
-# knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
+# knitr::kbl(res,caption="Tabla de contingencia: status vs exposition")
 ```
 
 Al rededor de esta tabla de contingencia podemos hacernos varias preguntas como, por ejemplo:
@@ -238,10 +238,10 @@ La discusión de las operaciones de conjuntos hecha hasta el momento es abstract
 Se han recopilado unos datos de un estudio de casos y controles, `r nCA` casos y `r n-nCA` controles, para un total de `r n` individuos. Se han estudiado a estos individuos para ver si habían estado expuestos a un agente toxico de interés para los investigadores. La información recopilada se resume en la siguiente tabla de contingencia:
 
 ```{r conttablrep, echo=FALSE}
-res<-kable(t(table(z0)%>%addmargins),caption="Tabla de contingencia status vs exposition")
+res<-kbl(t(table(z0)%>%addmargins),caption="Tabla de contingencia status vs exposition")
 kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_above(c("exposition","status"=2," "))
 # res<-t(table(z0)%>%addmargins)
-# knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
+# knitr::kbl(res,caption="Tabla de contingencia: status vs exposition")
 ```
 
 En este caso, la variable “status” con categorías "CA" y "CTR", realmente indexan la pertenencia de individuos a dos conjuntos: el de los casos (CA) y el de los controles (CTR). De tal forma que en la tabla \@ref(tab:conttablrep) podemos saber cuántas personas hay en el conjunto CA y en el conjunto CTR. Según la tabla podemos ver que hay 75 personas en el conjunto "CA" y 175 en el conjunto "CTR". 
@@ -255,12 +255,12 @@ Es decir, la unión entre el conjunto de casos y el conjunto de personas expuest
 <div class = "row">
 <div class = "col-md-6">
 ```{r conttablrep1, echo=FALSE}
-res<-kable(t(table(z0)),caption="CA unido \"yes\"")
+res<-kbl(t(table(z0)),caption="CA unido \"yes\"")
 kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_above(c("exposition","status"=2))%>%
   column_spec(2,background = "green")%>%
   row_spec(1,background = "green")
 # res<-t(table(z0)%>%addmargins)
-# knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
+# knitr::kbl(res,caption="Tabla de contingencia: status vs exposition")
 ```
 </div>
 <div class = "col-md-6">
@@ -371,10 +371,10 @@ z1$v2<-factor(z1$v2)
 Veamos otro ejemplo. Una empresa con tres fábricas produce prótesis ortopédicas. Se ha realizado un estudio en donde se han extraído `r N` prótesis de un lote de producción de las tres fábricas y se ha determinado si las prótesis superan (S) o reprueban (R) una prueba de control de calidad. En la tabla \@ref(tab:conttablz1) se presentan los resultados de dicho estudio.
 ```{r conttablz1, echo=FALSE}
 ###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
-res<-kable(t(table(z1)%>%addmargins),caption="Tabla de contingencia Fabrica vs Falla")
+res<-kbl(t(table(z1)%>%addmargins),caption="Tabla de contingencia Fabrica vs Falla")
 kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_above(c("Falla","Fabrica"=3," "))
 # res<-t(table(z0)%>%addmargins)
-# knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
+# knitr::kbl(res,caption="Tabla de contingencia: status vs exposition")
 ```
 
 ¿Cuál es la probabilidad de que una prótesis provenga de la fábrica A? Según la tabla \@ref(tab:conttablz1), el número de prótesis producidas en la fábrica A es de `r table(z1$v1)["A"]` y el número total de prótesis es de `r N`, luego la probabilidad de que una prótesis provenga de la fábrica A es de `r table(z1$v1)["A"]/N`.
@@ -411,10 +411,10 @@ Veamos cómo se aplica esta regla en un caso práctico. Retomemos el ejemplo de 
 
 ```{r conttablz1rep, echo=FALSE}
 ###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
-res<-kable(t(table(z1)%>%addmargins),caption="Tabla de contingencia Fabrica vs Falla")
+res<-kbl(t(table(z1)%>%addmargins),caption="Tabla de contingencia Fabrica vs Falla")
 kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_above(c("Falla","Fabrica"=3," "))
 # res<-t(table(z0)%>%addmargins)
-# knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
+# knitr::kbl(res,caption="Tabla de contingencia: status vs exposition")
 ```
 
 cuál es la probabilidad de que una prótesis haya sido fabricada en la fábrica A o que la prótesis halla reprobado la prueba? En términos de notación de teoría de conjuntos, se nos está preguntando por $P(A \cup R)$. Según la regla \@ref(eq:A5) tenemos que 
@@ -477,10 +477,10 @@ colnames(count_tbl)<-c("F","NF")
 ```
 ```{r conttablindep, echo=FALSE}
 ###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
-res<-kable(t(count_tbl),caption="Tabla de contingencia Genero vs hábito de fumar")
+res<-kbl(t(count_tbl),caption="Tabla de contingencia Genero vs hábito de fumar")
 kable_styling(res,"striped", position = "center",full_width = F)
 # res<-t(table(z0)%>%addmargins)
-# knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
+# knitr::kbl(res,caption="Tabla de contingencia: status vs exposition")
 ```
 
 Podemos responder a esta pregunta usando la regla  \@ref(eq:A7). Si efectivamente el género femenino es independiente del hábito de fumar, entonces se cumpliría la siguiente igualdad.
@@ -498,10 +498,10 @@ Veamos otro ejemplo, esta vez en el estudio del control de calidad de las próte
 
 ```{r conttablz1rep2, echo=FALSE}
 ###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
-res<-kable(t(table(z1)%>%addmargins),caption="Tabla de contingencia Fabrica vs Falla")
+res<-kbl(t(table(z1)%>%addmargins),caption="Tabla de contingencia Fabrica vs Falla")
 kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_above(c("Falla","Fabrica"=3," "))
 # res<-t(table(z0)%>%addmargins)
-# knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
+# knitr::kbl(res,caption="Tabla de contingencia: status vs exposition")
 ```
 
 La pregunta en esta ocasión es si el evento de reprobar la prueba es independiente del evento en que la prótesis fue producida en la fábrica B. De nuevo, si estos eventos fueran independientes, entonces se cumpliría
