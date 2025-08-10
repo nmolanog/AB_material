@@ -1,0 +1,382 @@
+---
+title: "Inferencia"
+author: "Nicolás Molano Gonzalez"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  bookdown::html_document2:
+    toc: true
+    toc_float: 
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+    number_sections: true
+    theme: flatly
+    highlight: tango
+    css: ["styles.css"]
+    includes:
+      in_header: header.html
+      after_body: footer.html
+bibliography: references.bib  
+---
+
+```{r echo=F, message = FALSE, warning =F}
+library(pacman)
+p_load(tidyverse)
+p_load(kableExtra)
+p_load(knitr)
+p_load(latex2exp)   
+p_load(ggrepel)
+p_load(magick)
+p_load(reshape2)
+set.seed(150)
+```
+
+# Introducción
+
+En capítulos anteriores hemos estudiado como se caracteriza y se calculan probabilidades en poblaciones. Vimos como las probabilidades se comportan y se calculan de manera diferente dependiendo de la naturaleza de la variable (cualitativa o cuantitativa). Sin embargo, en la practica, la población no se conoce de manera total, de tal forma que, las funciones de densidad o probabilidades de ciertos eventos son, realmente, desconocidos para nosotros. De hecho, uno de los objetivos principales de la estadística es el de "aproximarnos" a las verdaderas probabilidades que existen en la población, a través del estudio de solo una parte mínima de la población total. Este ejercicio se denomina inferencia o estimación y sera el objeto de estudio de este capitulo.
+
+# La Muestra y La Población
+
+La aproximación a las probabilidades poblacionales comienza con el concepto de la **muestra**. Esta se define como 
+
+* Un subconjunto de unidades de estudio pertenecientes a un población de interés
+
+Es decir que la muestra siempre se suscribe en el marco de una población, la cual se desea estudiar. Todo estudio estadístico parte de la intención de estudiar o caracterizar una o varias variables en una población determinada. Veamos algunos ejemplos de esto.
+
+* En una tesis de doctorado se desea conocer la proporción de sujetos que padece algún tipo de enfermedad autoinmune. Este rasgo se estudiara en los habitantes de Bogotá.
+* En una tesis de pregrado se desea estudiar como se distribuye el indice de masa corporal en los estudiantes del programa de ciencias de la rehabilitación en la universidad del rosario.
+* En un proyecto de investigación pagado por Colciencias, se desea conocer la probabilidad de desarrollar algún tipo de cáncer de pulmón en los trabajadores de las diferentes plantas petroquímica de Ecopetrol durante el periodo de tiempo 1985-2000.
+
+Nótese que en todos los ejemplos anteriores se define una población de interés (ciudadanos de Bogotá, estudiantes del programa de ciencias de la rehabilitación en la universidad del rosario o trabajadores de las diferentes plantas petroquímica de Ecopetrol durante el periodo de tiempo 1985-2000). Como vimos en el capitulo anterior, existen infinitas variables aleatorias (es decir un conjunto de valores con su respectiva función de densidad) de una misma medida, como por ejemplo el IMC. Es claro que existe una función de densidad del IMC para los hombres colombianos, otra para las mujeres europeas, otra para los niños de edades entre los 10 y 15 años, etc. 
+
+Cada una de estas variables aleatorias, desde el punto de vista estadístico, corresponden a poblaciones diferentes. Es aquí cuando el concepto común de población y el concepto estadístico de población difieren. El concepto común de población hace referencia al conjunto total de individuos delimitado por regiones geográficas, criterios culturales, políticos, etc. 
+
+Desde el punto de vista de la estadística, una población es sinónimo, de una función de densidad y por ende de una variable aleatoria.
+
+De manera similar, el concepto común de muestra, se entiende como un subconjunto de individuos que pertenecen a una población determinada. Sin embargo desde el punto de vista estadístico, la muestra es un subconjunto de posibles valores en una variable aleatoria. En la estadística el individuo se ve representado por un numero, una medición.
+
+# Inferencia
+
+Una vez comprendido los aspectos técnicos al rededor de la población y la muestra desde el punto de vista estadístico, es posible introducir el concepto de inferencia.
+
+* La inferencia es el proceso mediante el cual se utiliza información de una muestra, para deducir propiedades o características en una población
+
+Es decir que la inferencia usa datos (operacionalización estadística de la muestra) para conocer la función de densidad subyacente ( operacionalización estadística de la población).
+
+<center>
+```{r sampling1,echo=F,warning =F, fig.width=4, fig.height=2, fig.cap="Concepto de inferencia poblacional"}
+knitr::include_graphics("sampling1.png")
+```
+```{r sampling2,echo=F,warning =F, fig.width=4, fig.height=2, fig.cap="Concepto de inferencia estadistica"}
+knitr::include_graphics("sampling2.png")
+```
+</center>
+
+La pregunta que surge a continuación es ¿Como se puede extraer información de los datos (obtenidos de la muestra) para conocer aspectos de la función de densidad en la población, objetivo de estudio?
+
+La respuesta es a través del calculo de estimadores. Un estimador se define de la siguiente forma:
+
+* Un estimador es una serie de operaciones matemáticas aplicadas sobre un conjunto de datos, que bajo supuestos teóricos, se garantiza la obtención de un valor aproximado al verdadero parámetro que desea estimar.
+
+Es así como el proceso de la estimación funciona:
+
+1. Una muestra de la población es obtenida.
+2. Datos son medidos en la muestra (por ejemplo IMC)
+3. Se calcula un estimador para un parámetro de interés (los vistos el capitulo anterior, Valores esperado, Varianza, etc).
+
+Queda claro entonces, que el interés principal de la inferencia es conocer la forma (es decir los parámetros) de la función de densidad poblacional. Esto se hace a través del calculo de estimadores sobre la muestra. Los estimadores son operaciones matemáticas sobre los datos, que bajo supuestos teóricos garantizan la obtención de valores cercanos a los verdaderos valores de los parámetros en la población de estudio.
+
+Empezaremos nuestro estudio de los estimadores con el histograma.
+
+## El histograma
+
+Para repasar que es un histograma sugerimos revisar el siguiente recurso: [Histograma](https://es.wikipedia.org/wiki/Histograma#:~:text=En%20estad%C3%ADstica%2C%20un%20histograma%20es,frecuencia%20de%20los%20valores%20representados.)
+
+En pocas palabras, el histograma es el estimador grafico de la función de densidad. Nos concentraremos en mostrar el comportamiento del histograma respecto a la hipotética función de densidad que desea estimar y el efecto que tiene el tamaño de la muestra en la calidad (es decir que tanto se parece el histograma a la verdadera función de densidad) de la estimación. Para esto tomaremos como ejemplo una distribución normal con valor esperado 70 y varianza 225, para una población hipotética. Se tomaran diferentes tamaños de muestra y para cada una se construirá un histograma. Los resultados se presentan a continuación.
+
+<center>
+```{r dnormhistgif, echo=F,warning =F, fig.width=4, fig.height=3.5,fig.cap="Comportamiento del histograma para diferentes tamaños de muestra"}
+dnorm_hist <- image_read("dnorm_hist.gif") 
+dnorm_hist
+```
+</center>
+
+Como se puede observar en la figura \@ref(fig:dnormhistgif),  a medida que el tamaño de muestra aumenta, el numero de barras que se pueden construir aumenta y, mas importante aun el histograma se asemeja cada vez mas a la función de densidad subyacente en la población.
+
+Como puede verse el histograma es un muy buen estimador de la función de densidad, ya que se asemeja mucho al objeto que desea estimar. Al referirnos a la similitud entre el histograma y la función de densidad, vale la pena dar dos ejemplos de cosas que no suceden con un histograma y la función de densidad que desea estimar:
+
+```{r dnormweird,echo=FALSE, results = 'asis',fig.width=8, fig.height=3.3, fig.cap="Histogramas sesgados"}
+xrange<-c(50,70)
+weight_lim<-c(30, 120)
+
+
+rngdf<-data.frame(x=rnorm(500,90,10))
+p1<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
+  ylab("f(x)") +xlab("x") + geom_histogram(data = rngdf,aes(x=x,y=after_stat(density)),color="black",fill="white",bins=nclass.scott(rngdf$x))+
+  stat_function(fun = dnorm, n = 101, args = list(mean = 70, sd = 10),color="blue") +
+  theme_bw()
+
+rngdf<-data.frame(x=rnorm(500,70,20))
+p2<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
+  ylab("f(x)") +xlab("x") + geom_histogram(data = rngdf,aes(x=x,y=after_stat(density)),color="black",fill="white",bins=nclass.scott(rngdf$x))+
+  stat_function(fun = dnorm, n = 101, args = list(mean = 70, sd = 10),color="blue") +
+  theme_bw()
+
+gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
+```
+
+Como se puede apreciar en la figura \@ref(fig:dnormweird), estos histogramas no se asemejan a la verdadera función de densidad, las discrepancias presentadas son en localización y dispersión. La teoría de inferencia estadística asegura que esto no sucede siempre y cuando se cumplan algunos supuestos sobre la muestra que se usa para realizar la estimación. Estos supuestos serán discutidos al final del capitulo.
+
+# Estimadores de parámetros
+
+En la sección anterior estudiamos nuestro primer estimador, el histograma, y el objeto al cual el histograma estima es la función de densidad. En el capitulo anterior vimos que las funciones de densidad pueden ser descritas en términos de parámetros de localización y desperdicio, por tanto, sera natural querer estimar estos parámetros con los datos de una muestra. Cada uno de los parámetros estudiados posee un estimador, sin embargo en este capitulo solo estudiaremos los estimadores del valor esperado, la varianza y la desviación estándar. También discutiremos brevemente la estimación de los cuantiles, la cual, claramente involucra a la mediana.
+
+## Estimador del valor esperado
+
+El estimador del valor esperado es el promedio y se define como 
+
+\begin{equation}
+\bar{x}=\frac{\sum_{i=1}^n x_i}{n}  (\#eq:prom)
+\end{equation}
+
+Es decir la suma de todos los datos de la muestra dividió por el tamaño de la muestra. Sera común encontrarnos con la notación $x_i$. Esto simboliza una observación de la variable aleatoria $X$ para el sujeto $i-esimo$ de la muestra. De tal forma que la ecuación \@ref(eq:prom), indica que se deben sumar los datos de los individuos $i=1$ hasta $i=n$ de la variable $x$ y dividirlo sobre el numero total de datos $n$.
+
+Las pregunta que surge ahora es:
+
+* ¿Porque el promedio es un estimador del valor esperado?
+
+Trataremos de dar respuesta a esta pregunta estudiando algunas características del promedio.
+
+### El promedio como variable aleatoria
+
+Nuestro camino para entender porque el promedio es un buen estimador del valor esperado empieza por darnos cuenta que el promedio es una variable aleatoria. Esto significa que existe una función de densidad que describe el comportamiento probabilístico del promedio. Es decir que existe $\bar{X}$ y el promedio que calculamos con una muestra, $\bar{x}$ es simplemente un posible valor de muchos posibles.
+
+Pensemos en el siguiente problema de investigación:
+
+* Se desea estudiar la distribución del indice de masa corporal en los estudiantes de la Escuela de Medicina y Ciencias de la Salud de la universidad del Rosario. Esta población de interés posee al rededor de 5000 estudiantes. Para este estudio se ha seleccionado una muestra de 100 estudiantes a los cuales se les medirá el peso y se calculara el promedio para estimar el valor esperado del IMC.
+
+Pensemos ahora en cuantas posibles muestras de tamaño 100 pueden ser extraídas de un conjunto de 5000 personas. Esta fuera del alcance de este curso determinar este numero, sin embargo, es un numero tan grande que tiene 200 dígitos. Para efectos prácticos imaginemos que al menos existen millones de posibles muestras. Entonces, para cada una de estas posibles muestras existen diferentes valores del promedio. Esta variación de una muestra a otra surge debido a que diferentes personas con diferentes valores de IMC componen las muestras y por ende, los valores de los promedios calculados diferirán.
+
+### Caracterización de la función de densidad del promedio
+
+Esta variación de los promedios, debida a la posibilidad muchas muestras, explica de manera intuitiva, como el promedio es realmente una variable aleatoria. Teniendo en cuenta esto, es totalmente plausible preguntarnos acerca del valor esperado del promedio y la varianza del promedio, es decir
+
+$$E(\bar{X}) \; y \; Var(\bar{X})$$
+
+Los estadísticos han determinado el valor de estos parámetros para el promedio y son los siguientes:
+
+\begin{equation}
+E(\bar{X})=E(X) \;y \; Var(\bar{X})=\frac{Var(X)}{n} (\#eq:prom)
+\end{equation}
+
+En donde $E(X)$ y $Var(X)$ son el valor esperado y la varianza de la variable aleatoria original que se desea estudiar a través de una muestra. En nuestro ejemplo correspondería al IMC en los estudiantes de la EMCS del rosario.
+
+Recapitulando, nuestro objetivo es estimar el valor esperado del IMC, es decir $E(IMC)$. Para esto se medirá el IMC en 100 estudiantes seleccionados al asar para conformar una muestra de tamaño 100. con estos 100 valores podemos calcular un promedio ($\overline{imc}$). Sin embargo, somos conscientes de que el promedio obtenido es un de muchos posibles debido al gran numero de muestras posibles que se pueden obtener. Luego, es claro que existe una función de densidad para el IMC promedio, es decir existe la variable aleatoria $\overline{IMC}$. Y ahora, según los criterios estadísticos tenemos que 
+
+$$E(\overline{IMC})=E(IMC) \; y \; Var(\overline{IMC})=\frac{Var(IMC)}{n}$$
+
+¿Que quiere decir esto? Quiere decir que el valor esperado del promedio del IMC es el mismo valor esperado que se quería estimar y por otra parte que la varianza del promedio es la misma varianza del IMC en la población de interés pero dividida sobre el tamaño de la muestra. Esto se representa en la siguiente animación.
+
+<center>
+```{r dnormpromgif, echo=F,warning =F, fig.width=4, fig.height=3.5,fig.cap="función de densidad del promedio"}
+dnorm_prom <- image_read("dnorm_prom.gif") 
+dnorm_prom
+```
+</center>
+
+En la practica, todo esto garantiza que los valores de los promedios calculados se encuentran al rededor del verdadero valor esperado que se desea estimar y ademas el rango de posibles valores que se pueden observar se concentra cada vez mas, a medida que el tamaño de muestra aumenta. Esto es lo mismo que sucede con el histograma, a medida que el tamaño de muestra aumenta, la calidad de la estimación aumenta, en este caso, la diferencia entre el verdadero valor esperado y el promedio calculado sera menor.
+
+Por ejemplo, si el promedio se calcula con una muestra de tamaño 10, el 90% de los promedios que se pueden observar se encontraran en el intervalo $`r round(qnorm(.05,23,3/sqrt(10)),2)`- `r  round(qnorm(1-.05,23,3/sqrt(10)),2)`$ mientras que si el promedio se calcula con una muestra de tamaño 100, el 90% de los promedios que se pueden observar se encontraran en el intervalo $`r round(qnorm(.05,23,3/sqrt(100)),2)`- `r  round(qnorm(1-.05,23,3/sqrt(100)),2)`$, ver figura \@ref(fig:dnormprom2)
+
+<center>
+```{r dnormprom2,echo=FALSE, results = 'asis',fig.width=9.5, fig.height=3.3,warning =F, fig.cap="Funciones de densidad para promedios con diferente tamaño de muestra"}
+weight_lim<-c(11, 36)
+
+
+p1<-ggplot(data = data.frame(weight = c(13,33)), aes(weight)) +
+  ylab("f(imc)") +xlab("imc") + 
+  stat_function(fun = dnorm, n = 101, args = list(mean = 23, sd = 3),aes(color="blue")) +
+  stat_function(fun = dnorm, n = 1000, args = list(mean = 23, sd = 3/sqrt(10)),aes(color="red")) +
+  scale_color_identity(name = "",
+                       breaks = c("blue", "red"),
+                       labels = c("IMC","prom. n=10"),
+                       guide = "legend")+
+  ylim(0,.45)+
+  scale_x_continuous(breaks=seq(11,36,by=2))+
+  geom_segment(aes(x=23,xend=23,y=0,yend=.025),linetype=1)+
+  stat_function(fun = dnorm, args = list(mean = 23,sd=3/sqrt(10)),
+                xlim = c(qnorm(.05,23,3/sqrt(10)),qnorm(1-.05,23,3/sqrt(10))),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = c(23), y = c(.04), 
+           label ="E(IMC)", size=3)+
+  annotate("text", x = c(23), y = c(.45), 
+           label =substitute(paste("P(", v," < ",bar(IMC)," < ",s,")= 0.9"),
+                             list(v=round(qnorm(.05,23,3/sqrt(10)),2),s=round(qnorm(1-.05,23,3/sqrt(10)),2))), size=4)+
+  theme_bw()
+
+
+p2<-ggplot(data = data.frame(weight = c(13,33)), aes(weight)) +
+  ylab("f(imc)") +xlab("imc") + 
+  stat_function(fun = dnorm, n = 101, args = list(mean = 23, sd = 3),aes(color="blue")) +
+  stat_function(fun = dnorm, n = 1000, args = list(mean = 23, sd = 3/sqrt(100)),aes(color="darkgreen")) +
+  scale_color_identity(name = "",
+                       breaks = c("blue", "darkgreen"),
+                       labels = c("IMC","prom. n=100"),
+                       guide = "legend")+
+  scale_x_continuous(breaks=seq(11,36,by=2))+
+  geom_segment(aes(x=23,xend=23,y=0,yend=.025),linetype=1)+
+  stat_function(fun = dnorm, args = list(mean = 23,sd=3/sqrt(100)),
+                xlim = c(qnorm(.05,23,3/sqrt(100)),qnorm(1-.05,23,3/sqrt(100))),
+                geom = "area",fill="darkgreen",alpha=0.5)+
+  annotate("text", x = c(23), y = c(.04), 
+           label ="E(IMC)", size=3)+
+  annotate("text", x = c(23), y = c(1.38), 
+           label =substitute(paste("P(", v," < ",bar(IMC)," < ",s,")= 0.9"),
+                             list(v=round(qnorm(.05,23,3/sqrt(100)),2),s=round(qnorm(1-.05,23,3/sqrt(100)),2))), size=4)+
+  theme_bw()
+
+p3<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
+  ylab("f(imc)") +xlab("imc") + 
+  stat_function(fun = dnorm, n = 101, args = list(mean = 23, sd = 3),aes(color="blue")) +
+  stat_function(fun = dnorm, n = 1000, args = list(mean = 23, sd = 3/sqrt(10)),aes(color="red")) +
+  stat_function(fun = dnorm, n = 1000, args = list(mean = 23, sd = 3/sqrt(100)),aes(color="darkgreen")) +
+  scale_color_identity(name = "",
+                       breaks = c("blue", "red","darkgreen"),
+                       labels = c("IMC","prom. n=10","prom. n=100"),
+                       guide = "legend")+
+  ylim(0,.5)+
+  scale_x_continuous(breaks=seq(11,36,by=2))+
+  geom_segment(aes(x=23,xend=23,y=0,yend=.025),linetype=1)+
+  geom_segment(aes(x=23,xend=23,y=0,yend=.025),linetype=1)+
+  annotate("text", x = c(23), y = c(.04), 
+           label ="E(IMC)", size=3)+
+  annotate("text", x = c(31), y = c(.75), 
+           label =paste0("n= ",50), size=6)+
+  theme_bw()
+
+gridExtra::grid.arrange(grobs =list(p1,p2),nrow=1,ncol=2)
+```
+</center>
+
+Si el mismo promedio se calculara con una muestra de tamaño mil, el 90% de los promedios que se pueden observar se encontraran en el intervalo $`r round(qnorm(.05,23,3/sqrt(1000)),2)`- `r  round(qnorm(1-.05,23,3/sqrt(1000)),2)`$. Con todo esto, queda claro que entre mayor sea el tamaño de muestra, mas cerca estará el promedio del verdadero valor esperado que se desea estimar.
+
+Estos argumentos teóricos, son los garantizan la idoneidad del promedio como estimador del valor esperado.
+
+## Estimador de la Varianza y la desviación estándar
+
+El estimador de la Varianza se denomina varianza muestral y se define como 
+
+\begin{equation}
+S^2=\frac{\sum_{i=1}^n (x_i-\bar{x})^2}{n-1}  (\#eq:s2)
+\end{equation}
+
+El estimador de la desviación estándar se denomina desviación estándar muestral y se define como 
+
+\begin{equation}
+S=\sqrt{ \frac{\sum_{i=1}^n (x_i-\bar{x})^2}{n-1} } (\#eq:s)
+\end{equation}
+
+Los argumentos de por que estas formulas son estimadores idóneos siguen las mismas lineas de los argumentos presentados para el promedio, estimador del valor esperado, y no se discutirán en este curso.
+
+## Otros estimadores
+
+Cada uno de los parámetros que estudiamos en el capitulo anterior posee un estimador correspondiente. En este curso no estudiaremos en detalle sus formulas, sin embargo, estudiaremos como se calculan estos estimadores usando un programa común como Excel.
+
+Una breve nota, frente al estimador de la moda. La moda no se suele estimar ni reportar en estudios muestrales, ya que la estimación de este parámetro es compleja y por lo general no hay un único valor que posible para la moda calculada en base a una muestra.
+
+# Estimación de los cuantiles
+
+En la sección anterior estudiamos la definición de los cuantiles, y observamos que la mediana es de hecho el cuantil $q_{0.5}$. Existen tres cuantiles de gran interés: el cuantil $q_{0.25}$, la mediana (cuantil $q_0.5$) y el cuantil $q_{0.75}$. Estos tres cuantiles son llamados también **cuartiles** y se denotan por la letra $Q$, de tal forma que 
+
+* $q_{0.25}=Q_1$
+* $q_{0.5}=Q_2$
+* $q_{0.75}=Q_3$
+
+El nombre cuartil surge del hecho que estos tres números parten el conjunto de posibles valores en 4 segmentos con igual probabilidad: 25%. Usted debería poder corroborar que 
+
+* $P(X<Q_1)=P(X<q_{0.25})=0.25$
+* $P(Q_1<X<Q_2)=P(q_{0.25}<X<q_{0.5})=0.25$
+* $P(Q_2<X<Q_3)=P(q_{0.5}<X<q_{0.75})=0.25$
+* $P(X>Q_3)=P(X>q_{0.75})=0.25$
+
+Esta información se representa en la figura \@ref(fig:cuartiles)
+
+<center>
+```{r cuartiles, echo=F, warning =F, fig.width=5.5, fig.height=3.5,fig.cap="Cuartiles"}
+mm<-70
+sdm<-24
+weight_lim<-c(-10, 180)
+xrange<-55
+xlabels <- expression(
+  q[0.25],
+  q[0.5],
+  q[0.75]
+)
+my_q<-qnorm(c(.25,.5,.75),mm,sdm)
+
+ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mm, sd = sdm),color=1) +
+  ylab("f(x)") + xlab("x") +  
+  scale_x_continuous(breaks=my_q,labels= xlabels,limits=c(-10,180)) + 
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm),
+                xlim = c(weight_lim[1],my_q[1]),
+                geom = "area",fill="darkgreen",alpha=0.5)+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm),
+                xlim = c(my_q[1],my_q[2]),
+                geom = "area",fill="darkblue",alpha=0.5)+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm),
+                xlim = c(my_q[2],my_q[3]),
+                geom = "area",fill="darkorange",alpha=0.5)+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm),
+                xlim = c(my_q[3],weight_lim[2]),
+                geom = "area",fill="darkred",alpha=0.5)+
+  geom_segment(aes(x = 100, y = .02-.005, xend = 110, yend = .02-.005),color = "darkgreen")+
+  annotate("text", x = 130, y = .02-.005, 
+           label = "P(X<q[0.25])", parse=TRUE,
+           size=4)+
+  geom_segment(aes(x = 100, y = .0185-.005, xend = 110, yend = .0185-.005),color = "darkblue")+
+  annotate("text", x = 140, y = .0185-.005, 
+           label = "P(list(q[0.25] <X)<q[0.5])", parse=TRUE,
+           size=4)+
+  theme_bw()+
+  geom_segment(aes(x = 100, y = .017-.005, xend = 110, yend = .017-.005),color = "darkorange")+
+  annotate("text", x = 140, y = .017-.005, 
+           label = "P(list(q[0.5] <X)<q[0.75])", parse=TRUE,
+           size=4)+
+  theme_bw()+
+  geom_segment(aes(x = 100, y = .0155-.005, xend = 110, yend = .0155-.005),color = "darkred")+
+  annotate("text", x = 130, y = .0155-.005, 
+           label = "P(X>q[0.75])", parse=TRUE,
+           size=4)+
+  theme_bw()+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+```
+</center>
+
+La forma en que se estiman los cuantiles, no sera descrita en este documento, pero pueden ser revisados por ejemplo en este recurso:
+
+https://es.wikipedia.org/wiki/Cuantil
+
+Sin embargo se presentara el diagrama de cajas y bigotes (boxplot en ingles), una herramienta grafica común para la representación de los cuartiles. A continuación presentamos un ejemplo figura \@ref(fig:boxplotdm):
+
+
+<center>
+```{r boxplotdm, echo=F, warning =F, fig.width=4.5, fig.height=3.5,fig.cap="ejemplo de boxplot"}
+rng_df<-data.frame(A=rgamma(100,shape=1.5,scale=25),
+                   B=rnorm(100,75,15),
+                   C=rgamma(100,shape=5,scale=9))
+rng_df_lng<-rng_df%>%melt(id.vars =NULL) 
+colnames(rng_df_lng)<-c("Group","var")
+rng_df_lng%>%data.frame%>%ggplot(aes(x=Group,y=var))+
+  geom_boxplot()+ylab("Weight")+
+  scale_y_continuous(breaks=seq(0,180,by=10)%>%round(0)) +
+  theme_bw()
+
+```
+</center>
+
+El limite inferior de la caja corresponde al cuantil $q_{0.25}$, la raya dentro de la caja corresponde a la mediana y el limite superior de la caja corresponde al $q_0.75$. Esto implica que el rango comprendido por la caja acumula un 50% de los datos observados en la muestra. Las rayas por debajo y encima de la caja, se llaman bigotes y se calculan como $1.5 \times (q_{0.5}-q_{0.25})$ y $1.5 \times (q_{0.75}-q_{0.5})$.
+
+Los puntos fuera de los bigotes se consideran como datos atípicos.
+

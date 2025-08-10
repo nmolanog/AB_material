@@ -1,0 +1,1368 @@
+---
+title: "Parametros de localizacion y dispercion"
+author: "Nicolás Molano Gonzalez"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  bookdown::html_document2:
+    toc: true
+    toc_float: 
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+    number_sections: true
+    theme: flatly
+    highlight: tango
+    css: ["styles.css"]
+    includes:
+      in_header: header.html
+      after_body: footer.html
+bibliography: references.bib  
+---
+
+```{r echo=F, message = FALSE, warning =F}
+library(pacman)
+p_load(tidyverse)
+p_load(kableExtra)
+p_load(knitr)
+p_load(ggrepel)
+p_load(magick)
+set.seed(150)
+```
+
+# Introducción
+
+En capítulos anteriores, hemos estudiado el cálculo de probabilidades para eventos que, en la práctica, son codificados como variables categóricas. Ahora ha llegado el momento de estudiar cómo funciona la medida de probabilidad para el caso en que la variable es cuantitativa. Empezaremos nuestro estudio con un ejemplo gráfico. En la figura \@ref(fig:fdmw) se presenta una información relacionada con el peso de hombres y mujeres.
+
+```{r fdmw, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="Distribución de peso para hombres y mujeres"}
+mf<-55
+mm<-70
+sdf<-8
+sdm<-12
+weight_lim<-c(30, 110)
+p1<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mm, sd = sdm),color=1) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mf, sd = sdf),color=2) +
+  ylab("f(weight)") + scale_x_continuous(breaks=seq(weight_lim[1],weight_lim[2], by=5)) + 
+  annotate("text", x = c(65,80), y = c(.04,.03), 
+           label = c("Female","Male") , size=4 , 
+           color=c("red","black"))+
+  theme_bw()
+p1
+```
+
+Cuando se les pregunta a los estudiantes sobre la interpretación de este gráfico, la mayoría de ellos genera interpretaciones acertadas de este. Veamos algunas de estas interpretaciones acertadas:
+
+* El peso de las mujeres esta alrededor de los $55kg$ mientras que el de los hombres esta alrededor de los $70kg$
+* Las mujeres suelen pesar menos que los hombres
+* El rango de pesos de los hombres es más amplio que el de las mujeres.
+
+Ahora veamos una de las interpretaciones incorrectas más comunes para este mismo gráfico:
+
+* Hay más mujeres que hombres
+
+Lo cierto es que la mayoría de estudiantes conocen de alguna manera la interpretación correcta de este gráfico, ya sea por intuición o por formación previa. Lo importante es que en este capítulo aclararemos estas ideas y las formalizaremos en términos probabilísticos.
+
+# Función de densidad
+
+Las curvas presentadas en la figura \@ref(fig:fdmw) reciben el nombre técnico de función de densidad. Son funciones matemáticas comunes las cuales se representan en un plano cartesiano. Para repasar estos conceptos sugerimos revisar los siguientes recursos:
+
+* https://www.profesorenlinea.cl/matematica/Funciones_matematicas.html
+* https://www.ck12.org/book/ck-12-conceptos-de-%c3%a1lgebra-i-en-espa%c3%b1ol/section/1.12/
+* https://www.ck12.org/book/ck-12-conceptos-de-%c3%81lgebra-nivel-b%c3%a1sico-en-espa%c3%b1ol/section/1.13/
+
+Es fundamental recordar los conceptos básicos alrededor de la representación de funciones en el plano cartesiano para poder comprender plenamente los conceptos aquí tratados. 
+
+De esta manera, las curvas presentadas en la \@ref(fig:fdmw) son simplemente funciones matemáticas, por ejemplo para la función de densidad de las mujeres (que de ahora en adelante denominaremos por $f_F(x)$), el valor de la función para el peso de $55kg$ es de $0.05$, es decir: $f_F(55)=0.05$. De manera similar, para la función de densidad de los hombres (que de ahora en adelante denominaremos por $f_M(x)$), el valor de la función para el peso de $55kg$ es de $0.015$, es decir: $f_M(55)=0.015$.
+
+La pregunta fundamental que surge a continuación es "¿qué significa el valor $f(x)$?" en donde $f$ es una función de densidad? Dicho también de otro modo, en una primera aproximación de los estudiantes al gráfico de la figura \@ref(fig:fdmw), "¿Que significa el eje $y$ en la figura \@ref(fig:fdmw)?". Esta pregunta se responde de manera mucho más fácil cuando se estudian funciones de densidad para variables discretas.
+
+## Funciones de densidad para variables discretas
+
+Empezaremos esta discusión con el siguiente ejemplo. Considérese la variable "Número de hijos en un matrimonio". En la figura \@ref(fig:fdpois) se presenta la función de densidad para esta variable.
+
+```{r fdpois, echo=FALSE, results = 'asis',fig.width=7, fig.height=4, fig.cap="Función de densidad para la variable número de hijos"}
+dtf_pois<-data.frame(x=factor(0:11),y=dpois(0:11,3))
+dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
+  ylab("f(x)")+ theme_bw()+
+  theme(axis.title.y = element_text(angle=0))+
+  annotate("text", x = dtf_pois$x, y = dtf_pois$y+.01, 
+           label = paste0("(",dtf_pois$x,", ",round(dtf_pois$y,3),")"),parse=F , size=2.5 , fontface="bold")
+  
+```
+Para facilidad del lector, en la gráfica aparecen las coordenadas $(x,f(x))$, en donde $x$ es el número de hijos y $f(x)$ es el valor de la función de densidad respectiva. En el caso en el que la variable es discreta, la función de densidad resulta coincidir con la probabilidad. Es decir que la probabilidad de que el matrimonio no tenga hijos es de `r round(dtf_pois$y[1],3)`. El lector puede verificar que en efecto los valores de $f(x)$ son probabilidades, ya que al sumar todos los 12 valores el resultado es uno. Es decir $\sum_{i=0}^{11} f(x_i)=1$ (Lo invitamos a repasar el significado del símbolo $\sum$ visitando el siguiente recurso: https://www.profesorenlinea.cl/matematica/Sumatoria.html)
+
+Es decir que en el caso en que la variable es discreta se tiene que
+
+\begin{equation}
+Si\; x\; es \; una \; variable \; discreta\; entonces \; f(x)=P(X=x) (\#eq:discrfd)
+\end{equation}
+
+Donde $P(X=x)$ se interpreta como "la probabilidad de que la variable $X$ tome el valor $x$". Mas adelante profundizaremos en la notación y diferencias entre $X$ y $x$.
+
+Para este caso en el que la variable es discreta usted puede usar las reglas vistas en capítulos anteriores para hacer cálculos de probabilidad. Por ejemplo, preguntémonos por lo siguiente:
+
+* ¿Cuál es la probabilidad de que el número de hijos sea menor a 4?
+
+Esto en términos de fórmulas equivale a $P(X<4)$. Para calcular esta probabilidad, simplemente sumamos las probabilidades de los números que cumplen la condición $x<4$, es decir 
+$$P(X<4)=\sum_{i=0}^{3}P(X=x_i)=\sum_{i=0}^{3}f(x_i)=$$
+$$0.05+0.149+0.224+0.224=0.647$$
+
+Puede usted intuir de manera rápida como se calculara $P(X \geq 4)$? Haciendo uso de la regla del complemento, se tiene que $P(X \geq 4)=1-P(X<4)=1-0.647=0.353$.
+
+## Funciones de densidad para variables continuas
+
+En el caso en que las variables son continuas, ya no se cumple que la ecuación \@ref(eq:discrfd). Esto es debido a la naturaleza extraña de los números reales. Para cualquier número real $x$ sucede que
+\begin{equation}
+Si\; x\; es \; un \; numero \; real \; entonces \; P(X=x)=0 (\#eq:realpo)
+\end{equation}
+
+La ecuación \@ref(eq:realpo) parece contraintuitiva, sin embargo tiene sentido. Pensemos en la variable peso (medida en Kg). Cuando yo mido mi peso en una báscula obtenemos un valor como por ejemplo $78.3$. Es claro que la variable peso es una variable continua, y al serlo sus valores son números reales, números con una expansión en decimales infinita. Pero la báscula reporta solo un decimal, esto tiene que ver con la exactitud y precesión, conceptos discutidos anteriormente. El reporte de la báscula no es relamente un numero sino un rango:
+
+$$78.30000...., 78.39999....$$
+Es decir que la báscula está reportando que mi peso es un número real que se encuentra en el rango $78.30000...., 78.39999....$. De hecho el verdadero valor de mi peso es un número real con una expansión decimal infinita que nunca llegaremos a conocer, y es debido a esa expansión en decimales infinita que la ecuación \@ref(eq:realpo) se cumple. Cuando la variable es continua, no tiene sentido pensar en la probabilidad de que la variable tome un valor (un número real) arbitrario, tiene más sentido preguntarnos por la probabilidad de que la variable tome valores en un rango. Es decir que en vez de preguntarnos por la probabilidad de que el valor de peso sea igual a $78.3$ (es decir $P(X=78.3)$), es más apropiado pensar en $P(78.30000....<X< 78.39999....)$. La pregunta que surge a continuación es ¿cómo se calculan estas probabilidades?
+
+### Probabilidades para variables continuas
+
+Los conjuntos a los cuales medimos probabilidades en variables continuas son segmentos de recta definidos como $x\leq 5$, $x< 4$, $x \ge 10$, $x>15$, $2<x <10$, $-3\leq x <15$, etc. Lo invitamos a repasar los conceptos asociados a los segmentos de recta en los números reales visitando el siguiente link: https://www.matesfacil.com/ESO/numeros/intervalos/concepto/concepto-intervalo-abierto-cerrado-numeros-reales-extremos-test-online.html
+
+Las probabilidades en este contexto resultan ser áreas bajo la función de densidad, delimitados por los segmentos de recta a los cuales se les desea calcular la probabilidad. Por ejemplo, calcularemos la probabilidad de observar pesos entre 50 y 70 en ambos sexos:
+
+```{r fdmwP1, echo=FALSE, warning =F, results = 'asis',fig.width=8, fig.height=6, fig.cap="Probabilidad de peso entre 50 y 70"}
+xrange<-c(50,70)
+p11<-p1+geom_segment(aes(x=xrange,xend=xrange,y=0,yend=dnorm(c(50,70),mf,sdf)),linetype=2)+
+  stat_function(fun = dnorm, args = list(mean = mf,sd=sdf),
+                xlim =xrange,
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("segment", x = c(55), xend = c(40), 
+           y = c(0.03), yend = c(.04), colour = "red", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 38, y = .044, 
+           label = "P(list(50 <Weight)<70)==0.746",parse=T , size=3 , fontface="bold")+
+  ggtitle("A) Probabilidad de peso entre 50 y 70 para F")
+p12<-p1+geom_segment(aes(x=xrange,xend=xrange,y=0,yend=dnorm(xrange,mm,sdm)),linetype=2)+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm),
+                xlim =xrange,
+                geom = "area",fill="grey",alpha=0.5)+
+  annotate("segment", x = c(62.5), xend = c(75), 
+           y = c(0.015), yend = c(.04), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 80, y = .044, 
+           label = "P(list(50 <Weight)<70)==0.452",parse=T , size=3 , fontface="bold")+
+  ggtitle("B) Probabilidad de peso entre 50 y 70 para M")
+gridExtra::grid.arrange(grobs =list(p11,p12),nrow=2,ncol=1)
+```
+
+Las áreas bajo la curva se calculan mediante la operación integración (ver <http://hyperphysics.phy-astr.gsu.edu/hbasees/integ.html>).
+
+Sea $f_F(x)$ la función de densidad del peso de las mujeres y $f_M(x)$ la función de densidad del peso de los hombres. Estas funciones tienen las siguientes formulas:
+
+$$f_F(x)=\frac{1}{\sqrt{2\pi8^2}}exp\left(\frac{-(x-55)^2}{8^2}\right)$$
+$$f_M(x)=\frac{1}{\sqrt{2\pi12^2}}exp\left(\frac{-(x-70)^2}{12^2}\right)$$
+Estas son solo funciones matemáticas como por ejemplo $f(x)=10+15x$ o $f(x)=x^2$.
+
+Ahora, definimos las variables aleatorias $W_F$ y $W_M$ como los pesos de hombres y mujeres respectivamente. Entonces 
+
+\begin{equation}
+P(50<W_F<70)=\int_{50}^{70}f_F(x)dx=0.746 (\#eq:pwf1)
+\end{equation}
+
+\begin{equation}
+P(50<W_M<70)=\int_{50}^{70}f_M(x)dx=0.452 (\#eq:pwm1)
+\end{equation}
+
+Donde $P(50<W_F<70)$ y $P(50<W_M<70)$ denotan simplemente la probabilidad de observar pesos entre 50 y 70 para mujeres y hombres respectivamente. Estas probabilidades corresponden a las áreas mostradas en la figura \@ref(fig:fdmwP1). Nótese como estas áreas tienen su notación respectiva en las fórmulas \@ref(eq:pwf1) y \@ref(eq:pwm1).
+
+Otro tipo de cálculos son por ejemplo $P(W_F < 45)$ o $P(W_M>90)$
+
+```{r fdmwP2, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="Probabilidad de peso \"menor que\" y \"mayor que\""}
+xrange<-c(45,90)
+p11<-p1+geom_segment(aes(x=xrange,xend=xrange,y=c(0,0),yend=c(dnorm(xrange[1],mf,sdf),dnorm(xrange[2],mm,sdm))),linetype=2,col=2:1)+
+  stat_function(fun = dnorm, args = list(mean = mf,sd=sdf),
+                xlim = c(weight_lim[1],xrange[1]),
+                geom = "area",fill="red",alpha=0.5)+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm),
+                xlim = c(xrange[2],weight_lim[2]),
+                geom = "area",fill="grey",alpha=0.5)+
+  annotate("segment", x = c(40), xend = c(35), 
+           y = c(0.005), yend = c(.018), colour = "red", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("segment", x = c(92.5), xend = c(95), 
+           y = c(0.0025), yend = c(.0125), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 35, y = .02, 
+           label = "P(W[F]<45)==0.11",parse=T , size=3 , fontface="bold")+
+  annotate("text", x = 94, y = .015, 
+           label = "P(W[M]>90)==0.048",parse=T , size=3 , fontface="bold")
+p11
+```
+
+Lo anterior se escribe en símbolos de integración como
+
+\begin{equation}
+P(W_F<45)=\int_{-\infty}^{45}f_F(x)dx=0.11 (\#eq:pwf2)
+\end{equation}
+
+\begin{equation}
+P(W_M>90)=\int_{90}^{\infty}f_M(x)dx=0.048 (\#eq:pwm2)
+\end{equation}
+
+$P(W_F<45)=0.11$ se interpreta de la siguiente forma: "11% de las mujeres tienen pesos menores a 45kg" o "la probabilidad de observar mujeres con pesos menores a 45kg es de 11%".
+
+De forma similar, $P(W_M>90)=0.048$, significa que 4.8% de los hombres tienen pesos mayores a 90Kg o que la probabilidad de observar hombres con pesos mayores a 90kg es de 4.8%.
+
+Nótese como estas áreas tienen su notación respectiva en las fórmulas \@ref(eq:pwf2) y \@ref(eq:pwm2).
+
+$$P(50<W_M<70)=0.452$$ Significaría que 45.2% de los hombres tiene pesos entre 50 y 70 o que la probabilidad de observar hombres con pesos entre 50 y 70 es de 45.2%
+
+En base a esta información es claro que $P(W_F >45)=1-P(W_F<45)$  y de manera similar $P(W_M<90)=1-P(W_M>90)$. Esto se debe al aplicar la regla del complemento, vista anteriormente.
+
+```{r fdmwP3,echo=FALSE, warning =F, results = 'asis',fig.width=8, fig.height=6, fig.cap="Probabilidad del complemento"}
+p11<-p1+geom_segment(aes(x=xrange[1],xend=xrange[1],y=c(0),yend=c(dnorm(xrange[1],mf,sdf))),linetype=2,col=2)+
+  stat_function(fun = dnorm, args = list(mean = mf,sd=sdf),
+                xlim = c(weight_lim[1],xrange[1]),
+                geom = "area",fill="red",alpha=0.5)+
+  stat_function(fun = dnorm, args = list(mean = mf,sd=sdf),
+                xlim = c(xrange[1],weight_lim[2]),
+                geom = "area",fill="#CC3366",alpha=0.5)+
+  annotate("segment", x = c(40), xend = c(35), 
+           y = c(0.005), yend = c(.018), colour = "red", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("segment", x = c(55), xend = c(80), 
+           y = c(.035), yend = c(.04), colour = "#CC3366", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 35, y = .02, 
+           label = "P(W[F]<45)==0.11",parse=T , size=3 , fontface="bold")+
+  annotate("text", x = 94, y = .04, 
+           label = "list(P(W[F]>45)==1-0.11)==0.89",parse=T , size=3 , fontface="bold")+
+  ggtitle(expression(list(P(W[F]>45)==1-0.11)==0.89))
+p12<-p1+geom_segment(aes(x=xrange[2],xend=xrange[2],y=c(0),yend=c(dnorm(xrange[2],mm,sdm))),linetype=2,col=1)+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm),
+                xlim = c(weight_lim[2],xrange[2]),
+                geom = "area",fill="grey",alpha=0.5)+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm),
+                xlim = c(weight_lim[1],xrange[2]),
+                geom = "area",fill="#444444",alpha=0.5)+
+  annotate("segment", x = c(92.5), xend = c(95), 
+           y = c(0.0025), yend = c(.0125), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("segment", x = c(70), xend = c(75), 
+           y = c(.025), yend = c(.04), colour = "#444444", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 94, y = .015, 
+           label = "P(W[M]>90)==0.048",parse=T , size=3 , fontface="bold")+
+  annotate("text", x = 83, y = .043, 
+           label = "list(P(W[M]<90)==1-0.048)==0.952",parse=T , size=3 , fontface="bold")+
+  ggtitle(expression(list(P(W[M]>90)==1-0.048)==0.952))
+gridExtra::grid.arrange(grobs =list(p11,p12),nrow=2,ncol=1)
+```
+
+Finalmente, cabe preguntarse por lo siguiente: ¿Cuánto mide el área total bajo la función de densidad? Esta área tiene su notación respectiva en términos de integrales:
+
+$$P(-\infty<W_M<\infty)=\int_{-\infty}^{\infty}f_M(x)dx$$
+Es decir, la integral de menos infinito a infinito de la función de densidad $f_M(x)$. Como es de esperarse esta área (o probabilidad) mide $1$, de manera homologa al caso del axioma 2 de probabilidad visto anteriormente. La probabilidad de observar cualquier valor posible es $1$.
+
+Teniendo en cuenta esto, se da uno cuenta que el área bajo las funciones de densidad $f_F(x)$  y $f_M(x)$ es la misma y es de $1$. Por esta razón, se equivocan algunos estudiantes al pensar que la función de densidad $f_F(x)$ tiene más área que $f_M(x)$ infiriendo que hay más mujeres que hombres. Al tener ambas funciones de densidad la misma área, el grafico que hemos venido discutiendo no nos puede dar información acerca del número de hombres y mujeres.
+
+Estas notaciones de integrales para representar el área bajo la curva son algo complicadas, las presentamos acá para dar un punto de referencia técnico, sin embargo, lo importante es lo siguiente:
+
+* Para las variables continuas, los conjuntos a los cuales se les medirán probabilidades son segmentos de recta.
+* Las probabilidades se miden como áreas bajo la función de densidad delimitadas por los segmentos de recta.
+* Las áreas bajo la función de densidad se miden a través de la operación de integración.
+
+# Cuantiles
+
+Una vez entendido el concepto de funciones de densidad y de como se calculan las probabilidades como áreas bajo la curva, se puede introducir el concepto de cuantil. La idea es determinar cantidades de la variable aleatoria que acumulan cierta cantidad de probabilidad.
+
+Retomemos el ejemplo del peso y concentrémonos solamente en la distribución del peso de las mujeres. Queremos encontrar el valor de peso $q$ tal que $P(W_F<q)=0.25$. Es decir que queremos encontrar un valor de peso $q$ tal que el 25% de las mujeres tiene pesos menores a este valor.
+
+```{r qgraph1, echo=FALSE, warning =F, results = 'asis',fig.width=8, fig.height=4, fig.cap="Distribucion de peso para mujeres"}
+xlabels <- c("30","40","q=?","60","70","80","90","100","110")
+pf<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mf, sd = sdf),color=2) +
+  geom_segment(aes(x=50,xend=50,y=c(0),yend=c(dnorm(50,mf,sdf))),linetype=2,col=2)+
+  stat_function(fun = dnorm, args = list(mean = mf,sd=sdf),
+                xlim = c(weight_lim[1],50),
+                geom = "area",fill="red",alpha=0.5)+
+  ylab("f(weight)") + scale_x_continuous(breaks=seq(weight_lim[1],weight_lim[2], by=10),
+                                         labels= xlabels) + 
+  annotate("segment", x = c(45), xend = c(40), 
+           y = c(0.01), yend = c(.03), colour = "red", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 36, y = .033, 
+           label = "P(X<q)==0.25",parse=T , size=5 , fontface="bold")+
+  theme_bw()
+pf
+```
+En la gráfica se puede apreciar que q=50. Se dice que el 50kg es el cuantil 0.25
+
+## Definición de cuantil
+
+Se define el **cuantil p** como $q_p$ tal que
+
+$$P(X<q_p)=p$$
+
+Donde $X$ es una variable aleatoria cualquiera.
+
+```{r qgraph2, echo=FALSE, warning =F, results = 'asis',fig.width=8, fig.height=4, fig.cap="Definicion de cuantil"}
+xlabels <- expression(
+  "30",
+  "40",
+  q[p],
+  "60","70","80","90"
+)
+pf<-ggplot(data = data.frame(weight = c(30,90)), aes(weight)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mf, sd = sdf),color=2) +
+  geom_segment(aes(x=50,xend=50,y=c(0),yend=c(dnorm(50,mf,sdf))),linetype=2,col=2)+
+  stat_function(fun = dnorm, args = list(mean = mf,sd=sdf),
+                xlim = c(30,50),
+                geom = "area",fill="red",alpha=0.5)+
+  ylab("f(weight)") + scale_x_continuous("t", c(30,40,50,60,70,80,90), 
+                     limits=c(30,90), 
+                     labels= xlabels) + 
+  annotate("segment", x = c(45), xend = c(40), 
+           y = c(0.01), yend = c(.03), colour = "red", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 35, y = .033, 
+           label = "P(X<q[p])==p",parse=T , size=5 , fontface="bold")+
+  theme_bw()
+pf
+```
+
+Esta vez queremos encontrar valores de la variable de interés que acumulen $p$ de probabilidad por debajo de $q$.
+
+## Ejemplo
+
+Se tiene la siguiente información:
+
+* $P(W_F<44.74)=0.1$
+* $P(W_F<48.28)=0.2$
+* $P(W_F<50.80)=0.3$
+* $P(W_F<52.97)=0.4$
+* $P(W_F<55.00)=0.5$
+
+Cual es el valor del cuantil $q_{0.3}$?
+
+Solucion: $q_{0.3}=50.80$ ya que $P(W_F<50.80)=0.3$
+
+# Variable aleatoria
+
+En las discusiones anteriores se ha mencionado el termino variable aleatoria, ¿Qué es exactamente? La respuesta es sencilla. La definición técnica de una variable aleatoria es compleja, pero pare efectos prácticos tomaremos la siguiente definición:
+
+* *Se define una variable aleatoria como el sistema compuesto por un rango de valores y su función de densidad. *
+
+Esto quiere decir que, para una medida como el peso existen diferentes variables aleatorias. El grafico de las funciones de densidad del peso para hombres y mujeres así lo demuestra, existe una variable aleatoria de peso para mujeres y otra de peso para los hombres. El peso de los colombianos no es el mismo peso de los norte americanos. Una variable aleatoria consiste en el conjunto de posibles valores que toma la variable junto con su función de densidad.
+
+Ahora, para referirnos a una variable aleatoria usamos letras mayúsculas. En el ejemplo del peso tenemos dos variables aleatorias diferentes: $W_F$ y $W_M$. para referirnos a posibles valores arbitrarios que pueden tomar estas variables aleatorias usamos letras minúsculas. Veamos un ejemplo:
+
+$$P(W_F < x)$$
+
+Esta expresión se traduce de la siguiente manera: La probabilidad de que la variable aleatoria peso de las mujeres ($W_F$) sea menor a un valor arbitrario ($x$).
+
+Es fundamental la diferencia en los significados de los símbolos. Por ejemplo, en el caso de las variables aleatorias discretas habíamos verificado que 
+
+$$P(X=x)=f(x)$$
+
+Es decir que la probabilidad de que la variable aleatoria $X$ tome un valor arbitrario $x$ es definida simplemente por su función de densidad $f(x)$.
+
+# Parámetros
+
+En este punto, ya está clara la representación matemática que se emplea para expresar probabilidades en el caso de variables cuantitativas (bien sean discretas o continuas). La naturaleza de los conjuntos para los cuales se calculan probabilidades son segmentos de números (reales o enteros según sea el caso). Y la forma de calcular las probabilidades es como áreas bajo la función de densidad delimitados por los segmentos de números de interés. 
+
+Es hora de hablar con mayor detalle acerca de las fórmulas matemáticas que se usan como funciones densidad. Empezaremos estudiando la función de densidad del número de hijos estudiada anteriormente. Reproducimos la gráfica a continuación, para facilidad de lectura (figura \@ref(fig:fdpoisr)).
+
+```{r fdpoisr, echo=FALSE, warning =F, results = 'asis',fig.width=7, fig.height=4, fig.cap="Función de densidad para la variable número de hijos"}
+dtf_pois<-data.frame(x=factor(0:11),y=dpois(0:11,3))
+dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
+  ylab("f(x)")+ theme_bw()+
+  theme(axis.title.y = element_text(angle=0))+
+  annotate("text", x = dtf_pois$x, y = dtf_pois$y+.01, 
+           label = paste0("(",dtf_pois$x,", ",round(dtf_pois$y,3),")"),parse=F , size=2.5 , fontface="bold")
+  
+```
+
+La fórmula de esta función de densidad es la siguiente:
+
+\begin{equation}
+f(x)=\frac{3^x e^{-3}}{x!} (\#eq:pois1)
+\end{equation}
+
+En esta fórmula, $x$ es un posible valor arbitrario que puede tomar la variable aleatoria $X$ (número de hijos), $e$ es el número de *oiler*, $x!$ se denomina *equis factorial*, esto se define como
+
+$$n!=1\times 2 \times 3 ... \times n-1 \times n$$
+
+Y aparece también el numero $3$. Usted puede verificar que efectivamente al evaluar diferentes valores de $x$ en la formula se obtienen los valores que aparecen en la figura \@ref(fig:fdpoisr).
+
+## Función de densidad Poisson
+
+El numero $3$ es lo que se conoce como un parámetro y la formula general de la ecuación \@ref(eq:pois1) se conoce como la función de densidad *Poisson* y es la siguiente:
+
+\begin{equation}
+f(x|\lambda)=\frac{\lambda^x e^{-\lambda}}{x!} (\#eq:poisg)
+\end{equation}
+
+Donde $f(x|\lambda)$ es una nueva notación introducida, simplemente estamos definiendo que la función de densidad $f(x)$ depende de otra cantidad, $\lambda$ que se denomina parámetro de la función de densidad.
+
+Veamos cual es el efecto del parámetro $\lambda$ graficando diferentes funciones de densidad para diferentes valores de $\lambda$.
+<center>
+```{r , echo=F,warning =F, fig.width=6, fig.height=4}
+gifdpois <- image_read("dpois.gif") 
+gifdpois
+```
+
+```{r fdpoisr2, echo=FALSE, results = 'asis',fig.width=7, fig.height=4, fig.cap="Función de densidad para diferentes valores de <span>&lambda;</span>"}
+xrange<-0:50
+dtf_pois2<-data.frame(x=rep(xrange,5),
+                      y=c(dpois(xrange,3),
+                          dpois(xrange,7),
+                          dpois(xrange,12),
+                          dpois(xrange,19),
+                          dpois(xrange,25)),
+                      parameter=factor(rep(c(3,7,12,19,25), each = length(xrange)) ))
+
+dtf_pois2%>%ggplot(aes(x=x,y=y,color=parameter))+geom_point()+
+  theme_bw()+ labs(color = expression(lambda),
+                                 y=expression(paste("f(x|",lambda,")")))
+```
+</center>
+
+Observando la figura \@ref(fig:fdpoisr2), vemos que el valor de $\lambda$ afecta la forma de la función de densidad. Este es el concepto fundamental del parámetro.
+
+* Definición: *un * **_Parámetro_** *es una cantidad que controla la forma de una función de densidad*
+
+¿Puede usted describir como el parámetro $\lambda$ controla la forma de la funcion de denisdad *Poisson*?
+
+Existe otro aspecto importante de esta función de densidad y es el conjunto de valores para la cual está definida. Esta función de densidad se define para números enteros positivos. Por ejemplo, no tiene sentido pensar en $1.5$ hijos en un hogar. 
+
+## Función de densidad Normal
+
+Vamos ahora a explorar la fórmula de la función de densidad normal, de la cual ya hemos visto un ejemplo, de hecho las fórmulas de las funciones de densidad para el peso de hombres y mujeres en el ejemplo tratado anteriormente pertenecen a esta clase.
+
+La función de densidad normal se define mediante la siguiente ecuación:
+
+\begin{equation}
+f(x|\mu, \sigma^{2})=\frac{1}{\sqrt{2\pi \sigma^2}}exp\left(\frac{-(x-\mu)^2}{\sigma^2}\right) (\#eq:dfnorm)
+\end{equation}
+
+en esta ecuación hay dos parámetros: $\mu$ y $\sigma^{2}$. A continuación exploraremos la forma en que estos dos parámetros controlan la forma de la función de densidad.
+<center>
+```{r , echo=F,warning =F, fig.width=6, fig.height=4}
+gifdnorm <- image_read("dnorm.gif") 
+gifdnorm
+```
+
+```{r fdnorm1, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="Diferentes funciones de densidad normal"}
+m1<-4
+m2<-10
+
+sd1<-3
+sd2<-6
+weight_lim<-c(-14, 27)
+pdnorm1<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = m1, sd = sd1),aes(color="black")) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = m2, sd = sd1),aes(color="red")) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = m1, sd = sd2),aes(color="blue")) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = m2, sd = sd2),aes(color="green")) +
+  ylab(expression(paste("f(x|",mu,",",sigma^2,")"))) +xlab("x") + scale_x_continuous(breaks=seq(weight_lim[1],weight_lim[2], by =4)) + 
+  scale_color_identity(name = "",
+                          breaks = c("black", "red", "blue","green"),
+                          labels = c(substitute(paste(mu,"= ", v," ,",sigma^2,"= ",s),list(v=m1,s=sd1)),
+                                     substitute(paste(mu,"= ", v," ,",sigma^2,"= ",s),list(v=m2,s=sd1)), 
+                                     substitute(paste(mu,"= ", v," ,",sigma^2,"= ",s),list(v=m1,s=sd2)),
+                                     substitute(paste(mu,"= ", v," ,",sigma^2,"= ",s),list(v=m1,s=sd2))),
+                          guide = "legend")+
+  theme_bw()
+pdnorm1
+```
+</center>
+¿Puede usted describir como los parámetros $\mu$ y $\sigma^2$ controlan la forma de la función de densidad *Normal*?
+Nótese finalmente, cual es el conjunto de valores para los cuales la función de densidad normal está definida: todos los números reales, tanto positivos como negativos.
+
+## Función de densidad gamma
+Ahora estudiaremos una función de densidad que se encuentra exclusivamente definida para números reales positivos, la función de densidad gamma. Esta es su formula
+
+$$f(x|\alpha,\beta)=\frac{1}{\beta^{\alpha}\Gamma(\alpha)}x^{\alpha-1}e^{-x/\beta}$$
+De nuevo, $x$ son los valores que puede tomar la variable aleatoria, $\alpha, \; \beta$ son parámetros, y $\Gamma()$ (letra griega mayúscula gamma) es una función matemática especial. Esta fórmula matemática se ve complicada, a continuación presentamos algunas funciones de densidad para diferentes valores de $\alpha, \; \beta$
+
+```{r fdgamma1, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="Diferentes funciones de densidad gamma"}
+apar<-c(1,2,7.5,9)
+bpar<-c(2,2,1.3,0.5)
+gmaxlim<-c(0, 25)
+pgma1<-ggplot(data = data.frame(x = gmaxlim), aes(gmaxlim)) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[1], scale = bpar[1]),aes(color="black")) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[2], scale = bpar[2]),aes(color="red")) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[3], scale = bpar[3]),aes(color="blue")) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[4], scale = bpar[4]),aes(color="green")) +
+  ylab(expression(paste("f(x|",alpha,",",beta,")"))) +xlab("x") + scale_x_continuous(breaks=seq(gmaxlim[1],gmaxlim[2], by =5)) + 
+  scale_color_identity(name = "",
+                          breaks = c("black", "red", "blue","green"),
+                          labels = c(substitute(paste(alpha,"= ", v," ,",beta,"= ",s),list(v=apar[1],s=bpar[1])),
+                                     substitute(paste(alpha,"= ", v," ,",beta,"= ",s),list(v=apar[2],s=bpar[2])), 
+                                     substitute(paste(alpha,"= ", v," ,",beta,"= ",s),list(v=apar[3],s=bpar[3])),
+                                     substitute(paste(alpha,"= ", v," ,",beta,"= ",s),list(v=apar[4],s=bpar[4]))),
+                          guide = "legend")+
+  theme_bw()
+pgma1
+```
+En este caso es más difícil comprender cual es el efecto de $\alpha$ y $\beta$ en la forma de la función de densidad.
+
+## Función de densidad beta
+
+Esta función de densidad es interesante porque está definida para números reales exclusivamente entre $0$ y $1$. su fórmula es
+
+$$f(x|\alpha,\beta)=\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)}x^{\alpha-1}(1-x)^{\beta-1}$$
+veamos diferentes funciones de densidad para diferentes valores de $\alpha$ y $\beta$:
+
+```{r fdbeta1, echo=FALSE, results = 'asis',fig.width=5.5, fig.height=4, fig.cap="Diferentes funciones de densidad beta"}
+apar<-c(0.7,1,2.5,5)
+bpar<-c(0.7,1,5,1)
+btaxlim<-c(0, 1)
+pbta1<-ggplot(data = data.frame(x = btaxlim), aes(btaxlim)) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[1], shape2 = bpar[1]),aes(color="black")) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[2], shape2 = bpar[2]),aes(color="red")) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[3], shape2 = bpar[3]),aes(color="blue")) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[4], shape2 = bpar[4]),aes(color="green")) +
+  ylab(expression(paste("f(x|",alpha,",",beta,")"))) +xlab("x") + scale_x_continuous(breaks=seq(btaxlim[1],btaxlim[2], by =.1)) + 
+  scale_color_identity(name = "",
+                          breaks = c("black", "red", "blue","green"),
+                          labels = c(substitute(paste(alpha,"= ", v," ,",beta,"= ",s),list(v=apar[1],s=bpar[1])),
+                                     substitute(paste(alpha,"= ", v," ,",beta,"= ",s),list(v=apar[2],s=bpar[2])), 
+                                     substitute(paste(alpha,"= ", v," ,",beta,"= ",s),list(v=apar[3],s=bpar[3])),
+                                     substitute(paste(alpha,"= ", v," ,",beta,"= ",s),list(v=apar[4],s=bpar[4]))),
+                          guide = "legend")+
+  theme_bw()
+pbta1
+```
+Similar al caso de la función de densidad gamma, es difícil comprender cual es el efecto de $\alpha$ y $\beta$ en la forma de la función de densidad.
+
+## Parámetros de Localización y Dispersión
+
+Del estudio del efecto que tienen los parámetros en la función de densidad poisson y normal queda claro que existen dos aspecto principales en la forma de una función de densidad. El primer aspecto es el de la localización, los parámetros que controlan la localización en las funciones de densidad poisson y normal son $\lambda$ y $\mu$ respectivamente. Estos parámetros controlan en donde se ubica la zona más "alta" de la función de densidad en el eje x (técnicamente hablando controlan en donde se presenta el mayor valor de la función de densidad en relación con el eje x). 
+
+Por otra parte, vemos como el parametro $\sigma^2$ controla un aspecto geométrico en particular en la función de densidad normal. Controla la forma en que la función se concentra o no al rededor del parámetro de localización $\mu$. Valores grandes de $\sigma^2$ hacen que la curva se "aplane", mientras que valores pequeños de $\sigma^2$ hacen que la curva se "empine". Recuérdese que el área bajo la curva para uno u otra función de densidad es la misma ($1$), sugiriendo que estos cambios de aplanamiento o empinamiento hacen que la probabilidad se distribuya de manera diferente en uno u otro caso.
+
+Para aclarar esto, considere el siguiente ejemplo
+
+```{r fdnormcompV,echo=FALSE, results = 'asis',fig.width=8, fig.height=4.5, fig.cap="Probabilidad de peso entre 50 y 90 para dos funciones de densidad diferentes"}
+weight_lim<-c(10,130)
+xrange<-c(mm-20,mm+20)
+prb1<-round(pnorm(xrange[2],mm,sdm)-pnorm(xrange[1],mm,sdm),3)
+prb2<-round(pnorm(xrange[2],mm,sdm+15)-pnorm(xrange[1],mm,sdm+15),3)
+p11<-ggplot(data = data.frame(weight = weight_lim), aes(weight)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mm, sd = sdm),aes(color="black")) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mm, sd = sdm+15),aes(color="red"))
+  
+p112<-p11+geom_segment(aes(x=xrange,xend=xrange,y=0,yend=.035),linetype=2)+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm),
+                xlim =xrange,
+                geom = "area",fill="grey",alpha=0.5)+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm+15),
+                xlim =xrange,
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("segment", x = c(mm), xend = c(100), 
+           y = c(0.0275), yend = c(.03), colour = "grey", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("segment", x = c(mm), xend = c(40), 
+           y = c(dnorm(mm,mm,sdm+15)/2), yend = c(.0175), colour = "red", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 100+7, y = .03, 
+           label = prb1,parse=T , size=5 , fontface="bold")+
+  annotate("text", x = 40-7, y = .0175, 
+           label = prb2,parse=T , size=5 , fontface="bold")+
+  scale_x_continuous(breaks=seq(weight_lim[1],weight_lim[2],by=10))+
+  scale_color_identity(name = "",
+                          breaks = c("black", "red"),
+                          labels = c(substitute(paste(mu[M],"= ", v," ,",sigma[M]^2,"= ",s),list(v=mm,s=sdm^2)),
+                                     substitute(paste(mu[F],"= ", v," ,",sigma[F]^2,"= ",s),list(v=mm,s=(sdm+15)^2))),
+                          guide = "legend")+
+  theme_bw()
+p112
+```
+En la figura \@ref(fig:fdnormcompV) las dos funciones de densidad tienen el mismo valor del parámetro $\mu$, sin embargo, la función de densidad roja ($f_F(w)$) tiene el parámetro $\sigma_F^2= `r (sdm+15)^2`$ mientras la negra ($f_M(w)$) tiene $\sigma_M^2=`r (sdm)^2`$. Para la función de densidad roja se tiene que $P(50< W_F <90)= `r round(prb2,3)`$ mientras que para la negra, el mismo intervalo tiene probabilidad $P(50<W_M<90)= `r round(prb1,3)`$. ¿En cuál de las dos funciones de densidad hay mayor incertidumbre de observar valores entre $50$ y $90$? Claramente en la roja en donde $\sigma_F^2$ es mayor.
+
+Consideremos ahora otro enfoque. El objetivo ahora será el de encontrar un intervalo que concentre el $90%$ de probabilidad para las dos funciones de densidad $f_M(w)$ y $f_F(w)$.
+
+```{r fdnormcompV2,echo=FALSE, results = 'asis',fig.width=8, fig.height=4.5, fig.cap="90% de probabilidad"}
+qdf<-qnorm(c(.05,.95),mm,sdm+15)
+qdm<-qnorm(c(.05,.95),mm,sdm)
+
+p113<-p11+geom_segment(aes(x=qdf,xend=qdf,y=0,yend=dnorm(qdf,mm,sdm+15)),linetype=2,col="red")+
+  geom_segment(aes(x=qdm,xend=qdm,y=0,yend=dnorm(qdm,mm,sdm)),linetype=2,col="black")+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm),
+                xlim =qdm,
+                geom = "area",fill="grey",alpha=0.7)+
+  stat_function(fun = dnorm, args = list(mean = mm,sd=sdm+15),
+                xlim =qdf,
+                geom = "area",fill="red",alpha=0.3)+
+  scale_x_continuous(breaks=c(qdf[1],qdm[1],qdf[2],qdm[2])%>%round(3))+
+  scale_color_identity(name = "",
+                          breaks = c("black", "red"),
+                          labels = c(substitute(paste(mu[M],"= ", v," ,",sigma[M]^2,"= ",s),list(v=mm,s=sdm^2)),
+                                     substitute(paste(mu[F],"= ", v," ,",sigma[F]^2,"= ",s),list(v=mm,s=(sdm+15)^2))),
+                          guide = "legend")+
+  theme_bw()
+p113
+```
+
+En la figura \@ref(fig:fdnormcompV2) se presentan los rangos correspondientes para cada función de densidad. Ambas áreas acumulan la misma probabilidad (90%). Sin embargo, es claro que esta probabilidad se acumula en un rango mucho más amplio en la función de densidad $f_F(w)$, en comparación a $f_M(w)$. Decimos entonces, que hay mayor "dispersión" en $f_F(w)$ en comparación con $f_M(w)$. Esta "dispersión" hace referencia a que los posibles valores que podemos observar para la variable $W_f$ son mucho más dispersos, o tienen un rango de variación mayor en comparación con la variable $W_M$.
+
+En conclusión, hemos presentado como se ve el efecto de parámetros de localización y dispersión. Puede usted notar que el parámetro $\lambda$ en la función de densidad poisson es, además de ser un parámetro de localización, también un parámetro de dispersión? (ver figura \@ref(fig:fdpoisr2))
+
+# Parámetros generales
+
+Como vimos en la sección anterior, dependiendo de la fórmula de la función de densidad pueden existir uno o dos parámetros y su efecto en la forma de la función de densidad también depende de la formula matemática en cada caso. Sin embargo, existen otro tipo de parámetros que, en algunos casos, no se encuentran de manera explícita en estas fórmulas. Estos parámetros, sin embargo, son calculados usando la función matemática que describe la función de densidad. Los parámetros que estudiaremos a continuación son **El Valor esperado, La Moda, La Mediana, La Varianza** y **La Desviación Estándar**.
+
+## Valor Esperado
+
+El valor esperado de una variable aleatoria $X$ se define como
+
+\begin{equation}
+Valor \; Esperado \; de \; X=E(X)=\sum_{i=1}^{n}f(x_i)\times x_i (\#eq:EVdis)
+\end{equation}
+En el caso de una variable aleatoria discreta y 
+
+\begin{equation}
+Valor \; Esperado \; de \; X=E(X)=\int_{-\infty}^{\infty}xf(x)dx (\#eq:EVcont)
+\end{equation}
+
+En el caso de una variable aleatoria continua. Estas fórmulas parecen complicadas, empezaremos nuestra exploración de este parámetro en el caso de una variable aleatoria discreta.
+Recuérdese que en el caso de una variable discreta $f(x_i)=P(X=x_i)$, luego la ecuación \@ref(eq:EVdis) se puede reescribir como
+
+$$E(X)=\sum_{i=1}^{n}f(x_i)\times x_i=$$
+$$\sum_{i=1}^{n}P(X=x_i) \times x_i$$
+
+Es decir que el valor esperado para una variable discreta consiste en la suma ponderada de todos sus posibles valores multiplicados por su probabilidad. Calculemos el valor esperado para la variable número de hijos. Reproducimos la gráfica a continuación, para facilidad de lectura (figura \@ref(fig:fdpoisrr2)).
+
+```{r fdpoisrr2, echo=FALSE, results = 'asis',fig.width=7, fig.height=4, fig.cap="Función de densidad para la variable número de hijos"}
+dtf_pois<-data.frame(x=factor(0:11),y=dpois(0:11,3))
+dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
+  ylab("f(x)")+ theme_bw()+
+  theme(axis.title.y = element_text(angle=0))+
+  annotate("text", x = dtf_pois$x, y = dtf_pois$y+.01, 
+           label = paste0("(",dtf_pois$x,", ",round(dtf_pois$y,3),")"),parse=F , size=2.5 , fontface="bold")
+```
+
+Según la formula \@ref(eq:EVdis) el cálculo del valor esperado es el siguiente:
+
+$$E(X)=\sum_{i=1}^{n}f(x_i)\times x_i=$$
+$$E(X)=f(0)\times 0+f(1)\times 1+f(2)\times 2+ ... +f(11)\times 11=$$
+$$`r dtf_pois$x[1]` \times `r round(dtf_pois$y[1],3)`+`r dtf_pois$x[2]` \times `r round(dtf_pois$y[2],3)`+`r dtf_pois$x[3]` \times `r round(dtf_pois$y[3],3)`+...+`r dtf_pois$x[12]` \times `r round(dtf_pois$y[12],3)`=$$
+$$`r sum((0:11)*dtf_pois$y)` \approx 3$$
+
+El cálculo de valores esperados para funciones de densidad continuas es más complejo y no será abordado aquí.
+
+### Valor esperado en algunas funciones de densidad
+
+A continuación presentaremos los valores esperados para algunas funciones de densidad
+
+* Función de densidad Poisson: 
+$$f(x|\lambda)=\frac{\lambda^x e^{-\lambda}}{x!}$$
+$$E(X)=\lambda$$
+
+* Función de densidad Normal: 
+$$f(x|\mu, \sigma^{2})=\frac{1}{\sqrt{2\pi \sigma^2}}exp\left(\frac{-(x-\mu)^2}{\sigma^2}\right)$$
+$$E(X)=\mu$$
+
+* Función de densidad Gamma: 
+$$f(x|\alpha,\beta)=\frac{1}{\beta^{\alpha}\Gamma(\alpha)}x^{\alpha-1}e^{-x/\beta}$$
+$$E(X)=\alpha \beta$$
+
+* Función de densidad Beta: 
+$$f(x|\alpha,\beta)=\frac{\Gamma(\alpha+\beta)}{\Gamma(\alpha)\Gamma(\beta)}x^{\alpha-1}(1-x)^{\beta-1}$$
+$$E(X)=\frac{\alpha}{\alpha+\beta}$$
+
+Nótese que en el caso de las funciones de densidad Poisson y Normal, el valor esperado corresponde a un parámetro natural ($\lambda$ y $\mu$ respectivamente) mientras que para el caso de las distribuciones Gamma y Beta el valor esperado no corresponde exactamente a ningún parámetro natural, sin embargo se calculan en base a estos.
+
+A continuación presentamos algunas distribuciones junto con su correspondiente valor esperado.
+
+```{r EVps, echo=FALSE, results = 'asis',fig.width=9, fig.height=7, fig.cap="Valores esperados para diferentes funciones de densidad"}
+dtf_pois<-data.frame(x=0:11,y=dpois(0:11,3))
+
+pdfpoissE1<-dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
+  ylab("f(x)")+ theme_bw()+
+  theme(axis.title.y = element_text(angle=0))+ ggtitle(substitute(paste("A) Poisson, ", lambda," = ",v),list(v=3)))+
+  annotate("segment", x = c(3), xend = c(3), 
+           y = c(0), yend = c(0.075), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 3, y = 0.09, 
+           label = paste0("E(X)= ",3),size=2.5)
+
+dtf_pois<-data.frame(x=0:20,y=dpois(0:20,9))
+
+pdfpoissE2<-dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
+  ylab("f(x)")+ theme_bw()+
+  theme(axis.title.y = element_text(angle=0))+ ggtitle(substitute(paste("B) Poisson, ", lambda," = ",v),list(v=9)))+
+  annotate("segment", x = c(9), xend = c(9), 
+           y = c(0), yend = c(0.075), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 9, y = 0.09, 
+           label = paste0("E(X)= ",9),size=2.5)
+
+weight_lim<-c(5, 55)
+mymu<-mean(weight_lim)
+pdnormE<-ggplot(data = data.frame(x = weight_lim), aes(x)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mymu, sd = 8))+
+  ggtitle(substitute(paste("C) Normal, ", mu," = ",v,", ",sigma^2,"= ",s),list(v=mymu,s=8^2)))+
+  ylab("f(x)")+
+  annotate("segment", x = c(mymu), xend = c(mymu), 
+           y = c(0), yend = c(0.02), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = mymu, y = 0.022, 
+           label = paste0("E(X)= ",mymu),size=2.5)+
+  theme_bw()
+
+apar<-c(1,1.5,7.5,9)
+bpar<-c(2,20,1.3,0.5)
+gammaE<-apar*bpar
+gmaxlim<-c(0, 25)
+pgmaE1<-ggplot(data = data.frame(x = gmaxlim), aes(x)) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[1], scale = bpar[1]))+
+  ggtitle(substitute(paste("D) Gamma, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[1],s=bpar[1])))+
+  ylab("f(x)")+
+  annotate("segment", x = c(gammaE[1]), xend = c(gammaE[1]), 
+           y = c(0), yend = c(0.04), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = gammaE[1], y = 0.06, 
+           label = paste0("E(X)= ",gammaE[1]),size=2.5)+
+  theme_bw()
+
+gmaxlim2<-c(0,90)
+pgmaE2<-ggplot(data = data.frame(x = gmaxlim2), aes(x)) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[2], scale = bpar[2]))+
+  ggtitle(substitute(paste("E) Gamma, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[2],s=bpar[2])))+
+  ylab("f(x)")+
+  annotate("segment", x = c(gammaE[2]), xend = c(gammaE[2]), 
+           y = c(0), yend = c(0.03), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = gammaE[2], y = 0.033, 
+           label = paste0("E(X)= ",gammaE[2]),size=2.5)+
+  theme_bw()
+
+pgmaE3<-ggplot(data = data.frame(x = gmaxlim), aes(x)) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[3], scale = bpar[3]))+
+  ggtitle(substitute(paste("F) Gamma, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[3],s=bpar[3])))+
+  ylab("f(x)")+
+  annotate("segment", x = c(gammaE[3]), xend = c(gammaE[3]), 
+           y = c(0), yend = c(0.04), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = gammaE[3], y = 0.05, 
+           label = paste0("E(X)= ",gammaE[3]),size=2.5)+
+  theme_bw()
+
+apar<-c(0.7,2.5,5)
+bpar<-c(0.7,5,1)
+betaE<-apar/(apar+bpar)
+btaxlim<-c(0, 1)
+pbtaE1<-ggplot(data = data.frame(x = btaxlim), aes(x)) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[1], shape2 = bpar[1]))+
+  ggtitle(substitute(paste("G) Beta, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[1],s=bpar[1])))+
+  ylab("f(x)")+
+  annotate("segment", x = c(betaE[1]), xend = c(betaE[1]), 
+           y = c(0), yend = c(1.2), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = betaE[1], y = 1.3, 
+           label = paste0("E(X)= ",betaE[1]),size=2.5)+
+  theme_bw()
+
+pbtaE2<-ggplot(data = data.frame(x = btaxlim), aes(x)) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[2], shape2 = bpar[2]))+
+  ggtitle(substitute(paste("H) Beta, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[2],s=bpar[2])))+
+  ylab("f(x)")+
+  annotate("segment", x = c(betaE[2]), xend = c(betaE[2]), 
+           y = c(0), yend = c(1.2), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = betaE[2], y = 1.3, 
+           label = paste0("E(X)= ",round(betaE[2],3)),size=2.5)+
+  theme_bw()
+
+pbtaE3<-ggplot(data = data.frame(x = btaxlim), aes(x)) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[3], shape2 = bpar[3]))+
+  ggtitle(substitute(paste("I) Beta, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[3],s=bpar[3])))+
+  ylab("f(x)")+
+  annotate("segment", x = c(betaE[3]), xend = c(betaE[3]), 
+           y = c(0), yend = c(1.1), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = betaE[3], y = 1.2, 
+           label = paste0("E(X)= ",round(betaE[3],3)),size=2.5)+
+  theme_bw()
+
+gridExtra::grid.arrange(pdfpoissE1,pdfpoissE2, pdnormE, pgmaE1, pgmaE2, pgmaE3, pbtaE1, pbtaE2, pbtaE3, 
+             ncol = 3, nrow = 3)
+```
+
+¿Al observar la figura \@ref(fig:EVps) que podemos decir del valor esperado? 
+
+El hecho de que para las funciones de densidad Poisson y Normal el valor esperado coincida con los parámetros $\lambda$ y $\mu$ nos indica que el valor esperado debe ser un parámetro de localización. La figura \@ref(fig:EVps) confirma esta suposición, sin embargo podría usted definir que es el valor esperado? La definición técnica del valor esperado esta fuera del alcance de este curso, sin embargo, daremos una definición practica:
+
+* El Valor Esperado es un valor al rededor del cual hay una alta densidad de probabilidad
+
+Esta definición indica que el valor esperado es un número que podemos ubicar en el conjunto de posibles valores de la variable aleatoria (en el eje x de los gráficos de función de densidad) y además, que las zonas en donde la función de densidad toma sus mayores valores se encuentra cerca del valor esperado ("... un valor al rededor del cual hay una alta densidad de probabilidad").
+
+Veamos cómo se ajusta esta definición a los gráficos de la figura \@ref(fig:EVps).
+
+En los gráficos A, B, C el valor esperado coincide con el parámetro natural y de hecho la función de densidad obtiene su mayor valor en ese mismo valor (el valor de las $x$ para la cual la curva es más alta). Para las figuras D, E, F, H e I, el valor esperado no coincide exactamente con el valor de las $x$ en donde la función de densidad obtiene su mayor valor, sin embargo, el valor esperado está bastante cerca a este valor. Finalmente, para la función de densidad de la figura G, de hecho el valor esperado se encuentra en el lugar donde la función de densidad obtiene su menor valor (donde la curva es más baja). ¿Qué sucede en este caso? Aun en este caso la definición es apropiada, si bien en el valor esperado se encuentra en el lugar en donde la curva es más baja, alrededor de él, se encuentran regiones con alta densidad de probabilidad.
+
+## Moda
+
+El siguiente parámetro general que estudiaremos es la **Moda**. Su definición es la siguiente:
+
+* La **Moda** se define como el valor en el cual, la función de densidad es máxima.
+
+A continuación presentamos las modas para diferentes funciones de densidad
+
+```{r Modaps, echo=FALSE, results = 'asis',fig.width=9, fig.height=7, fig.cap="Modas para diferentes funciones de densidad"}
+dtf_pois<-data.frame(x=0:11,y=dpois(0:11,3))
+
+pdfpoissE1<-dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
+  ylab("f(x)")+ theme_bw()+
+  theme(axis.title.y = element_text(angle=0))+ ggtitle(substitute(paste("A) Poisson, ", lambda," = ",v),list(v=3)))+
+  annotate("segment", x = c(3), xend = c(3), 
+           y = c(0), yend = c(0.075), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 3, y = 0.09, 
+           label = paste0("Moda(X)= ",3),size=2.5)
+
+dtf_pois<-data.frame(x=0:20,y=dpois(0:20,9))
+
+pdfpoissE2<-dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
+  ylab("f(x)")+ theme_bw()+
+  theme(axis.title.y = element_text(angle=0))+ ggtitle(substitute(paste("B) Poisson, ", lambda," = ",v),list(v=9)))+
+  annotate("segment", x = c(9), xend = c(9), 
+           y = c(0), yend = c(0.075), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 9, y = 0.09, 
+           label = paste0("Moda(X)= ",9),size=2.5)
+
+weight_lim<-c(5, 55)
+mymu<-mean(weight_lim)
+pdnormE<-ggplot(data = data.frame(x = weight_lim), aes(x)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mymu, sd = 8))+
+  ggtitle(substitute(paste("C) Normal, ", mu," = ",v,", ",sigma^2,"= ",s),list(v=mymu,s=8^2)))+
+  ylab("f(x)")+
+  annotate("segment", x = c(mymu), xend = c(mymu), 
+           y = c(0), yend = c(0.02), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = mymu, y = 0.022, 
+           label = paste0("Moda(X)= ",mymu),size=2.5)+
+  theme_bw()
+
+apar<-c(1,1.5,7.5,9)
+bpar<-c(2,20,1.3,0.5)
+gammaMode<-(apar-1)*bpar
+gmaxlim<-c(0, 25)
+pgmaE1<-ggplot(data = data.frame(x = gmaxlim), aes(x)) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[1], scale = bpar[1]))+
+  ggtitle(substitute(paste("D) Gamma, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[1],s=bpar[1])))+
+  ylab("f(x)")+
+  annotate("segment", x = c(gammaMode[1]), xend = c(5), 
+           y = c(0), yend = c(.2), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 5, y = .22, 
+           label = paste0("Moda(X)= ",gammaMode[1]),size=2.5)+
+  theme_bw()
+
+gmaxlim2<-c(0,90)
+pgmaE2<-ggplot(data = data.frame(x = gmaxlim2), aes(x)) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[2], scale = bpar[2]))+
+  ggtitle(substitute(paste("E) Gamma, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[2],s=bpar[2])))+
+  ylab("f(x)")+
+  annotate("segment", x = c(gammaMode[2]), xend = c(gammaMode[2]), 
+           y = c(0), yend = c(0.03), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = gammaMode[2], y = 0.033, 
+           label = paste0("Moda(X)= ",gammaMode[2]),size=2.5)+
+  theme_bw()
+
+pgmaE3<-ggplot(data = data.frame(x = gmaxlim), aes(x)) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[3], scale = bpar[3]))+
+  ggtitle(substitute(paste("F) Gamma, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[3],s=bpar[3])))+
+  ylab("f(x)")+
+  annotate("segment", x = c(gammaMode[3]), xend = c(gammaMode[3]), 
+           y = c(0), yend = c(0.04), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = gammaMode[3], y = 0.05, 
+           label = paste0("Moda(X)= ",gammaMode[3]),size=2.5)+
+  theme_bw()
+
+apar<-c(0.7,2.5,5)
+bpar<-c(0.7,5,1)
+betaMode<-(apar-1)/(apar+bpar-2)
+btaxlim<-c(0, 1)
+pbtaE1<-ggplot(data = data.frame(x = btaxlim), aes(x)) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[1], shape2 = bpar[1]))+
+  ggtitle(substitute(paste("G) Beta, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[1],s=bpar[1])))+
+  ylab("f(x)")+
+  annotate("segment", x = c(btaxlim), xend = c(.25,.75), 
+           y = c(0,0), yend = c(1.6,1.6), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = c(.25,.75), y = c(1.7,1.7), 
+           label = paste0("Moda(X)= ",btaxlim),size=2.5)+
+  theme_bw()
+
+pbtaE2<-ggplot(data = data.frame(x = btaxlim), aes(x)) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[2], shape2 = bpar[2]))+
+  ggtitle(substitute(paste("H) Beta, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[2],s=bpar[2])))+
+  ylab("f(x)")+
+  annotate("segment", x = c(betaMode[2]), xend = c(betaMode[2]), 
+           y = c(0), yend = c(1.2), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = betaMode[2], y = 1.3, 
+           label = paste0("Moda(X)= ",round(betaMode[2],3)),size=2.5)+
+  theme_bw()
+
+pbtaE3<-ggplot(data = data.frame(x = btaxlim), aes(x)) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[3], shape2 = bpar[3]))+
+  ggtitle(substitute(paste("I) Beta, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[3],s=bpar[3])))+
+  ylab("f(x)")+
+  annotate("segment", x = c(betaMode[3]), xend = c(.7), 
+           y = c(0), yend = c(2), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = .68, y = 2.2, 
+           label = paste0("Moda(X)= ",round(betaMode[3],3)),size=2.5)+
+  theme_bw()
+
+gridExtra::grid.arrange(pdfpoissE1,pdfpoissE2, pdnormE, pgmaE1, pgmaE2, pgmaE3, pbtaE1, pbtaE2, pbtaE3, 
+                        ncol = 3, nrow = 3)
+```
+
+En los gráficos A, B, C la moda coincide con el parámetro natural, por tanto el valor esperado y la moda son el mismo valor. En las otras figuras la moda es diferente del valor esperado. El caso de la figura G es especial. Esta función de densidad tiene dos modas: el valor 0 y 1. Esto implica que la moda puede no ser única.
+
+## Mediana
+ 
+ La definición de la mediana es la siguiente:
+ 
+ * La *mediana* es el valor para el cual, la probabilidad de observar valores menores o iguales a él, es del 50%
+ 
+En términos de fórmulas se tiene que 
+
+$$Mediana \; de \; X=med(X)$$ 
+\begin{equation}
+P(X \leq med(X))=0.5(\#eq:med)
+\end{equation}
+
+Para encontrar la mediana se debe despejar en $x$ la ecuación $P(X \leq x)=0.5$. Esto no siempre es fácil, y la estrategia consiste en evaluar $P(X \leq x)$ para diferentes valor de $x$ hasta encontrar el valor para el cual se acumula una probabilidad de 0.5, como se puede apreciar en la siguiente animación.
+
+<center>
+```{r , echo=F,warning =F, fig.width=6, fig.height=4,  fig.cap="Determinación de la mediana"}
+med_dnorm <- image_read("med_dnorm.gif") 
+med_dnorm
+```
+</center>
+
+Como lo muestra la animacion, se logra la acumulacion del 50% de probabilidad cuando el valor es $70$. Esto implica que la mediana para esta funcion de densidad es $70$.
+
+A continuación presentamos las medianas para diferentes funciones de densidad:
+
+```{r Medsps, echo=FALSE, results = 'asis',fig.width=9, fig.height=7, fig.cap="Medianas para diferentes funciones de densidad"}
+dtf_pois<-data.frame(x=0:11,y=dpois(0:11,3))
+
+pdfpoissMed1<-dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
+  ylab("f(x)")+ theme_bw()+
+  theme(axis.title.y = element_text(angle=0))+ ggtitle(substitute(paste("Poisson, ", lambda," = ",v),list(v=3)))+
+  annotate("segment", x = c(0:3), xend = c(0:3), 
+           y = c(rep(0,4)), yend = c(dpois(0:3,3)), colour = "red", size=4, alpha=0.6)+
+  annotate("text", x = 6, y = 0.15, 
+           label = paste0("med(X)= ",3),size=2.5)+theme_bw()
+
+
+dtf_pois<-data.frame(x=0:20,y=dpois(0:20,9))
+
+pdfpoissMed2<-dtf_pois%>%ggplot(aes(x=x,y=y))+geom_point()+
+  ylab("f(x)")+ theme_bw()+
+  theme(axis.title.y = element_text(angle=0))+ ggtitle(substitute(paste("B) Poisson, ", lambda," = ",v),list(v=9)))+
+  annotate("segment", x = c(0:9), xend = c(0:9), 
+           y = c(rep(0,10)), yend = c(dpois(0:9,9)), colour = "red", size=4, alpha=0.6)+
+  annotate("text", x = 14, y = 0.1, 
+           label = paste0("med(X)= ",9),size=2.5)+theme_bw()
+
+weight_lim<-c(5, 55)
+mymu<-mean(weight_lim)
+pdnormMed<-ggplot(data = data.frame(x = weight_lim), aes(x)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mymu, sd = 8))+
+  ggtitle(substitute(paste("C) Normal, ", mu," = ",v,", ",sigma^2,"= ",s),list(v=mymu,s=8^2)))+
+  ylab("f(x)")+
+  stat_function(fun = dnorm, args = list(mean = mymu,sd=8),
+                xlim = c(weight_lim[1],qnorm(.5,mymu,8)),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = 45, y = 0.04, 
+           label = paste0("med(X)= ",qnorm(.5,mymu,8)),size=2.5)+
+  theme_bw()
+
+apar<-c(1,1.5,7.5,9)
+bpar<-c(2,20,1.3,0.5)
+
+gmaxlim<-c(0, 25)
+pgmaMed1<-ggplot(data = data.frame(x = gmaxlim), aes(x)) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[1], scale = bpar[1]))+
+  ggtitle(substitute(paste("D) Gamma, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[1],s=bpar[1])))+
+  ylab("f(x)")+
+  stat_function(fun = dgamma, args = list(shape = apar[1], scale = bpar[1]),
+                xlim = c(gmaxlim[1],qgamma(.5,shape = apar[1], scale = bpar[1])),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = 8, y = 0.4, 
+           label = paste0("med(X)= ",qgamma(.5,shape = apar[1], scale = bpar[1])%>%round(2)),size=2.5)+
+  theme_bw()
+
+gmaxlim2<-c(0,90)
+pgmaMed2<-ggplot(data = data.frame(x = gmaxlim2), aes(x)) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[2], scale = bpar[2]))+
+  ggtitle(substitute(paste("E) Gamma, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[2],s=bpar[2])))+
+  ylab("f(x)")+
+  stat_function(fun = dgamma, args = list(shape = apar[2], scale = bpar[2]),
+                xlim = c(gmaxlim2[1],qgamma(.5,shape = apar[2], scale = bpar[2])),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = 38, y = 0.02, 
+           label = paste0("med(X)= ",qgamma(.5,shape = apar[2], scale = bpar[2])%>%round(2)),size=2.5)+
+  theme_bw()
+  
+pgmaMed3<-ggplot(data = data.frame(x = gmaxlim), aes(x)) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[3], scale = bpar[3]))+
+  ggtitle(substitute(paste("F) Gamma, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[3],s=bpar[3])))+
+  ylab("f(x)")+
+  stat_function(fun = dgamma, args = list(shape = apar[3], scale = bpar[3]),
+                xlim = c(gmaxlim[1],qgamma(.5,shape = apar[3], scale = bpar[3])),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = 18, y = 0.075, 
+           label = paste0("med(X)= ",qgamma(.5,shape = apar[3], scale = bpar[3])%>%round(2)),size=2.5)+
+  theme_bw()
+
+apar<-c(0.7,2.5,5)
+bpar<-c(0.7,5,1)
+btaxlim<-c(0, 1)
+pbtaMed1<-ggplot(data = data.frame(x = btaxlim), aes(x)) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[1], shape2 = bpar[1]))+
+  ggtitle(substitute(paste("G) Beta, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[1],s=bpar[1])))+
+  ylab("f(x)")+
+  stat_function(fun = dbeta, args = list(shape1 = apar[1], shape2 = bpar[1]),
+                xlim = c(gmaxlim[1],qbeta(.5,shape1 = apar[1], shape2 = bpar[1])),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = .5, y = 2, 
+           label = paste0("med(X)= ",qbeta(.5,shape1 = apar[1], shape2 = bpar[1])%>%round(2)),size=2.5)+
+  theme_bw()
+
+pbtaMed2<-ggplot(data = data.frame(x = btaxlim), aes(x)) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[2], shape2 = bpar[2]))+
+  ggtitle(substitute(paste("H) Beta, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[2],s=bpar[2])))+
+  ylab("f(x)")+
+  stat_function(fun = dbeta, args = list(shape1 = apar[2], shape2 = bpar[2]),
+                xlim = c(gmaxlim[1],qbeta(.5,shape1 = apar[2], shape2 = bpar[2])),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = .7, y = 2, 
+           label = paste0("med(X)= ",qbeta(.5,shape1 = apar[2], shape2 = bpar[2])%>%round(2)),size=2.5)+
+  theme_bw()
+
+
+pbtaMed3<-ggplot(data = data.frame(x = btaxlim), aes(x)) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[3], shape2 = bpar[3]))+
+  ggtitle(substitute(paste("I) Beta, ", alpha," = ",v,", ",beta,"= ",s),list(v=apar[3],s=bpar[3])))+
+  ylab("f(x)")+
+  stat_function(fun = dbeta, args = list(shape1 = apar[3], shape2 = bpar[3]),
+                xlim = c(gmaxlim[1],qbeta(.5,shape1 = apar[3], shape2 = bpar[3])),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = .5, y = 4, 
+           label = paste0("med(X)= ",qbeta(.5,shape1 = apar[3], shape2 = bpar[3])%>%round(2)),size=2.5)+
+  theme_bw()
+
+gridExtra::grid.arrange(pdfpoissMed1,pdfpoissMed2, pdnormMed, pgmaMed1, pgmaMed2, pgmaMed3, pbtaMed1, pbtaMed2, pbtaMed3, 
+                        ncol = 3, nrow = 3)
+```
+
+## Varianza
+
+El siguiente parámetro que estudiaremos a continuación se denomina varianza y su fórmula es la siguiente:
+
+\begin{equation}
+Varianza \; de \; X = Var(X) = E \left[ (X- E(X))^2 \right] (\#eq:var)
+\end{equation}
+
+Donde $E()$ indica el valor esperado. La varianza, según la formula \@ref(eq:var), es el valor esperado de la diferencia de la variable aleatoria menos su valor esperado al cuadrado. La interpretación de esta fórmula no es directa, es más fácil ver su comportamiento en un gráfico. De hecho, en la distribución normal ya nos habíamos topado con la varianza. En esta distribución, la varianza es el mismo parámetro $\sigma^2$.
+
+<center>
+```{r dnormvar, echo=F,warning =F, fig.width=6, fig.height=4,  fig.cap="varianza ($\\sigma^2$) en la función de densidad normal"}
+med_dnorm <- image_read("dnorm_var.gif") 
+med_dnorm
+```
+</center>
+
+Observando la figura \@ref(fig:dnormvar) es claro que a mayor varianza, la función de densidad es más plana y la probabilidad se distribuye en un rango más amplio de valores (ver también figura \@ref(fig:fdnormcompV2)).
+
+## Desviación Estándar
+
+La desviación estándar es simplemente la raíz cuadrada de la varianza, esto es:
+
+\begin{equation}
+Desviacion \; Estandar \; de \; X = sd(X) = \sqrt{Var(X)} (\#eq:sd)
+\end{equation}
+
+La desviación estándar es más conveniente que la varianza, pues las unidades de la desviación estándar son las mismas de la variable original, mientras que las unidades de la varianza están en unidades originales al cuadrado. Por ejemplo si la varianza del peso es 729 (ver figura \@ref(fig:fdnormcompV2)), esto quiere decir que este valor de varianza tiene unidades de $kg^2$. Desde el punto de vista físico, esto es difícil de interpretar, sin embargo $\sqrt{729 kg^2}=27kg$ seria la desviación estándar asociada, la cual tiene unidades de medida en $kg$.
+
+La desviación estándar, sin embargo, ofrece unas cotas mínimas en las cuales se asegura la acumulación de determinadas probabilidades. Esto es gracias a la Desigualdad de Chebychev:
+
+\begin{equation}
+P \left(|X-E(X)|\geq k \times sd(X) \right)\leq 1/k^2 (\#eq:chvineq)
+\end{equation}
+
+Que es equivalente a 
+\begin{equation}
+P \left(E(X)-k \times sd(X)\leq X \leq E(X)+k \times sd(X) \right)\geq 1-1/k^2  (\#eq:chvineq2)
+\end{equation}
+
+En donde $E(X)$ es el valor esperado, $sd(X)$ es la desviación estándar y $k$ es un numero constante positivo. En base a esta fórmula es posible decir que, por ejemplo, para cualquier variable aleatoria, no importa la forma de su función de densidad, se cumple que la probabilidad de observar valores, a más o menos 3 desviaciones estándar del valor esperado es de $1-1/3^2=0.8888$.
+
+<center>
+```{r chvif, echo=FALSE, results = 'asis',fig.width=5.5, fig.height=4, fig.cap="Desigualdad de Chebychev"}
+myx_lim<-c(-3, 3)
+plim<-c(-2,2)
+xlabels <- expression(
+  E(X)-k%*%sd(X),
+  E(X),
+  E(X)+k%*%sd(X)
+)
+ggplot(data = data.frame(myx_lim = myx_lim), aes(myx_lim)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = 0, sd = 1),color=1) +
+  geom_segment(aes(x=plim,xend=plim,y=c(0,0),yend=c(dnorm(plim,0,1))),linetype=2,col=2)+
+  stat_function(fun = dnorm, args = list(mean = 0,sd=1),
+                xlim = plim,
+                geom = "area",fill="red",alpha=0.5)+
+  ylab("f(x)")+
+  scale_x_continuous("x", c(-2,0,2),limits=myx_lim, 
+                    labels= xlabels) + 
+  scale_y_continuous(limits=c(0,0.5))+
+  annotate("segment", x = c(0), xend = c(0), 
+           y = c(0.2), yend = c(0.45), colour = "black", size=1, alpha=0.6, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = 0.4, y = 0.48, 
+           label = "P(list(E(X)-k%*%sd(X)<=X)<E(X)+k%*%sd(X))>=1-1/k^2",parse = TRUE,size=4)+
+  
+  theme_bw()
+```
+</center>
+A continuación presentamos las probabilidades mínimas para diferentes valores de $k$
+
+```{r pdtab, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+cheb_tbl<-data.frame(k=1:4,PMA=1-1/(1:4)^2)
+res<-kable(cheb_tbl,caption="probabilidades mínimas",row.names =F)
+kable_styling(res,"striped", position = "center",full_width = F)
+```
+Donde PMA hace referencia a probabilidad mínima acumulada.
+
+Veamos un ejemplo. Suponga que el valor esperado del peso en cierta población es de $80kg$ y que la desviación estándar es de $15kg$. Usando la formula \@ref(eq:chvineq2) podemos dar las siguientes cotas de probabilidad para valores de k igual a 2 y 3:
+
+* Si $k=2$ entonces 
+
+$$P \left(E(X)-k \times sd(X)\leq X \leq E(X)+k \times sd(X) \right)=$$
+$$P \left(80-2 \times 15\leq X \leq 80+2 \times 15 \right)=$$
+$$P \left(`r 80-2*15` \leq X \leq `r 80+2*15` \right)\geq 1-1/2^2=`r 1-1/2^2` $$
+
+Es decir que, para esta población, la probabilidad de observar pesos entre `r 80-2*15` y `r 80+2*15` es de al menos `r (1-1/2^2)*100`%.
+
+* si $k=3$ entonces
+
+$$P \left(E(X)-k \times sd(X)\leq X \leq E(X)+k \times sd(X) \right)=$$
+$$P \left(80-3 \times 15\leq X \leq 80+3 \times 15 \right)=$$
+$$P \left(`r 80-3*15` \leq X \leq `r 80+3*15` \right)\geq 1-1/3^2=`r 1-1/3^2` $$
+
+Es decir que, para esta población, la probabilidad de observar pesos entre `r 80-3*15` y `r 80+3*15` es de al menos `r round((1-1/3^2)*100,2)`%.
+
+## Relación entre parámetros generales y parámetros de localización y dispersión
+
+Para este momento, es claro que los parámetros generales estudiados anteriormente, pueden ser clasificados como de localización y dispersión de la siguiente manera:
+
+**Parámetros generales de localización:**
+
+* Valor Esperado: $E(X)$
+* Moda: $mod(X)$
+* Mediana: $med(X)$
+
+**Parámetros generales de dispersión:**
+
+* Varianza: $Var(X)$
+* Desviación estándar: $sd(X)$
+
+# Descripción general de la forma de una función de densidad
+
+Como se puede apreciar en las figuras \@ref(fig:EVps), \@ref(fig:Modaps) y \@ref(fig:Medsps), las funciones de densidad tienen diferentes formas. A continuación estudiaremos algunas de las formas más comunes.
+
+## Forma simétrica
+
+Las funciones de densidad simétricas son aquellas que poseen un eje de simetría al rededor del valor esperado. Ejemplos de estas funciones de densidad se presentan a continuación:
+
+```{r fdsim, echo=FALSE, results = 'asis',fig.width=12, fig.height=4, fig.cap="funciones de densidad simétricas"}
+weight_lim<-c(5, 55)
+mymu<-mean(weight_lim)
+sim_norm_p<-ggplot(data = data.frame(x = weight_lim), aes(x)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = mymu, sd = 8))+
+  ggtitle(substitute(paste("A) Normal, E(X) = ",v),list(v=mymu)))+
+  ylab("f(x)")+
+  geom_vline(xintercept = mymu)+
+  theme_bw()
+
+apar<-c(0.7,2.5,5)
+bpar<-c(0.7,5,1)
+betaE<-apar/(apar+bpar)
+btaxlim<-c(0, 1)
+sim_beta_p<-ggplot(data = data.frame(x = btaxlim), aes(x)) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[1], shape2 = bpar[1]))+
+  ggtitle(substitute(paste("B) Beta, E(X) = ",v),list(v=betaE[1])))+
+  ylab("f(x)")+
+  geom_vline(xintercept = betaE[1])+
+  theme_bw()
+
+mixnorm<-function(x,mu1,mu2,sd1,sd2,w1,w2){
+  w1*dnorm(x,mu1,sd1)+w2*dnorm(x,mu2,sd2)
+}
+
+sim_normmix_p<-ggplot(data = data.frame(x = c(-3,3)), aes(x)) +
+  stat_function(fun = mixnorm, n = 101, args = list(mu1 = -1,mu2=1,sd1 = .5,sd2=.5,w1=.5,w2=.5))+
+  ggtitle(substitute(paste("C) E(X) = ",v),list(v=0)))+
+  ylab("f(x)")+
+  geom_vline(xintercept = 0)+
+  theme_bw()
+
+gridExtra::grid.arrange(sim_norm_p,sim_beta_p,sim_normmix_p, 
+             ncol = 3, nrow = 1)
+```
+
+Para estas funciones el valor esperado y la mediana coinciden en el mismo valor siempre, y en el caso en que la función de densidad es unimodal (es decir que tiene una sola moda como en el caso de las figuras \@ref(fig:fdsim) A y \@ref(fig:fdsim) B) la moda también tiene el mismo valor del valor esperado y la mediana.
+
+## Forma asimétrica
+
+Aquellas funciones de densidad, para las cuales el valor esperado y la mediana no coinciden en el mismo valor, se denominan funciones de densidad asimétricas.
+
+```{r fdasim, echo=FALSE, results = 'asis',fig.width=8, fig.height=4, fig.cap="funciones de densidad asimétricas"}
+apar<-c(1,1.5,7.5,9)
+bpar<-c(2,20,1.3,0.5)
+
+gmaxlim2<-c(0,90)
+asim_gamma_p<-ggplot(data = data.frame(x = gmaxlim2), aes(x)) +
+  stat_function(fun = dgamma, n = 101, args = list(shape = apar[2], scale = bpar[2]))+
+  ggtitle(paste0("A) E(X)= ",apar[2]*bpar[2],"; med(X)= ",qgamma(.5,shape = apar[2], scale = bpar[2])%>%round(2)))+
+  ylab("f(x)")+
+  stat_function(fun = dgamma, args = list(shape = apar[2], scale = bpar[2]),
+                xlim = c(gmaxlim2[1],qgamma(.5,shape = apar[2], scale = bpar[2])),
+                geom = "area",fill="red",alpha=0.4)+
+  annotate("segment", x = c(apar[2]*bpar[2],qgamma(.5,shape = apar[2], scale = bpar[2])), xend = c(apar[2]*bpar[2],qgamma(.5,shape = apar[2], scale = bpar[2])), 
+           y = c(0,0), yend = c(0.008,0.023), colour = 1:2, size=1, alpha=1, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = c(apar[2]*bpar[2],qgamma(.5,shape = apar[2], scale = bpar[2])), y = c(0.009,0.024), 
+           label = c("E(X)","med(X)"),size=4)+
+  theme_bw()
+
+
+apar<-c(0.7,2.5,5)
+bpar<-c(0.7,5,1)
+btaxlim<-c(0, 1)
+
+asim_beta_p<-ggplot(data = data.frame(x = btaxlim), aes(x)) +
+  stat_function(fun = dbeta, n = 101, args = list(shape1 = apar[3], shape2 = bpar[3]))+
+  ggtitle(paste0("B) E(X)= ",round(apar[3]/(apar[3]+bpar[3]),3),"; med(X)= ",qbeta(.5,shape1 = apar[3], shape2 = bpar[3])%>%round(2)))+
+  ylab("f(x)")+
+  stat_function(fun = dbeta, args = list(shape1 = apar[3], shape2 = bpar[3]),
+                xlim = c(gmaxlim[1],qbeta(.5,shape1 = apar[3], shape2 = bpar[3])),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("segment", x = c(apar[3]/(apar[3]+bpar[3]),qbeta(.5,shape1 = apar[3], shape2 = bpar[3])), 
+           xend = c(apar[3]/(apar[3]+bpar[3]),qbeta(.5,shape1 = apar[3], shape2 = bpar[3])), 
+           y = c(0,0), yend = c(3.5,4.5), colour = 1:2, size=1, alpha=1, arrow=arrow(length = unit(0.07, "npc")))+
+  annotate("text", x = c(apar[3]/(apar[3]+bpar[3]),qbeta(.5,shape1 = apar[3], shape2 = bpar[3])), y = c(3.7,4.7), 
+           label = c("E(X)","med(X)"),size=4)+
+  theme_bw()
+
+gridExtra::grid.arrange(asim_gamma_p,asim_beta_p, 
+             ncol = 2, nrow = 1)
+```
+
+## Forma multimodal
+
+Finalmente, el ultimo tipo de forma que estudiaremos son las funciones de densidad multimodal. Estas funciones de densidad son aquellas con varias "modas" o picos en sus funciones de densidad. A continuación presentamos algunos ejemplos.
+
+```{r fdmultimod, echo=FALSE, results = 'asis',fig.width=12, fig.height=4, fig.cap="funciones de densidad multimodales"}
+
+mm_normmix_p1<-ggplot(data = data.frame(x = c(-3,3)), aes(x)) +
+  stat_function(fun = mixnorm, n = 101, args = list(mu1 = -1,mu2=1,sd1 = .5,sd2=.5,w1=.5,w2=.5))+
+  ylab("f(x)")+
+  ggtitle("A)")+
+  theme_bw()
+
+mm_normmix_p2<-ggplot(data = data.frame(x = c(-3,3)), aes(x)) +
+  stat_function(fun = mixnorm, n = 101, args = list(mu1 = -1,mu2=1,sd1 = .5,sd2=.5,w1=.7,w2=.3))+
+  ylab("f(x)")+
+  ggtitle("B)")+
+  theme_bw()
+
+mixnorm4<-function(x,mu1,mu2,mu3,sd1,sd2,sd3,w1,w2,w3){
+  res<- w1*dnorm(x,mu1,sd1)+w2*dnorm(x,mu2,sd2)+w3*dnorm(x,mu3,sd3)
+  return(res)
+}
+
+mm_normmix_p3<-ggplot(data = data.frame(x = c(-6,6)), aes(x)) +
+  stat_function(fun = mixnorm4, n = 101, args = list(mu1 = -3,mu2=0,mu3=3,sd1 = 1,sd2=1,sd3=1,w1=.2,w2=.5,w3=.3))+
+  ylab("f(x)")+
+  ggtitle("C)")+
+  theme_bw()
+
+gridExtra::grid.arrange(mm_normmix_p1,mm_normmix_p2,mm_normmix_p3, 
+             ncol = 3, nrow = 1)
+```
+
+Nótese que las funciones de densidad multimodales pueden ser simétricas (figura \@ref(fig:fdmultimod) A ) o asimétricas (figuras \@ref(fig:fdmultimod) B y C). Aquellas funciones de densidad con una única moda reciben el nombre de **unimodales**
+
+# Funcion de distribucion
+
+En la literatura, se hace referencia a las distribuciones normal, poisson, gamma, etc. Sin embargo el termino "distribución" no ha sido introducido hasta el momento. La función de distribución $F(x)$ se define de la siguiente forma:
+
+\begin{equation}
+F(x)=\int_{-\infty}^{x}f(x)dx =P(X<x)  (\#eq:dist)
+\end{equation}
+
+Es decir que la función de distribución $F(x)$ es la misma probabilidad de observar valores menores a $x$, $P(X<x)$. Esto se ilustra en la siguiente animación:
+
+<center>
+```{r pnormgif, echo=F,warning =F, fig.width=6, fig.height=3,  fig.cap="Función de densidad y función de distribución"}
+pnorm_gif <- image_read("pnorm.gif") 
+pnorm_gif
+```
+</center>
+
+Es bastante común referirse a las funciones de densidad como funciones de distribución, ya que desde el punto de vista matemático, son equivalentes, es decir que si se conoce una se puede conocer la otra.
+
+De esta forma, muchos autores suelen decir cosas como “el peso medido en kilogramos en una población adulta, tiene una distribución normal”, refiriéndose al hecho de que esa variable aleatoria tiene asociada una función de densidad del tipo normal.
+
+De ahora en adelante, al referirnos a la distribución de una variable, se entenderá  implícitamente que se esta hablando de una función de densidad.
+
+# Funciones de densidad para variables categóricas
+
+Consideramos variables categóricas, aquellas que se pueden clasificar como cualitativas o nominales u ordinales. En el apartado de probabilidad vimos de manera implícita como definir probabilidades en este tipo de variables, sin embargo, ahora definiremos de manera explicita como funcionan y se definen las funciones de densidad para estas variables.
+
+## Variables dicotómicas
+
+Consideremos un primer ejemplo de una variable categórica, por ejemplo la presencia o ausencia de una enfermedad en un paciente. Los posibles valores que toma esta variable son "Pos" (presencia de la enfermedad) y "Neg" (ausencia de la enfermedad). El uso de los símbolos "Pos, Neg" es arbitrario y podríamos haber usado otros para la codificación como por ejemplo "Si, No" o "1,0". Según hemos visto, hay tres características fundamentales de una función de densidad:
+
+* los valores que toma la función son positivos
+* cada posible valor que puede tomar la variable tiene un valor de la función de densidad
+* al sumar (o integrar en el caso de variables continuas) todos los valores de la función de densidad para cada posible valor de la variable aleatoria se obtiene 1 (100% de probabilidad). 
+
+Teniendo en cuenta esto, la función de densidad para la variable "presencia o ausencia de una enfermedad" debe cumplir lo siguiente:
+
+* $f(Pos)\geq 0$ y $f(Neg)\geq 0$
+* $f(Pos)$ y $f(Neg)$ deben estar definidas
+* $f(Pos)+f(Neg)=1$
+
+Puede demostrarse que en realidad $f(Pos)=P(Pos)$ y $f(Neg)=P(Neg)$. Es decir, la función de densidad realmente coincide con las probabilidades de los eventos "Pos" (estar enfermo) y "Neg" (no estar enfermo), respectivamente.
+
+Surgirá, entonces la siguiente pregunta: para este escenario, la función de densidad posee parámetros? cuantos hay? cuales son? que significado o interpretación practica pueden tener?
+
+Ya que la variable posee solo dos posibles valores, la función de densidad esta definida exclusivamente para estos dos valores. supongamos por ejemplo que $f(Pos)=P(Pos)=0.05$. Sabes entonces que por la regla del complemento, automáticamente $f(Neg)=P(Neg)=1-P(Pos)=1-0.05=0.95$.
+
+Generalicemos esto para cualquier valor: supongamos que $f(Pos)=p$ ($p \in [0,1]$) luego, por la regla del complemento $f(Neg)=1-p=1-f(Pos)$. Vease la figura \@ref(fig:bernp) para una representación grafica de esta situación.
+
+<center>
+```{r bernp, echo=FALSE, results = 'asis',fig.width=8, fig.height=3.3, fig.cap="diferentes funciones de densidad para la variable enfermedad"}
+bp<-runif(3)
+ylabels <- expression(
+  0,
+  p,
+  1-p,
+  1
+)
+bern_df<-data.frame(Enf=rep(c("Pos","Neg"),3),
+                    Prob=c(bp[1],1-bp[1],bp[2],1-bp[2],bp[3],1-bp[3]),
+                    case=rep(1:3, each = 2),
+                    labl=rep(c("p","1-p"),3))
+bern_df$labl<-paste0(bern_df$labl," = ",round(bern_df$Prob,2))
+bern_df$Enf<-relevel(factor(bern_df$Enf),"Pos")
+bern_df %>% ggplot(aes(x=Enf, y=Prob,fill=Enf)) +
+  geom_bar(stat="identity")+
+  geom_text(aes(label=labl), vjust=-0.3, size=3.5)+
+  facet_wrap(~case)+
+  theme_bw()+ 
+  scale_y_continuous("f(Enf)",limits=0:1)+
+  theme(legend.position = "none")
+
+```
+</center>
+
+Con estos razonamientos, debería quedar claro que la función de densidad para una variable categórica con dos posibles valores tiene un único parámetro. Conociendo la probabilidad de "Pos" automáticamente conocemos la probabilidad de "Neg" o viceversa. En el caso en que se escoge la codificación $0,1$ esta función de densidad es conocida con el nombre de Bernoulli.
+
+## Variables con mas de dos categorías.
+
+A continuación estudiaremos el caso de una variable con tres categorías. Suponga que los operarios en una refinería de petroleo son clasificados en tres perfiles de riesgo: "Alto", "Medio" y "Bajo". De nuevo, para este escenario, la función de densidad de la variable coincidirá con las probabilidades de cada una de las tres categorías. Esto es
+$$f(Alto)=P(Alto), \; f(Medio)=P(Medio) \; y \; f(Bajo)=P(Bajo)$$
+
+Teniendo en cuenta la restricción de
+
+$$f(Alto)+f(Medio)+f(Bajo)=1$$
+
+si se conoce dos de estos valores, por ejemplo $f(Alto)=0.3$ y $f(Medio)=0.2$ entonces por la regla del complemento, automáticamente sabemos que
+
+$$f(Bajo)=1-(f(Alto)+f(Medio))=1-0.3-0.2=0.5$$
+De manera general, si $f(Alto)=p$ y $f(Medio)=q$ (donde $q,p \in [0,1]$) entonces $f(Bajo)=1-p-q$. De esto se deduce que la función de densidad para esta variable tiene 2 parámetros.
+
+De manera general si una variable tiene $k$ categorías su función de densidad tiene $k-1$ parámetros, los cuales coinciden con las probabilidades de $k-1$ de las categorías de dicha variable.

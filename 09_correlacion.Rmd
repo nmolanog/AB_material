@@ -1,0 +1,561 @@
+---
+title: "Correlación"
+author: "Nicolás Molano González"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  bookdown::html_document2:
+    toc: true
+    toc_float: 
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+    number_sections: true
+    theme: flatly
+    highlight: tango
+    css: ["styles.css"]
+    includes:
+      in_header: header.html
+      after_body: footer.html
+bibliography: references.bib  
+---
+
+```{r echo=F, message = FALSE, warning =F}
+library(pacman)
+p_load(mvtnorm)
+p_load(tidyverse)
+p_load(kableExtra)
+p_load(knitr)
+p_load(latex2exp)   
+p_load(ggrepel)
+p_load(magick)
+p_load(reshape2)
+p_load(cowplot)
+p_load(gridGraphics)
+p_load(GA)
+set.seed(150)
+```
+
+# Introducción
+
+Hasta el momento hemos estudiado el comportamiento de una variable aleatoria, su distribución, a realizar cálculos de intervalos de confianza y pruebas de hipótesis para los parámetros de valor esperado y varianza. Sin embargo en la practica muchas veces interesa estudiar no una, sino dos variables simultáneamente. Por ejemplo, interesa estudiar el IMC dependiendo de si el paciente presenta o no un antecedente cardiovascular, la severidad de la enfermedad en función del sexo, o como se comporta el peso en función de la edad. 
+
+Existen tres tipos de combinaciones posibles, de dos variables, dependiendo de su escala:
+
+* Cualitativa vs Cualitativa
+* Cualitativa vs Cuantitativa
+* Cuantitativa vs Cuantitativa
+
+El tratamiento de las relaciones entre pares de variables cualitativas, se reduce a la exploración de las probabilidades condicionales, tema visto anteriormente en detalle. Ahondaremos en el estudio de las dos restantes posibilidades y empezaremos por el estudio de las relaciones existentes entre pares de variables cuantitativas. Empezaremos nuestro estudio, enfocándonos en la situación a nivel muestral, después exploraremos el contexto teórico de esto a nivel poblacional.
+
+# Representación grafica
+
+Empezaremos con un ejemplo. Un biólogo se encuentra estudiando el peso y la edad en una especie de escarabajos estercoleros determinada. Para este estudio el ha medio el peso y la edad en una muestra de 100 escarabajos. A continuación el investigador presenta los resultados de estas mediciones en un grafico de dispersión.
+<center>
+```{r dispagewght, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad vs peso escarabajos"}
+n<-100
+age<-runif(n,0,25)
+wght<-100+.8*age+rnorm(n,0,4)
+
+z0_aw<-data.frame(age,weight=wght)
+
+z0_aw %>% ggplot(aes(x=age,y=weight))+geom_point()+theme_bw()+
+  ylab("weight (mlg)")+xlab("age (days)")
+```
+</center>
+
+Cada punto en la figura \@ref(fig:dispagewght) representa las mediciones de edad y peso para un escarabajo en particular. En este grafico, se puede apreciar que para edades mayores se observan pesos mayores, lo cual tiene sentido pues a medida que los escarabajos envejecen, estos van creciendo en tamaño. 
+
+Veamos otro ejemplo. En un hospital, se esta estudiando la densidad mineral osea (BMD por sus siglas en ingles) de 200 mujeres. Se ha medido su BMD a través del score T y se ha registrado su edad, a continuación se presentan los resultados.
+
+<center>
+```{r dispbmd, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad vs BMD"}
+n<-200
+age<-runif(n,35,85)
+bmd<- -0.9 -.015*age+rnorm(n,0,.5)
+
+z0_bmd<-data.frame(age,BMD=bmd)
+
+z0_bmd %>% ggplot(aes(x=age,y=BMD))+geom_point()+theme_bw()+
+  ylab("BMD (T-score)")+xlab("age (years)")
+```
+</center>
+
+Valores del score T bajos se asocian con una baja densidad mineral osea. En este grafico se puede observar que a mayor edad, la BMD disminuye.
+
+Por lo general, el comportamiento de las figuras \@ref(fig:dispagewght) y \@ref(fig:dispbmd) se suele describir como "directamente" o "inversamente" proporcional. Esta descripción aplica para relaciones lineales entre las variables de estudio, pero esto raramente es la norma. A que nos referimos con "comportamientos lineales"? Básicamente, estamos hablando que la relación de las variables de interés puede ser descrita, mas o menos a través de una linea recta (por favor repace los conceptos matemáticos relacionas con funciones lineales en el siguiente [enlace](https://sites.google.com/site/portafoliodeerick26/parcial-2/division-sintetica)
+
+<center>
+```{r displin, echo=FALSE, warning =F, results = 'asis',fig.width=8.5, fig.height=4, fig.cap="comportamientos lineales"}
+displin<-list()
+displin[[1]]<-z0_aw %>% ggplot(aes(x=age,y=weight))+geom_point()+theme_bw()+
+   geom_smooth(method = lm, se = FALSE,formula = y ~x)+
+  ylab("weight (mlg)")+xlab("age (days)")
+
+displin[[2]]<-z0_bmd %>% ggplot(aes(x=age,y=BMD))+geom_point()+theme_bw()+
+  geom_smooth(method = lm, se = FALSE,formula = y ~x)+
+  ylab("BMD (T-score)")+xlab("age (years)")
+gridExtra::grid.arrange(grobs =displin,nrow=1,ncol=2)
+```
+</center>
+
+Existen otro tipos de patrones diferentes a los lineales en donde las descripciones de "directamente" o "inversamente" proporcional son insuficientes. Retomemos el ejemplo de los escarabajos. Esta ves el investigador a extendido el periodo de estudio y a incluido mas escarabajos con edades mayores en su tabla de datos. A continuación se presentan los datos actualizados
+
+<center>
+```{r dispagewght2, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad vs peso escarabajos"}
+n<-75
+age2<-runif(n,25,45)
+wght2<-120+rnorm(n,0,4)
+
+z0_aw2<-rbind(z0_aw,data.frame(age=age2,weight=wght2))
+
+z0_aw2 %>% ggplot(aes(x=age,y=weight))+geom_point()+theme_bw()+
+  ylab("weight (mlg)")+xlab("age (days)")
+```
+</center>
+
+Claramente, una linea recta ya no describe de manera adecuada, la relación entre la edad y el peso. Como interpretaría usted los resultados aquí presentados?
+
+Veamos otro ejemplo. En una ips especializada en enfermedades autoinmunes se han registrado los datos de la edad de inicio de la enfermedad y la duración de la misma en un conjunto de pacientes. Los resultados se presentan a continuación:
+
+<center>
+```{r dispAO, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad de inicio de la enfermedad vs. duración"}
+n<-500
+AO<-runif(n,25,65)
+z0_AOdur<-data.frame(AO,Dur=NA)
+z0_AOdur[z0_AOdur$AO < 35,"Dur"]<-rnorm(length(z0_AOdur[z0_AOdur$AO < 35,"Dur"]),10,4)
+z0_AOdur[z0_AOdur$AO >= 35,"Dur"]<-rnorm(length(z0_AOdur[z0_AOdur$AO >= 35,"Dur"]),5,2)
+z0_AOdur$Dur[z0_AOdur$Dur<0]<-0
+z0_AOdur %>% ggplot(aes(x=AO,y=Dur))+geom_point()+theme_bw()+
+  ylab("Duration")+xlab("Age at onset")
+```
+</center>
+
+Claramente una linea recta no es una descripción adecuada para estos resultados. Como podría explicar usted el comportamiento observado?
+
+Veamos otro ejemplo. En una institución educativa se han seleccionado 150 estudiantes de toda la institución y se les ha medido el peso y se ha registrado su edad. Los resultados se presentan a continuación:
+
+<center>
+```{r dispclustw, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad vs peso"}
+z0_cl1<-data.frame(Age=rnorm(75,10,3),wght=rnorm(75,25,7))
+z0_cl2<-data.frame(Age=rnorm(75,16.5,3.5),wght=rnorm(75,70,9))
+z0_cl<-rbind(z0_cl1,z0_cl2)
+
+z0_cl %>% ggplot(aes(x=Age,y=wght))+geom_point()+theme_bw()+
+  ylab("weight (kg)")+xlab("age (years)")
+```
+</center>
+
+En este caso una linea recta, o inclusive una curva, no parecen proveer mucha información sobre lo que esta sucediendo. Como podría explicar usted el comportamiento observado?
+
+Terminaremos nuestra exploración de patrones con un ultimo ejemplo. En otra especie de escarabajos el investigador ha realizado el mismo estudio: peso y edad. Los resultados se presentan a continuación:
+
+<center>
+```{r dispagewght3, echo=FALSE, results = 'asis',fig.width=5, fig.height=4, fig.cap="edad vs peso escarabajos, nueva especie"}
+n<-500
+age<-runif(n,0,25)
+wght<-100+.8*age+rnorm(n,0,0.5+0.23*age)
+
+z0_aw<-data.frame(age,weight=wght)
+
+z0_aw %>% ggplot(aes(x=age,y=weight))+geom_point()+theme_bw()+
+  ylab("weight (mlg)")+xlab("age (days)")
+```
+</center>
+
+Ademas de una clara tendencia lineal, algo mas esta ocurriendo, algo que en los casos anteriores no habíamos visto antes. Como podría explicar usted el comportamiento observado?
+
+En este punto, debería ser claro que las posibles relaciones existentes entre un par de variables cuantitativas van mas allá de un simple "directamente" o "inversamente" proporcional.
+
+# Correlación
+
+A continuación estudiaremos la correlación. La correlación es un parámetro poblacional, sin embargo, estudiaremos primero su estimador, la correlación muestral y posteriormente veremos como se comporta el parámetro a nivel poblacional.
+
+Definición
+
+* La correlación, denotada por la letra griega $\rho$ (rho), indica la fuerza y la dirección de una relación lineal y proporcionalidad entre dos variables aleatorias.
+
+Veamos como se comportan los datos para diferentes valores para el parámetro de correlación:
+
+<center>
+```{r corsim, echo=FALSE, results = 'asis',fig.width=5, fig.height=5, fig.cap="datos simulados para diferentes correlaciones"}
+
+n<-100
+my_mean<-c(25,65)
+mycors<-seq(-1,1,by=.25)
+
+data_list<-list()
+
+sd_vec<-c(5,7)
+for(i in seq_along(mycors)){
+  temp_cor<-matrix(c(1,mycors[i],
+                     mycors[i],1),
+                   byrow = T,ncol=2)
+  V<-sd_vec %*% t(sd_vec) *temp_cor
+  data_list[[i]]<-data.frame(rmvnorm(n,mean=my_mean,sigma=V),cor=mycors[i])
+}
+
+z0_cor<-data_list %>% reduce(rbind) %>% as.data.frame()
+colnames(z0_cor)[1:2]<-c("X","Y")
+z0_cor$cor<-factor(z0_cor$cor,labels = paste0("list(rho == ",mycors,")"))
+
+z0_cor %>% ggplot(aes(x=X,y=Y))+
+  geom_point()+geom_smooth(method = lm, se = FALSE,formula = y ~x)+
+  facet_wrap(~cor,labeller = label_parsed)+
+  theme_bw()
+
+```
+</center>
+
+Lo primero que debemos destacar es que la correlación toma valores entre $-1$ y $1$. Podría usted describir cual es el efecto del valor de la correlación sobre el comportamiento de las dos variables?
+
+Vemos que el signo de la correlación se asocia con el signo de la pendiente de la recta que mejor describe a los datos. También podemos observar que, a medida que el valor de la correlación se aproxima a 1 (o -1) los puntos tienden a estar cada vez mas próximos a la linea recta, de tal forma que cuando el valor de la correlación es exactamente 1 o -1, todos los puntos caen de manera exacta sobre la linea recta.
+
+La definición de correlación hace énfasis en que la relación evaluada se enfoca en patrones lineales. Veamos algunos ejemplos de datos con relaciones intrínsecamente no lineales:
+
+<center>
+```{r corsim2, echo=FALSE, results = 'asis',fig.width=8, fig.height=8, fig.cap="datos no lineales simulados"}
+source("plot_r.R")
+plot_r(r = 0.7, n = 250)
+```
+</center>
+
+En la figura \@ref(fig:corsim2) todos los datos poseen un valor de correlación de $0.7$, sin embargo, es claro que las relaciones no se ajustan a un patrón lineal en ningún caso. Aun mas, es posible obtener valores de correlación de $0$ y aun así existir relaciones no lineales entre las variables 
+
+<center>
+```{r corsim3, echo=FALSE, results = 'asis',fig.width=8, fig.height=8, fig.cap="datos no lineales simulados, correlacion de 0"}
+source("plot_r.R")
+plot_r(r = 0, n = 250)
+```
+</center>
+
+Es un error común pensar que un valor de correlación igual a 0 implica automáticamente una falta de relación discernible entre las variables de estudio. Lo cierto es que no es adecuado fiarse del valor de la correlación. Es necesario inspeccionar el diagrama de dispersión para poder confiar en el valor de la correlación.
+
+En conclusión, la correlación es útil e informativa _**si y solamente si**_ el comportamiento de las variables sigue una función lineal. En caso contrario, la correlación carece de un sentido propio.
+
+# La correlación poblacional
+
+Hemos visto la correlación y su comportamiento en el ámbito muestral, es hora  de estudiar su comportamiento a nivel poblacional, lo cual nos lleva a introducir el concepto de función de densidad de un vector aleatorio. En matemáticas un vector es simplemente un par ordenado de elementos, por ejemplo $(2,5)$. Este par ordenado se ubica en el plano cartesiano como un punto, unas coordenadas $(x,y)$. Ahora este concepto se extiende a variables aleatorias en donde un vector aleatorio es un par ordenado de variables aleatorias $(X,Y)$. Nosotros hemos estudiado el caso de una sola variable aleatoria, ahora los mismos conceptos se extienden para un vector aleatorio y la función de densidad de un vector aleatorio se representa con una superficie en tres dimensiones, como se puede apreciar en la siguiente figura:
+
+<center>
+```{r bivardnorm, echo=F,warning =F, fig.width=6, fig.height=5, fig.cap="función de densidad de un vector aleatorio"}
+bivardnorm <- image_read("bivar_norm_surf.gif") 
+bivardnorm
+```
+</center>
+
+Ya que este objeto matemático se aloja en un espacio de tres dimensiones, es común usar diferentes técnicas para representarlo en dos dimensiones, nosotros usaremos la representación en curvas de nivel o contornos de nivel. En esta aproximación se dibujan curvas o contornos de puntos en el plano cartesiano que poseen un mismo valor de la función de densidad, dando una idea del comportamiento de la superficie en tres dimensiones (ver figura \@ref(fig:contours)). 
+
+```{r echo = F, results = 'hide',fig.show='hide',warning =F}
+my_mean<-c(25,65)
+mycors<-seq(-1,1,by=.25)
+sd_vec<-c(5,7)
+
+i<-3
+temp_cor<-matrix(c(1,mycors[i],
+                   mycors[i],1),
+                 byrow = T,ncol=2)
+V<-sd_vec %*% t(sd_vec) *temp_cor
+
+
+my_x<-seq(my_mean[1]-3*sd_vec[1], my_mean[1]+3*sd_vec[1], length.out=20)
+my_y<-seq(my_mean[2]-3*sd_vec[2], my_mean[2]+3*sd_vec[2], length.out=20)
+temp_f<-function(a,b){dmvnorm(cbind(a,b), my_mean,V)}
+my_z<-outer(my_x, my_y,temp_f)
+nlevels<-20
+my_zlim <- range(my_z, finite = TRUE)
+my_levels <- pretty(my_zlim, nlevels)
+zz <- (my_z[-1, -1] + my_z[-1, -ncol(my_z)] + my_z[-nrow(my_z), -1] + my_z[-nrow(my_z), 
+                                                                           -ncol(my_z)])/4
+cols <- jet.colors(length(my_levels) - 1)
+zzz <- cut(zz, breaks = my_levels, labels = cols)
+
+
+par_store <- par()
+par(mar = c(0, 0, 0, 0))
+persp(my_x, my_y, my_z, theta = -25, phi = 45, expand = 0.5,
+      xlab = "x", ylab = "y", zlab = "f(x,y)", col = as.character(zzz))
+p1 <- recordPlot()  
+par(par_store)
+
+data.grid <- expand.grid(x = seq(my_mean[1]-3*sd_vec[1], my_mean[1]+3*sd_vec[1], length.out=200),
+                         y = seq(my_mean[2]-3*sd_vec[2], my_mean[2]+3*sd_vec[2], length.out=200))
+q.samp <- cbind(data.grid, prob = dmvnorm(data.grid, mean = my_mean, sigma = V))
+
+
+p2<-ggplot(q.samp, aes(x, y, z = prob)) + 
+  geom_contour(aes(color = ..level..), bins = 11, size = 0.5) + 
+  scale_color_gradientn(colours = jet.colors(11)) +
+  theme_bw()
+```
+
+<center>
+```{r contours, echo=F,warning =F, fig.width=9, fig.height=4, fig.cap="Representación de una superficie en curvas de nivel"}
+plot_grid(p1, p2)
+```
+</center>
+
+De igual manera que en el caso de una variable aleatoria, los valores mas probables se encuentran en zonas de alta densidad de probabilidad. Comparece los contornos de nivel, que representan la función de densidad de probabilidad con unos datos obtenidos a través de una muestra (ver figura \@ref(fig:contoursandsample)). 
+
+
+<center>
+```{r contoursandsample, echo=F,warning =F, fig.width=5, fig.height=4, fig.cap="función de densidad vs datos de la muestra"}
+z0_sim<-rmvnorm(250,my_mean,V) %>% data.frame()
+colnames(z0_sim)<-c("x","y")
+p2+geom_point(data=z0_sim,aes(x=x,y=y,z=0),alpha=0.3)
+```
+</center>
+
+En secciones anteriores habíamos visto que un parámetro controla la forma de la función de densidad. Ahora veremos como se afecta la forma de la función de densidad conjunta de dos variables aleatorias cuando cambia la correlación: 
+
+<center>
+```{r corrpop, echo=F, message = F,warning =F, fig.width=5, fig.height=5, fig.cap="efecto de la correlación en la función de densidad conjunta"}
+my_mean<-c(25,65)
+mycors<-seq(-.95,.95,length.out = 9)
+sd_vec<-c(5,7)
+pl_list<-list()
+for(i in seq_along(mycors)){
+  #i<-3
+  temp_cor<-matrix(c(1,mycors[i],
+                     mycors[i],1),
+                   byrow = T,ncol=2)
+  V<-sd_vec %*% t(sd_vec) *temp_cor
+  
+  my_x<-seq(my_mean[1]-3*sd_vec[1], my_mean[1]+3*sd_vec[1], length.out=20)
+  my_y<-seq(my_mean[2]-3*sd_vec[2], my_mean[2]+3*sd_vec[2], length.out=20)
+  temp_f<-function(a,b){dmvnorm(cbind(a,b), my_mean,V)}
+  my_z<-outer(my_x, my_y,temp_f)
+  nlevels<-20
+  my_zlim <- range(my_z, finite = TRUE)
+  my_levels <- pretty(my_zlim, nlevels)
+  zz <- (my_z[-1, -1] + my_z[-1, -ncol(my_z)] + my_z[-nrow(my_z), -1] + my_z[-nrow(my_z), 
+                                                                             -ncol(my_z)])/4
+  cols <- jet.colors(length(my_levels) - 1)
+  zzz <- cut(zz, breaks = my_levels, labels = cols)
+  
+  # persp(my_x, my_y, my_z, theta = -25, phi = 45, expand = 0.5,xlab="x",ylab="y",zlab="f(x,y)",col = as.character(zzz))
+  # p1 <- recordPlot()  
+  
+  data.grid <- expand.grid(x = seq(my_mean[1]-3*sd_vec[1], my_mean[1]+3*sd_vec[1], length.out=200),
+                           y = seq(my_mean[2]-3*sd_vec[2], my_mean[2]+3*sd_vec[2], length.out=200))
+  q.samp <- cbind(data.grid, prob = dmvnorm(data.grid, mean = my_mean, sigma = V))
+  
+  
+  pl_list[[i]]<-ggplot(q.samp, aes(x, y, z = prob)) + 
+    geom_contour(aes(color = ..level..), bins = 11, size = 1) + 
+    scale_color_gradientn(colours = jet.colors(11)) +
+    theme_bw()+ theme(legend.position = "none")+
+    ggtitle(substitute(paste(rho,"= ", v),list(v=mycors[i])))
+  
+}
+gridExtra::grid.arrange(grobs =pl_list, 
+                        ncol = 3, nrow = 3)
+```
+</center>
+
+Finalmente, los mismos argumentos sobre el comportamiento lineal de la relación  entre las variables aplica también a nivel poblacional. Si la relación entre las variables no es del tipo lineal, la correlación carece de sentido propio, como se aprecia en la figura \@ref(fig:nonlindens)
+
+<center>
+```{r nonlindens, echo=F,warning =F, fig.width=3.8, fig.height=3.8, fig.cap="Relación no lineal a nivel poblacional"}
+n<-1000
+x<-rnorm(n)
+y<-(x)^2+rnorm(n,0,.3)
+x0<-seq(-2,2,length.out = n)
+y0<-x0^2
+
+z0<-data.frame(x,y,x0,y0)
+z0 %>% ggplot(aes(x,y))+geom_density_2d()+
+  geom_path(aes(x=x0,y=y0))+
+  theme_bw()
+```
+</center>
+
+
+# Funciones de densidad marginal y condicional
+
+En este punto queda claro el concepto de función de densidad conjunta para dos variables aleatorias y su representación como una superficie en un espacio de 3 dimensiones y su proyección en 2d a través de contornos de nivel. Ahora discutiremos dos tipos de funciones de densidad asociadas: la función de densidad marginal y la función de densidad condicional
+
+## Función de densidad marginal
+
+Retomemos el ejemplo de la figura \@ref(fig:contoursandsample). En ella, tenemos los contornos de nivel de la función de densidad junto con unos datos de una muestra. Con los datos de la muestra se pueden calcular histogramas para las variables $X$ y $Y$, como se muestra en la figura \@ref(fig:marginals1).
+
+<center>
+```{r marginals1, echo=F, message = F,warning =F, fig.width=10, fig.height=3.5, fig.cap="Histogramas marginales"}
+pl_list2<-list(p2+geom_point(data=z0_sim,aes(x=x,y=y,z=0))+ theme(legend.position = "none"),
+               z0_sim %>% ggplot(aes(x=x))+
+                 geom_histogram(color="black", fill="white")+theme_bw(),
+               z0_sim %>% ggplot(aes(x=y))+
+                 geom_histogram(color="black", fill="white")+theme_bw())
+
+
+gridExtra::grid.arrange(grobs =pl_list2, 
+                        ncol = 3, nrow = 1)
+```
+</center>
+
+Como vimos anteriormente, detrás de los histogramas existe una función de densidad poblacional, lo cual nos lleva a concluir que además de la función de densidad conjunta, existen funciones de densidad independientes para la variable $X$ y la variable $Y$. Estas funciones de densidad se llaman _**funciones de densidad marginales**_.
+
+<center>
+```{r marginals2, echo=F, message = F,warning =F, fig.width=3.8, fig.height=3.5, fig.cap="función de densidad conjunta y funciones de densidad marginales"}
+my_mean<-c(25,65)
+mycors<-seq(-1,1,by=.25)
+sd_vec<-c(5,7)
+
+i<-3
+temp_cor<-matrix(c(1,mycors[i],
+                   mycors[i],1),
+                 byrow = T,ncol=2)
+V<-sd_vec %*% t(sd_vec) *temp_cor
+
+my_int<-(my_mean[2]-(V[1,2]*my_mean[1]/V[1,1]))
+my_slp<-V[1,2]/V[1,1]
+
+###data for vertical curve
+my_dnorm<- function(x, mean = 0, sd = 1, log = FALSE, new_loc, multplr){
+  new_loc+dnorm(x, mean , sd, log)*multplr
+}
+
+##margina Y distribution
+yden<-data.frame(y=seq(48,82,length.out = 100),x=my_dnorm(seq(48,82,length.out = 100),my_mean[2],sd_vec[2],new_loc=0,multplr=100))
+
+##conditional distribution
+givenX<-34
+mu_givenX<-my_int+givenX*my_slp
+sigma2_givenX<-(1-mycors[i]^2)*V[2,2]
+y_givenX_range<-seq(mu_givenX-3*sqrt(sigma2_givenX),mu_givenX+3*sqrt(sigma2_givenX),length.out = 100)
+
+# yden_x<-data.frame(y=y_givenX_range,
+#                    x=my_dnorm(y_givenX_range,mu_givenX,sqrt(sigma2_givenX),new_loc=givenX,multplr=80))
+
+yden_x<-data.frame(y=y_givenX_range,
+                   x=my_dnorm(y_givenX_range,mu_givenX,sqrt(sigma2_givenX),new_loc=0,multplr=80))
+
+
+data.grid <- expand.grid(x = seq(my_mean[1]-3*sd_vec[1], my_mean[1]+3*sd_vec[1], length.out=200),
+                         y = seq(my_mean[2]-3*sd_vec[2], my_mean[2]+3*sd_vec[2], length.out=200))
+q.samp <- cbind(data.grid, prob = dmvnorm(data.grid, mean = my_mean, sigma = V))
+
+ggplot(q.samp, aes(x=x, y=y, z=prob)) + 
+  geom_contour() + theme_bw()+ 
+  stat_function(fun = my_dnorm, n = 101, args = list(mean = my_mean[1], sd = sd_vec[1], new_loc=35,multplr=100),color=1) +
+  geom_path(aes(x=x,y=y), data = yden,inherit.aes = FALSE) +
+  xlim(0, 50)
+```
+</center>
+
+## Función de densidad conjunta
+
+Existe un tercer tipo de función de densidad (ademas de la función de densidad conjunta y las marginales). Estas se denominan funciones de densidad condicional. Para introducirlas, veamos un ejemplo. suponga que conocemos la función de densidad conjunta del peso y la edad para una población determinada. La función de densidad se representa en la figura \@ref(fig:conditional1). Podría usted deducir cual es el valor esperado de la edad y el valor esperado del peso?
+
+<center>
+```{r conditional1, echo=F, message = F,warning =F, fig.width=3.8, fig.height=3.5, fig.cap="función de densidad conjunta para la edad y el peso"}
+my_mean<-c(25,65)
+mycors<-seq(-1,1,by=.25)
+sd_vec<-c(5,7)
+
+i<-8
+temp_cor<-matrix(c(1,mycors[i],
+                   mycors[i],1),
+                 byrow = T,ncol=2)
+V<-sd_vec %*% t(sd_vec) *temp_cor
+
+my_int<-(my_mean[2]-(V[1,2]*my_mean[1]/V[1,1]))
+my_slp<-V[1,2]/V[1,1]
+
+###data for vertical curve
+my_dnorm<- function(x, mean = 0, sd = 1, log = FALSE, new_loc, multplr){
+  new_loc+dnorm(x, mean , sd, log)*multplr
+}
+
+##margina Y distribution
+yden<-data.frame(y=seq(48,82,length.out = 100),x=my_dnorm(seq(48,82,length.out = 100),my_mean[2],sd_vec[2],new_loc=0,multplr=100))
+
+##conditional distribution
+givenX<-30
+mu_givenX<-my_int+givenX*my_slp
+sigma2_givenX<-(1-mycors[i]^2)*V[2,2]
+y_givenX_range<-seq(mu_givenX-3*sqrt(sigma2_givenX),mu_givenX+3*sqrt(sigma2_givenX),length.out = 100)
+
+# yden_x<-data.frame(y=y_givenX_range,
+#                    x=my_dnorm(y_givenX_range,mu_givenX,sqrt(sigma2_givenX),new_loc=givenX,multplr=80))
+
+yden_x<-data.frame(y=y_givenX_range,
+                   x=my_dnorm(y_givenX_range,mu_givenX,sqrt(sigma2_givenX),new_loc=0,multplr=80))
+
+
+data.grid <- expand.grid(x = seq(my_mean[1]-3*sd_vec[1], my_mean[1]+3*sd_vec[1], length.out=200),
+                         y = seq(my_mean[2]-3*sd_vec[2], my_mean[2]+3*sd_vec[2], length.out=200))
+q.samp <- cbind(data.grid, prob = dmvnorm(data.grid, mean = my_mean, sigma = V))
+
+pcond1<-ggplot(q.samp, aes(x=x, y=y, z=prob)) + 
+  geom_contour() + theme_bw()+ 
+  xlim(0, 50)+
+  ylim(40, 90)+xlab("age")+ylab("weight")
+
+pcond1
+```
+</center>
+
+Piense ahora en la siguiente pregunta: Cual es la distribución del peso para personas con 30 años de edad?,  Cual es la distribución del peso para personas con 20 años de edad? La respuesta se presenta en la figura \@ref(fig:conditional2)
+
+<center>
+```{r conditional2, echo=F, message = F,warning =F, fig.width=8, fig.height=3.5, fig.cap="función de densidad condicional del peso para edad de 30 y 20 años"}
+pcond2<-pcond1+geom_path(aes(x=x,y=y), data = yden_x,inherit.aes = FALSE,color=1,linetype="dashed") +
+  geom_vline(xintercept = givenX,linetype="dashed")
+
+givenX<-20
+mu_givenX<-my_int+givenX*my_slp
+sigma2_givenX<-(1-mycors[i]^2)*V[2,2]
+y_givenX_range<-seq(mu_givenX-3*sqrt(sigma2_givenX),mu_givenX+3*sqrt(sigma2_givenX),length.out = 100)
+
+# yden_x<-data.frame(y=y_givenX_range,
+#                    x=my_dnorm(y_givenX_range,mu_givenX,sqrt(sigma2_givenX),new_loc=givenX,multplr=80))
+
+yden_x<-data.frame(y=y_givenX_range,
+                   x=my_dnorm(y_givenX_range,mu_givenX,sqrt(sigma2_givenX),new_loc=0,multplr=80))
+
+pcond3<-pcond1+geom_path(aes(x=x,y=y), data = yden_x,inherit.aes = FALSE,color=1,linetype="dashed") +
+  geom_vline(xintercept = givenX,linetype="dashed")
+
+gridExtra::grid.arrange(grobs =list(pcond2,pcond3), 
+                        ncol = 2, nrow = 1)
+```
+</center>
+
+En base a la figura \@ref(fig:conditional2), puede usted decir cual es el valor esperado del peso cuando la edad es de 30 años? cual es el valor esperado del peso cuando la edad es de 20 años?
+
+### Notación
+
+Recordemos que las letras mayúsculas denotan variables aleatorias, las cuales prácticamente, denotan funciones de densidad. Hablamos de una variable aleatoria $X$ y su función de densidad correspondiente $f(x)$. Ahora si es un vector aleatorio usamos la notación $(X,Y)$ y su función de densidad correspondiente $f(x,y)$. En este contexto, $f(x)$ seria la función de densidad marginal de la variable $X$ descontando la información de la variable $Y$, de manera similar, $f(y)$ seria la función de densidad marginal de la variable $Y$ descontando la información de la variable $X$.
+
+Finalmente la notación para las funciones de densidad condicionales es la siguiente: 
+
+Si hablamos de una variable aleatoria condicional, por ejemplo $Y$ condicionado a un valor arbitrario $c$ de la variable aleatoria $X$ entonces la notación correspondiente es 
+
+$$Y|X=c$$
+Y la función de densidad condicional correspondiente es 
+
+$$f(y|x=c)$$
+En el ejemplo anterior, hablaríamos de la variable aleatoria peso condicionado a edades de 30 y 20 años respectivamente. En notación de variables aleatorias tendríamos
+
+$$Peso|Edad=30, \; Peso|Edad=20$$
+
+Y las funciones de densidad correspondientes tendrían la siguiente notación:
+
+$$f(peso|edad=30), \; f(peso|edad=20)$$
+
+Finalmente. hablaremos del valor esperado condicional, el cual no es mas que el valor esperado de la función de densidad condicional. Si nos fijamos en la figura \@ref(fig:conditional2), podemos ver que 
+
+$$E(Peso|Edad=30)=71 kg \; y \; E(Peso|Edad=20)=58kg$$
+
+Aproximadamente.
+
+## Valor esperado condicional
+
+Una ves comprendido el concepto de funciones de densidad marginal y condicionales, podemos estudiar un poco mas en detalle el valor esperado condicional. Cuando la relación entre las variables es del tipo lineal, resulta que los valores esperados condicionales se encuentran en una linea recta. Esta recta se denomina la recta de regresión. Su estimación sera el tema de la siguiente sección.
+
+<center>
+```{r bivardnormres, echo=F,warning =F, fig.width=6, fig.height=5, fig.cap="Recta de regresión - Valor esperado condicional"}
+bivardnorm_res <- image_read("biv_norm.gif") 
+bivardnorm_res
+```
+</center>

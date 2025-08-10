@@ -1,0 +1,328 @@
+---
+title: "Intervalos de confianza"
+author: "Nicolás Molano Gonzalez"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  bookdown::html_document2:
+    toc: true
+    toc_float: 
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+    number_sections: true
+    theme: flatly
+    highlight: tango
+    css: ["styles.css"]
+    includes:
+      in_header: header.html
+      after_body: footer.html
+---
+
+
+```{r echo=F, message = FALSE, warning =F}
+library(datasets)
+library(tidyverse)
+library(kableExtra)
+library(knitr)
+library(MASS)
+library(boot)
+library(carData)   
+
+set.seed(150)
+```
+En este documento presentamos la teoría y motivación detrás de los intervalos de confianza (IC).
+
+# Motivación
+
+EL punto de partida es la construcción de la siguiente expresión:
+
+$$P(L \leq \delta \leq U)=1-\alpha$$
+Donde $\delta$ es un parámetro poblacional, como por ejemplo, el valor esperado $E(X)$ o la varianza $V(X)$. ¿Qué hay detrás de esta expresión? Básicamente, esta expresión dice lo siguiente:
+
+* La probabilidad de que el parámetro $\delta$ se encuentre entre dos numero $L$ y $U$ es de $1-\alpha$. 
+
+Por ejemplo, si $\alpha=0.05$ estaríamos diciendo que la probabilidad de encontrar al parámetro $\delta$  entre los números $L$ y $U$ es de $1-\alpha=1-0.05=0.95$.
+
+Sin embargo, esto no es posible, ya que el parámetro poblacional $\delta$ no es una variable aleatoria, carece de función de densidad y por ende, no podemos calcular probabilidades sobre el. Los estadísticos decimos que $\delta$ es un parámetro fijo y desconocido, no una variable aleatoria.
+
+A pesar de esta imposibilidad técnica, existe una aproximación para llegar a una expresión de este estilo. A continuación presentaremos, como ejemplo el IC para el valor esperado.
+
+# IC para el valor esperado.
+
+Existe una cantidad llamada el "estadístico T de student" el cual se define de la siguiente forma:
+
+$$T_{n-1}=\frac{\sqrt{n}\big(\overline{X}-E(X)\big)}{S}$$
+
+Donde: 
+
+* $X$ es una variable aleatoria cualquiera.
+* $n$ es el tamaño de la muestra y $\sqrt{n}$ su raíz cuadrada.
+* $\bar{X}$ es el promedio calculado con la muestra.
+* $S$ es la desviación estándar calculada con la muestra.
+* $E(X)$ es el valor esperado de la variable aleatoria $X$.
+
+Esta cantidad, atribuida a varios autores, popularizada por Ronald Fisher quien le puso el nombre actual de "_T de Student_" debido a un articulo científico publicado en _Biometrika_ en 1908, escrito por William Sealy Gosset bajo el seudónimo de "_Student_", tiene ciertas propiedades sumamente interesantes. Primero nótese que las cantidades involucradas en esta fórmula son obtenidas de datos muestrales salvo $E(X)$, que es un parámetro desconocido y que por lo general se quiere estimar. Es decir que si tuviéramos los datos de una muestra, no podríamos calcular el estadístico $T_{n-1}$ ya que nos haría falta conocer el valor de $E(X)$. A pesar de la imposibilidad de poder calcular esta cantidad con datos de una muestra, sí se sabe algo mucho mas interesante del estadístico $T_{n-1}$: se conoce su función de densidad (bajo ciertos supuestos acerca de la función de densidad de $X$) y esta no depende del valor que tenga $E(X)$. A continuación presentamos su fórmula:
+
+$$f(t) = \frac{\Gamma\Big(\frac{n}{2}\Big)} {\sqrt{(n-1)\pi}\,\Gamma\big(\frac{n-1}{2}\big)} \left(1+\frac{t^2}{n-1} \right)^{\!-\frac{n}{2}}$$
+Es una fórmula un poco complicada, lo importante es notar que esta fórmula depende de exclusivamente de $t$ y de $n-1$, es decir que esta función de densidad tiene un único parámetro que es $n-1$ y que se denomina **_grados de libertad_**. Veamos como cambia la función de densidad con diferentes grados de libertad:
+
+<center>
+```{r td1, echo=F, fig.width=6, fig.height=4, fig.cap="Funciones de densidad del estadístico T con diferentes grados de libertad"}
+ggplot(data = data.frame(x = c(-3, 3)), aes(x)) +
+  stat_function(fun = dt, args = list(df = 70),color="blue")+ylab("f(t)")+xlab("t")+
+  stat_function(fun = dt, args = list(df = 35),color="green")+
+  stat_function(fun = dt, args = list(df = 10),color="orange")+
+  stat_function(fun = dt, args = list(df = 5),color="red")+
+  annotate("text", x = rep(1.7,4), y = seq(.39,.31,length.out = 4), 
+           label = paste0("GL = ",c(70,35,10,5)) , size=4 , 
+           color=c("blue","green","orange","red"))+
+  theme_bw()
+```
+</center>
+Se puede demostrar que $E(T_{n-1})=0$ y que $V(T_{n-1})=\frac{n-1}{n-3}$. Este estadístico $T_{n-1}$ nos deja muy cerca de lo que inicialmente se quería, pues es posible encontrar dos números $L$ y $U$ tal que:
+
+$$P(L \leq T_{n-1} \leq U)=P\left(L \leq \frac{\sqrt{n}\big(\overline{X}-E(X)\big)}{S} \leq U\right)=1-\alpha$$
+¿Por qué es posible encontrar estos números $L$ y $U$? Porque $T_{n-1}$ tiene una función de densidad conocida, y podemos hallar un par de números, entre los cuales existe una probabilidad (es decir un área bajo la curva) de $1-\alpha$:
+
+```{r cuantilest, warning =F, echo=F, fig.width=6, fig.height=4,fig.cap="L y U en la distribución T"}
+gl<-30
+ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
+  stat_function(fun = dt, args = list(df = 30))+ylab("f(t)")+
+  geom_segment(aes(x=qt(.975,gl),xend=qt(.975,gl),y=0,yend=dt(qt(.975,gl),gl)))+
+  geom_segment(aes(x=qt(.025,gl),xend=qt(.025,gl),y=0,yend=dt(qt(.025,gl),gl)))+
+  scale_x_continuous("t", round(c(-5,qt(1-.975,gl),0,qt(.975,gl),5),3), limits=c(-5,5))+
+  annotate("segment", x = c(-2.2,2.2,0), xend = c(-3.8,3.8,2), 
+           y = c(0.02,0.02,.3), yend = c(.16,.16,.35), colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(qt(.975,gl),5),
+                geom = "area",fill="red",alpha=0.5)+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(-5,qt(.025,gl)),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = c(-3.8,3.8,2.7), y = c(0.18,0.18,.37), 
+           label = c("alpha/2","alpha/2","1-alpha"),parse=T , size=4 , fontface="bold")+
+  theme_bw()
+``` 
+
+Los números $L$ y $U$ resultan ser los cuantiles $t_{n-1,\alpha/2}$ y $t_{n-1,\alpha/2}$.
+
+Veamos un ejemplo. Supongamos que queremos encontrar dos números, $L$ y $U$ tal que 
+$$P(L \leq T_{n-1} \leq U)=P\left(L \leq \frac{\sqrt{n}\big(\overline{X}-E(X)\big)}{S} \leq U\right)=0.95$$
+Es decir, queremos encontrar dos números que acumulen una probabilidad del 95%, por tal razón $1-\alpha =0.95$, luego $\alpha=1-0.95=0.05$. De esta forma $L$ es el cuantil $\frac{\alpha}{2}=\frac{0.05}{2}=0.025$ y $U$ es el cuantil $1-\frac{\alpha}{2}=1-\frac{0.05}{2}=1-0.025=0.975$
+
+```{r cuantilest2, warning =F, echo=F, fig.width=6, fig.height=4,fig.cap="L y U en la distribución T, probabilidad 0.95"}
+gl<-30
+ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
+  stat_function(fun = dt, args = list(df = 30))+ylab("f(t)")+
+  geom_segment(aes(x=qt(.975,gl),xend=qt(.975,gl),y=0,yend=dt(qt(.975,gl),gl)))+
+  geom_segment(aes(x=qt(.025,gl),xend=qt(.025,gl),y=0,yend=dt(qt(.025,gl),gl)))+
+  scale_x_continuous("t", round(c(-5,qt(1-.975,gl),0,qt(.975,gl),5),3), limits=c(-5,5))+
+  annotate("segment", x = c(-2.2,2.2,0), xend = c(-3.8,3.8,2), 
+           y = c(0.02,0.02,.3), yend = c(.16,.16,.35), colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(qt(.975,gl),5),
+                geom = "area",fill="red",alpha=0.5)+
+  stat_function(fun = dt, args = list(df = gl),
+                xlim = c(-5,qt(.025,gl)),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = c(-3.8,3.8,2.7), y = c(0.18,0.18,.37), 
+           label = c("0.025","0.025","0.95"),parse=T , size=4 , fontface="bold")+
+  theme_bw()
+``` 
+
+Nótese que para el caso de $E(X)$ la expresión a la que deseamos llegar es  $P(L \leq E(X) \leq U)=1-\alpha$ y que la expresión que tenemos hasta el momento es $P\left(t_{n-1,\alpha/2} \leq \frac{\sqrt{n}\big(\overline{X}-E(X)\big)}{S} \leq t_{n-1,\alpha/2}\right)=1-\alpha$. Haciendo algunas manipulaciones algebraicas se puede demostrar que:
+$$P\left(t_{n-1,\alpha/2} \leq \frac{\sqrt{n}\big(\overline{X}-E(X)\big)}{S} \leq t_{n-1,\alpha/2}\right) =P\left(\bar{X}-t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}} \leq E(X) \leq \bar{X}-t_{n-1,\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}\right)=1-\alpha$$
+
+¿Qué ha sucedido? ¿Se ha logrado lo imposible? Hemos encontrado los números $L$ y $U$ tal que $P(L \leq E(X) \leq U)=1-\alpha$, donde:  
+$$L=\bar{X}-t_{n-1,1-\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}$$
+$$U=\bar{X}-t_{n-1,\frac{\alpha}{2}}\times\frac{S}{\sqrt{n}}$$
+
+Nótese que $L$ y $U$ son números calculados con información de la muestra y usando los cuantiles apropiados $t_{n-1,\frac{\alpha}{2}}$ y $t_{n-1,1-\frac{\alpha}{2}}$.
+
+¿Eso quiere decir que la probabilidad de que $E(X)$ se encuentre $L$ y $U$ es de $1-\alpha$? La respuesta es un rotundo **NO**. La probabilidad calculada es sobre la distribución $T_{n-1}$ y no sobre el parámetro $E(X)$. La interpretación clásica que se le da a la probabilidad $1-\alpha$ es la siguiente:
+
+* $1-\alpha$ es la probabilidad de que al sacar una muestra y construir el intervalo de $1-\alpha$ de confianza, el verdadero parámetro (en este caso $E(X)$) se encuentre en el.
+
+$1-\alpha$ se puede interpretar como la probabilidad de obtener una "buena" muestra, en el sentido que al calcular el intervalo de confianza el verdadero parámetro se encuentre ahí.
+El ejemplo tradicional que se presenta para explicar esto, es imaginar que uno pudiera sacar 100 muestras y que con cada muestra se calculan los intervalos de confianza. Suponiendo que por ejemplo, $\alpha=0.05$ entonces los intervalos poseen un nivel de confianza del 95%. Entonces se espera que el verdadero valor del parámetro se encuentre contenido en 95 de los 100 intervalos construidos.
+
+```{r , echo=F, fig.width=14, fig.height=4,fig.cap="Intervalos de confianza construidos para varias muestras"}
+n<-25
+my_mu<-80
+my_sd<-10
+sample_list<-list()
+
+for (i in 1:100) {
+  sample_list[[i]]<-rnorm(n,my_mu,my_sd)
+}
+ttest_list<-sample_list%>%map(t.test)
+ttest_list%>%sapply( function(x){c(x$conf.int[1],x$estimate,x$conf.int[2])})%>%t(.)->ci_df
+data.frame(1:100,ci_df)->ci_df
+colnames(ci_df)<-c("Sample","LCI","mean","UCI")
+ci_df%>%mutate(out=factor(ifelse(LCI<my_mu & UCI >my_mu,0,1)))->ci_df
+
+
+ci_df%>%ggplot(aes(x=Sample,y=mean,color=out))+geom_point()+
+  geom_errorbar(aes(ymin=LCI, ymax=UCI),width=.1)+
+  geom_hline(yintercept=my_mu, linetype="dashed", 
+             color = "blue", size=1)+
+  scale_color_brewer(palette="Dark2")+
+  theme_bw()
+```
+
+## Ejemplo
+
+A continuación se presentan algunos datos de un estudio sobre pH de la orina en una muestra de 79 pacientes en un a UCI:
+
+```{r , echo=F, fig.width=18, fig.height=4, warning =F, fig.cap="histogramas para variables fisicoquimicas de la orina en 79 pacientes de una UCI"}
+p1<-ggplot(urine, aes(x=gravity)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+p2<-ggplot(urine, aes(x=ph )) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+p3<-ggplot(urine, aes(x=osmo)) + geom_histogram(bins=10,color="black",fill="grey")+ theme_bw()
+gridExtra::grid.arrange(grobs =list(p1,p2,p3),nrow=1,ncol=3)
+```
+
+A continuación presentamos algunas estadísticas descriptivas de estos datos:
+
+```{r , echo=F, fig.width=6, fig.height=4}
+urine[,2:4]%>%summary
+```
+```{r echo=FALSE, results = 'asis'}
+t2<-data.frame(promedio=round(apply(urine[,2:4],2,mean,na.rm =T),4),varianza=round(apply(urine[,2:4],2,var,na.rm =T),4),n=apply(urine[,2:4],2,function(x){sum(!is.na(x))}))
+t2<-kable(t2)
+kable_styling(t2,"striped", position = "center")
+
+```
+Note que la variable $osmo$ tiene un dato faltante. Calcularemos el intervalo de confianza al 95% para el valor esperado del pH de la orina.
+
+En la tabla anterior tenemos toda la información necesaria para calcular el IC, salvo los cuantiles de la distribución $T_{n-1}$. A continuación presentamos una tabla con algunos cuantiles para diferentes grados de libertad:
+
+```{r echo=FALSE, results = 'asis'}
+alpha<-c(0.005,0.025,0.05,0.1)
+GL<-c(50,77,78,79,80,100)
+res<-outer(GL,c(alpha,rev(1-alpha)),function(x,y){round(qt(y,x),4)})
+colnames(res)<-paste0("qT_",c(alpha,rev(1-alpha)))
+res<-cbind(GL,res)
+
+res<-kable(res)
+kable_styling(res,"striped", position = "center")
+```
+
+Ya que el tamaño de muestra es 79, los grados de libertad que debemos usar son $n-1=79-1=78$. Como el nivel de confianza es $1-\alpha=0.95$ eso implica que $\alpha=0.05$ y los cuantiles que debemos usar son $\alpha/2=0.025$ y $1-\alpha/2=0.975$. En la tabla vemos que sus valores son $t_{78,0.05}=$ `r qt(0.025,78)%>%round(3) ` y $t_{78,0.975}=$ `r qt(0.975,78)%>%round(3)`. Ahora tenemos toda la información para calcular el IC al 95%:
+
+$$L=\bar{X}-t_{78,0.975}\times\frac{S}{\sqrt{79}}=6.03-1.99\times \frac{\sqrt{0.52}}{\sqrt{79}}=5.87$$
+$$U=\bar{X}-t_{78,0.025}\times\frac{S}{\sqrt{79}}=6.03-(-1.99)\times \frac{\sqrt{0.52}}{\sqrt{79}}=6.03$$
+
+# IC para la varianza
+
+Para este parámetro usaremos una estrategia similar a la empleada en el caso del valor esperado. Esta vez la cantidad que permitira calcular el intervalo de confianza se denomina el estadistico $\chi ^2_{n-1}$ (léase "chi cuadrado con n-1 grados de libertad"), el cual se define de la siguiente manera:
+
+$$\chi ^2_{n-1}=\frac{(n-1)S^2}{V(X)} $$
+donde $S^2$ es el estimador de la varianza, $V(X)$ es la varianza poblacional de la variable aleatoria $X$ y $n$ es el tamaño de la muestra. De manera similar al caso anterior, este estadístico no se puede calcular debido a que desconocemos el valor del parámetro $V(X)$, sin embargo, su función de densidad es conocida y tiene la siguiente formula:
+
+$$f(x)=\frac{1}{2^{\frac{n-1}{2}}\Gamma(\frac{n-1}{2})}x^{\frac{n-1}{2}}e^{-x/2}$$
+Como puede verse en la formula, el único parámetro en la función de densidad es $n-1$, que en este caso también se denomina grados de libertad. A continuación presentamos el efecto del parámetro $n-1$ en la forma de la función de densidad
+
+<center>
+```{r chid1, echo=F, fig.width=6, fig.height=4, fig.cap="Funciones de densidad del estadístico $\\chi^2$ con diferentes grados de libertad"}
+ggplot(data = data.frame(x = c(0, 110)), aes(x)) +
+  stat_function(fun = dchisq, args = list(df = 70),color="blue")+ylab("f(x)")+xlab("x")+
+  stat_function(fun = dchisq, args = list(df = 35),color="green")+
+  stat_function(fun = dchisq, args = list(df = 15),color="orange")+
+  stat_function(fun = dchisq, args = list(df = 10),color="red")+
+  annotate("text", x = rep(60,4), y = seq(.09,.075,length.out = 4), 
+           label = paste0("GL = ",c(70,35,15,10)) , size=4 , 
+           color=c("blue","green","orange","red"))+
+  theme_bw()
+```
+</center>
+
+Igual que antes, gracias a que se conoce la función de densidad, podemos encontrar dos cuantiles, $L$ y $U$ tal que $P\left(L\leq \chi^2_{n-1} \leq U \right)=1-\alpha$
+
+<center>
+```{r chid2, warning =F, echo=F, fig.width=6, fig.height=4, fig.cap="L y U en la distribución $\\chi^2$"}
+ggplot(data = data.frame(x = c(0, 70)), aes(x)) +
+  stat_function(fun = dchisq, args = list(df = 30))+ylab("f(x)")+
+  geom_segment(aes(x=qchisq(.975,30),xend=qchisq(.975,30),y=0,yend=dchisq(qchisq(.975,30),30)))+
+  geom_segment(aes(x=qchisq(.025,30),xend=qchisq(.025,30),y=0,yend=dchisq(qchisq(.025,30),30)))+
+  scale_x_continuous("x", round(c(0,qchisq(1-.975,30),30,qchisq(.975,30),70),3), limits=c(0,70))+
+  annotate("segment", x = c(16,48,30), xend = c(10,54,42), 
+           y = c(0.005,.003,.03), yend = c(.018,.015,.04), colour = "red", size=1, alpha=0.6, arrow=arrow())+
+  stat_function(fun = dchisq, args = list(df = 30),
+                xlim = c(qchisq(.975,30),70),
+                geom = "area",fill="red",alpha=0.5)+
+  stat_function(fun = dchisq, args = list(df = 30),
+                xlim = c(0,qchisq(.025,30)),
+                geom = "area",fill="red",alpha=0.5)+
+  annotate("text", x = c(7), y = c(0.02), 
+           label = "alpha/2",parse = TRUE , size=4 , fontface="bold")+
+  annotate("text", x = c(56), y = c(0.017), 
+           label = "alpha/2",parse = TRUE , size=4 , fontface="bold")+
+  annotate("text", x = c(48), y = c(0.043), 
+           label = "1-alpha",parse = TRUE , size=4 , fontface="bold")+
+  theme_bw()
+```
+</center>
+
+Asi, $L$ es el cuantil $\alpha/2$ ($\chi^2_{n-1,\alpha/2}$) y $U$ es el cuantil $1-\alpha/2$ ($\chi^2_{n-1,1-\alpha/2}$) de la distribucion $\chi^2_{n-1}$
+
+De esta manere se tiene que 
+$$P\left(\chi^2_{n-1,\alpha/2} \leq \chi^2_{n-1} \leq \chi^2_{n-1,1-\alpha/2}\right)=1-\alpha \Leftrightarrow$$
+$$P\left(\chi^2_{n-1,\alpha/2} \leq \frac{(n-1)S^2}{V(X)} \leq \chi^2_{n-1,1-\alpha/2}\right)=1-\alpha \Leftrightarrow$$
+$$P\left(\frac{(n-1)S^2}{\chi^2_{n-1,1-\alpha/2}} \leq V(X) \leq \frac{(n-1)S^2}{\chi^2_{n-1,\alpha/2}} \right)=1-\alpha $$
+
+De tal forma que 
+
+$$L=\frac{(n-1)S^2}{\chi^2_{n-1,1-\alpha/2}}$$
+
+$$U=\frac{(n-1)S^2}{\chi^2_{n-1,\alpha/2}}$$
+
+La interpretación es la misma que en el caso anterior del valor esperado. 
+
+## Ejemplo
+Retomando los datos del ejercicio anterior, esta ves vamos a calcular el intervalo de 90% confianza para la varianza del pH. Se tiene $S^2=0.5246$, $n=79$. Esta vez $1-\alpha=0.90$ luego $\alpha=0.1$, $\alpha/2=0.05$ y $1-\alpha/2=0.95$. Puede verificarse que $\chi^2_{n-1,\alpha/2}=\chi^2_{78,0.05}= 58.65394$ y $\chi^2_{n-1,1-\alpha/2}=\chi^2_{78,0.95}= 99.61693$ luego
+
+$$L=\frac{(n-1)S^2}{\chi^2_{n-1,1-\alpha/2}}=\frac{78 \times 0.5246}{99.61693}=`r 78*0.5246/99.61693`$$
+$$U=\frac{(n-1)S^2}{\chi^2_{n-1,\alpha/2}}=\frac{78 \times 0.5246}{58.65394}=`r 78*0.5246/58.65394`$$
+
+# IC para una probabilidad
+
+Anteriormente habíamos visto como las probabilidades en una variable categórica podían ser estimadas a través del calculo de una proporción y su estrecha relación con el valor esperado y su estimador el promedio. A continuación estudiaremos como calcular un intervalo de confianza para la estimación de la probabilidad.
+
+Lo primero que debemos destacar es que la solución que daremos a continuación es una solución aproximada  y solo es valida para tamaños de muestra grandes (algunos consideran que tamaños de muestra mayores a 30 son aceptables).
+
+Sea $p$ la probabilidad de un evento que se desea estimar (La probabilidad de contraer una enfermedad, repobar un examen, etc.) entonce el intervalo de confianza de nivel $1-\alpha$ esta dado por
+
+$$L=\bar{p}-z_{1-\alpha/2}\sqrt{\frac{\bar{p}(1-\bar{p})}{n}}$$
+$$U=\bar{p}-z_{\alpha/2}\sqrt{\frac{\bar{p}(1-\bar{p})}{n}}$$
+donde $\bar{p}$ es el estimador de la probabilidad, es decir la proporción calculada con la muestra. Las cantidades $z_{\alpha/2}$ y $z_{1-\alpha/2}$ son los cuantiles $\alpha/2$ y $1-\alpha/2$ de la distribución normal estándar. (La distribución normal estándar es una distribución normal con valor esperado igual a cero y varianza igual a uno). Veamos un ejemplo del calculo de este intervalo de confianza.
+
+## Ejemplo
+
+Suponga que se desea estimar la probabilidad de desarrollar un tipo particular de cáncer en una población determinada. Para esto se ha diseñado un estudio, en el cual, 5000 sujetos sanos son seleccionados al azar en la población y seguidos durante 10 años a la espera de observar quienes desarrollaron el cáncer. Al finalizar el estudio, se ha observado que 157 sujetos desarrollaron el cáncer. Calcule un intervalo de confianza del 95% para la probabilidad de desarrollar cáncer.
+
+Se tiene la siguiente información:
+
+* $n=5000$
+* $\bar{p}=\frac{157}{5000}=`r 157/5000`$
+* $1-\alpha=0.95$
+
+Se puede mostrar que $z_{\alpha/2}=z_{0.025}=`r qnorm(0.025)`$ y que $z_{1-\alpha/2}=z_{0.975}=`r qnorm(1-0.025)`$. Finalmente aplicando las formulas anteriormente presentada tenemos que:
+
+$$L=\bar{p}-z_{1-\alpha/2}\sqrt{\frac{\bar{p}(1-\bar{p})}{n}}=\frac{157}{5000}-`r qnorm(1-0.025)`\sqrt{\frac{\frac{157}{5000}(1-\frac{157}{5000})}{5000}}=
+`r 157/5000-qnorm(1-0.025)*sqrt((157/5000)*(1-(157/5000))/5000)`$$
+$$U=\bar{p}-z_{\alpha/2}\sqrt{\frac{\bar{p}(1-\bar{p})}{n}}=\frac{157}{5000}-(`r qnorm(0.025)`)\sqrt{\frac{\frac{157}{5000}(1-\frac{157}{5000})}{5000}}=
+`r 157/5000-qnorm(0.025)*sqrt((157/5000)*(1-(157/5000))/5000)`$$
+
+# Notas finales
+
+En esta sección se ha estudiado el calculo de intervalos de confianza para los parámetros de valor esperado, varianza y probabilidad. En estos tres escenarios vimos que es necesario determinar los cuantiles de las distribuciones $T$ de student, $\chi^2$ y la distribución normal estándar. Estos cuantiles pueden ser calculados en R usando las funciones `` qt(), qchisq()  y qnorm() ``. Invitamos a los lectores a consultar el uso y funcionamiento de estas funciones en R
+
+`` ?qt ``
+\
+`` ?qchisq ``
+\
+`` ?qnorm ``
+
+Por otra parte, es importante discutir algunos supuestos que existen entorno a los cálculos de los intervalos de confianza para el valor esperado y la varianza. Como se vio anteriormente, en su derivación aparecieron los estadísticos $T_{n-1}$ y $\chi^2_{n-1}$ y gracias a que estos estadísticos poseen una distribución conocida, fue posible derivar las formulas de los intervalos de confianza. Sin embargo, las distribuciones de estos estadísticos son las descritas, si y solamente si, la variable aleatoria original, objeto de estudio, posee una distribución normal. Esto se conoce como el supuesto de normalidad.
+
+Esto quiere decir que, el intervalo calculado es el correcto si y solamente si la variable original, a nivel población también posee una distribución normal. Algunos estudios han demostrado que, cuando la variable no posee una distribución normal, los errores incurridos en el calculo de los intervalos de confianza pueden ser mínimos en algunos casos. Mas adelante veremos algunas formas de evaluar si la distribución de una variable puede ser considerada como normal o no usando los datos de la muestra.
