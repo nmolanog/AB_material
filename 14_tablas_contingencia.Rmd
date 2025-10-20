@@ -1,0 +1,493 @@
+---
+title: "Tablas de contingencia"
+author: "Nicolás Molano González"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  bookdown::html_document2:
+    toc: true
+    toc_float: 
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+    number_sections: true
+    theme: flatly
+    highlight: tango
+    css: ["styles.css"]
+    includes:
+      in_header: header.html
+      after_body: footer.html
+bibliography: references.bib  
+---
+
+```{r echo=F, message = FALSE, warning =F}
+library(pacman)
+p_load(epitools)
+p_load(car)
+p_load(mvtnorm)
+p_load(tidyverse)
+p_load(kableExtra)
+p_load(knitr)
+p_load(latex2exp)   
+p_load(ggrepel)
+p_load(magick)
+p_load(reshape2)
+p_load(cowplot)
+p_load(gridGraphics)
+p_load(GA)
+p_load(ggbeeswarm)
+set.seed(150)
+```
+
+# Introducción
+
+Continuamos nuestro estudio de las variables aleatorias condicionales estudiando la relación entre un par de variables cualitativas. En particular estudiaremos la variable aleatoria condiciona $Y|X=c$ donde  $X$ e $Y$ son variables cualitativas y $c$ es una de las posibles categorías que puede tomar la variable $X$. Como siempre empezaremos nuestro estudio con un ejemplo.
+
+```{r , echo=F}
+N<-1000
+Treat<-sample(LETTERS[1:4],N,replace =T)
+
+SE<-c("digest","neur","musc","none")
+
+z0<-data.frame(Treat=Treat,SE=NA)
+
+z0[z0$Treat %in% "A","SE"]<-sample(SE,length(z0$Treat[z0$Treat %in% "A"]),
+                                   replace = T,prob=c(.2,.3,.2,.3))
+z0[z0$Treat %in% "B","SE"]<-sample(SE,length(z0$Treat[z0$Treat %in% "B"]),
+                                   replace = T,prob=c(.6,.1,.1,.3))
+z0[z0$Treat %in% "C","SE"]<-sample(SE,length(z0$Treat[z0$Treat %in% "C"]),
+                                   replace = T,prob=c(.1,.4,.3,.2))
+z0[z0$Treat %in% "D","SE"]<-sample(SE,length(z0$Treat[z0$Treat %in% "D"]),
+                                   replace = T,prob=c(.15,.15,.3,.4))
+z0$SE<-factor(z0$SE)
+z0$Treat<-factor(z0$Treat)
+```
+
+Se esta estudiando una terapia farmacológica para una enfermedad crónica no transmisible. Se selecciono al azar una muestra de `r N` pacientes de la enfermedad y cada uno de ellos fue asignado de manera aleatoria a una de cuatro posibles formulaciones terapéuticas ``A,B,C`` y ``D``. Para cada paciente se determinó si presentaba alguno de los siguientes efectos secundarios: 
+
+* ``digest`` efectos secundarios relacionados con anomalías digestivas
+* ``neur`` efectos secundarios relacionados con anomalías neurológicas
+* ``musc`` efectos secundarios relacionados con anomalías musculares
+* ``none`` ningún efecto secundario registrado
+
+Se busca describir el comportamiento de cada uno de estos síntomas para cada una de las formulaciones terapéuticas ``A,B,C`` y ``D``.
+
+Teniendo en cuenta la información anterior, tendría sentido considerar a la variable síntomas como la variable dependiente y a la variable tratamiento como la variable independiente.
+A continuación se presentan las estadísticas descriptivas marginales y condicionales.
+
+```{r , echo=F}
+summary(z0)
+by(z0$Treat,z0$SE,summary)
+```
+
+Es decir que estaríamos interesados en estudiar  la distribución de la variable ``SE`` (efectos secundarios) condicionada a las diferentes formulaciones terapéuticas (``Treat``).
+
+El análisis de estas dos variables fue cubierto en el capitulo de probabilidad, en donde estudiamos las tablas de contingencia y aprendimos a calcular e interpretar probabilidades marginales y condicionales. Para este estudio tenemos la siguiente tabla de contingencia:
+
+```{r conttabl, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+tz0<-table(z0)
+res<-kable(tz0 %>% t %>%addmargins,caption="Tabla de contingencia SE vs Treat")
+kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_above(c("SE","Treat"=2," "," "," "))
+```
+
+En ese capitulo vimos como calcular cosas como la probabilidad de presentar síntomas neurológicos $P(SE=neur)$ y según vimos, la estimación de esta probabilidad es simplemente:
+
+$$\widehat{P(SE=neur)}=`r tz0[,"neur"] %>% sum`/`r tz0 %>% sum`= `r (tz0[,"neur"] %>% sum)/(tz0 %>% sum)`$$
+
+Es decir el numero de personas que presentaron efectos secundarios neurológicos dividido el tamaño de la muestra. También estudiamos como calcular la probabilidad de que al haber tomado la formulación farmacológica ``C`` no se presente ningún efecto secundario, es decir $P(SE=none|Treat=C)$. su estimación con los datos de la muestra es la siguiente:
+
+$$\widehat{P(SE=none|Treat=C)}=\frac{\widehat{P(SE=none \cap Treat=C)}}{\widehat{P(Treat=C)}}=`r tz0["C","none"]`/`r tz0["C",] %>% sum`=
+`r tz0["C","none"]/ (tz0["C",] %>% sum)`$$
+Ya que nos encontramos interesados en las probabilidades condicionales de presentar efectos secundarios dada la formulación tomada, presentamos la siguiente tabla:
+
+
+```{r conttablrows, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+tz0<-table(z0)
+res<-kable((tz0/apply(tz0,1,sum)) %>% addmargins %>% t %>% {.[,-5]} ,caption="Porcentajes por columna")
+kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_above(c("SE","Treat"=2," "," "))
+```
+
+Esta tabla presenta los porcentajes por columna de la tabla \@ref(tab:conttabl) y estos porcentajes coinciden con las estimaciones de las probabilidades condicionales requeridas. Existe una forma grafica para representar esta información, el grafico se denomina _**grafico de mosaico**_ y lo presentamos a continuación:
+
+```{r mosaic1, echo=F, fig.width=5, fig.height=5,fig.cap="Grafico de mosaico representando las probabilidades condicionales ``SE`` $|$ ``Treat``"}
+z0 %>% table %>% mosaicplot(color=2:5)
+```
+
+Este grafico representa información variada sobre las probabilidades marginales y condicionales de estos datos. Lo primero que se puede notar en la figura \@ref(fig:mosaic1) es que el área del grafico se encuentra dividida en en cuatro rectángulos verticales, correspondientes a cada uno de los tratamientos. El ancho de estos gráficos es proporcional a la frecuencia  marginal de cada uno de los tratamientos. Estas son las frecuencias marginales:
+
+```{r , echo=F}
+table(z0$Treat)/N
+```
+Estas frecuencias relativas son simplemente los estimadores de las probabilidades $P(A),P(B),P(C)$ y $P(D)$ respectivamente. Ya que las frecuencias son muy similares entre si, esto se ve reflejado en un ancho de los rectángulos verticales mas o menos igual en la figura \@ref(fig:mosaic1). Mas adelante veremos otros ejemplos en donde estas diferencias son mas evidentes.
+
+Al interior de cada rectángulo vertical encontramos subdivisiones que corresponderían a las probabilidades condicionales de los diferentes efectos secundarios dado el tratamiento. Por ejemplo, se puede observar que en el tratamiento ``SE``, el efecto secundario mas común fue el ``none`` (es decir la ausencia de efectos secundarios), ver área del rectángulo azul celeste en el cuadrante del tratamiento ``A``  figura \@ref(fig:mosaic1). Usted puede corroborar en la tabla \@ref(tab:conttablrows), que la proporción del efecto secundario ``none`` en el tratamiento ``A`` es de `r tz0["A","none"]/sum(tz0["A",])` y que de hecho esta es la proporción mas alta dentro del tratamiento ``A``. De manera similar, En el tratamiento ``C`` el efecto secundario menos frecuente fue el ``digest``, ya que es el cuadrante al interior del rectángulo correspondiente al tratamiento ``C`` con menor área. (Usted puede verificar esto de la misma manera en la tabla \@ref(tab:conttablrows)).
+
+En consonancia con los anteriores análisis de regresión, usted podría preguntarse si existe algún parámetro que resuma la relación entre las variables ``Treat`` y ``SE``, de manera análoga al parámetro de correlación o al estadístico de resumen $R^2$. En este caso, no existe tal parámetro y la única forma de evaluar la relación entre las dos variables cualitativas es a través de la prueba de independencia de $\chi^2$
+
+# Prueba de independencia de $\chi^2$
+
+¿Como evaluar la relación entre la formula farmacológica y los efectos secundarios desde un punto estadístico y probabilístico? es la pregunta que responderemos en esta sección. Recordemos que bajo el supuesto de independencia se cumple que 
+
+$$P(A|B)=P(A)$$
+Donde $A$ y $B$ son dos eventos cualquiera. Consideremos por ejemplo que la ausencia de efectos secundarios (categoría ``none`` para la variable ``SE``) fuera independiente del tratamiento ``A``, esto implicaría que 
+
+$$P(SE=none|Treat=A)=P(SE=none)$$
+y que esto ocurriera, no solo en el caso del tratamiento ``A``, pero también en los demás tratamientos, es decir
+
+$$P(SE=none|Treat=B)=P(SE=none)$$
+$$P(SE=none|Treat=C)=P(SE=none)$$
+$$P(SE=none|Treat=D)=P(SE=none)$$
+Si esto ocurriera, diríamos que el efecto secundario ``none`` es independiente del tratamiento. Pues bien, esta independencia sera la que se evaluara en la prueba de hipótesis de independencia de $\chi^2$, aunque de una manera mas general.
+
+## Sistema de hipótesis de la prueba de independencia de $\chi^2$
+
+A continuación presentamos el sistema de hipótesis de la prueba de independencia:
+
+Sean $X$ y $Y$ dos variables cualitativas. Entonces 
+
+\begin{equation}
+H_0: \; Las\; variables \;X \;y \;Y \;son\; independientes \\
+H_a: \; Las \;variables \;X \;y \;Y \;no \;son\; independientes
+(\#eq:chihip)
+\end{equation}
+
+Hemos visto con anterioridad como se define la independencia entre eventos, sin embargo no hemos visto como se define la independencia entre variables aleatorias. Así que la definiremos a continuación:
+
+### Independencia entre variables categóricas
+
+Sea $X$ una variable aleatoria donde $x_1,x_2,...,x_p$ son sus posibles categorías y sea $Y$ una variable aleatoria donde $y_1,y_2,...,y_q$ son sus posibles categorías. Es claro que $p$ y $q$ son el numero de categorías para las variables $X$ e $Y$ respectivamente. 
+
+Las variables $X$ e $Y$ son independientes si para todo par de categorías  $x_i$ e $y_j$ se cumple que
+
+\begin{equation}
+P(X=x_i \cap Y=y_j)= P(X=x_i)P(Y=y_j)
+(\#eq:indep)
+\end{equation}
+
+Si la formula anterior se cumple, usted podrá recordar que lo siguiente también se cumplirá:
+
+$$P(X=x_i | Y=y_j)= P(X=x_i)$$
+$$P(Y=y_j|X=x_i)= P(Y=y_j)$$
+
+Es decir que bajo el supuesto de independencia entre variables categóricas, toda probabilidad condicional debería coincidir con las probabilidades marginales.
+
+Veamos un ejemplo en donde las dos variables son perfectamente independientes: considere dos variables categóricas $X$ y $Y$ con categorías $x_1, x_2$ y $y_1, y_2$ respectivamente
+
+```{r indeptbl, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+indeptbl<-outer(c(0.3,0.7),c(0.4,.6))*200
+dimnames(indeptbl)<-list(c("x1","x2"),c("y1","y2"))
+res<-kable(indeptbl%>% addmargins,caption="dos variables independeintes")
+kable_styling(res,"striped", position = "center",full_width = F)
+# res<-t(table(z0)%>%addmargins)
+# knitr::kable(res,caption="Tabla de contingencia: status vs exposition")
+```
+
+Las probabilidades marginales son las siguientes
+
+```{r , echo=F}
+(indeptbl %>% apply(1,sum))/(indeptbl %>% sum)
+(indeptbl %>% apply(2,sum))/(indeptbl %>% sum)
+```
+
+A continuación presentamos los porcentajes por fila y columna
+
+```{r indeptblrows, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+res<-kable((indeptbl/apply(indeptbl,1,sum)) %>% addmargins  %>% {.[-3,]} ,caption="Porcentajes por fila")
+kable_styling(res,"striped", position = "center",full_width = F)
+
+```
+
+```{r indeptblcols, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+res<-kable((t(indeptbl)/apply(t(indeptbl),1,sum)) %>% t %>% addmargins  %>% {.[,-3]} ,caption="Porcentajes por columna")
+kable_styling(res,"striped", position = "center",full_width = F)
+
+```
+
+Como puede verse, las probabilidades condicionales son iguales a las probabilidades marginales correspondientes, cumpliéndose que las variables $X$ y $Y$ son independientes. Exploremos ahora como se ven estas probabilidades condicionales en los gráficos de mosaico
+
+```{r mosaicindep, echo=F, fig.width=8, fig.height=4,fig.cap="Grafico de mosaico para variables independeintes"}
+par(mfrow=c(1,2))
+indeptbl%>% mosaicplot(color=2:3,main="a) Y|X")
+indeptbl%>% t %>%  mosaicplot(color=4:5,main="b) X|Y")
+par(mfrow=c(1,1))
+```
+
+En la figura \@ref(fig:mosaicindep) se presentan dos gráficos de mosaico: \@ref(fig:mosaicindep)a) muestra las distribuciones condicionales de la variable $Y$ condicionada a las diferentes categorías de la variable $X$ y en la figura \@ref(fig:mosaicindep)b) mostramos las distribuciones condicionales de la variable $X$ condicionada a las diferentes categorías de la variable $Y$. Note como los anchos de los rectángulos verticales corresponden a las probabilidades marginales.
+
+Adicionalmente, note como las probabilidades marginales $P(Y=y_1|X=x_1)$ y $P(Y=y_1|X=x_2)$ son iguales (y de manera similar $P(X=x_1|Y=y_1)$ y $P(X=x_1|Y=y_2)$). Este es un rasgo distintivo de la independencia entre variables cualitativas, reflejado en los gráficos de mosaico.
+
+Destacamos que este es un ejemplo en donde la independencia es exacta, y esto ocurre a nivel poblacional (una población pequeña de tamaño 200). Sin embargo cuando los datos provienen de una muestra, la independencia no sera exacta en los estimadores y pueden haber pequeñas discrepancias debidas al muestreo aleatorio. Es por este que se desarrollo la prueba de independencia del $\chi^2$, para juzgar que tan compatibles son los datos observados con el escenario de la hipótesis nula en donde las variables son independientes a nivel poblacional.
+
+No entraremos en los detalles del estadístico de prueba usado en la prueba de independencia ni en la distribución de la hipótesis nula. Como es costumbre usaremos la implementación en R (el estudiante puede revisar la documentación de la función``?chisq.test``)
+
+### Ejemplo
+
+A continuación presentaremos un muestreo de tamaño 50 realizado de la población en donde las variables $X$ e $Y$ son independientes (ver tabla \@ref(tab:indeptbl)).
+
+```{r indeptblsampl, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+indeprob<-outer(c(0.3,0.7),c(0.4,.6))
+indepsampl<-data.frame(X=sample(c("x1","x2"),50,replace=T,prob=c(0.3,0.7)) %>% factor,
+Y=sample(c("y1","y2"),50,replace=T,prob=c(0.4,.6)) %>% factor)
+indepsamplT<-indepsampl %>% table
+res<-kable(indepsamplT%>% addmargins,caption="muestra de dos variables independientes")
+kable_styling(res,"striped", position = "center",full_width = F)
+```
+
+Las probabilidades marginales estimadas son las siguientes
+
+```{r , echo=F}
+(indepsamplT%>% apply(1,sum))/(indepsamplT %>% sum)
+(indepsamplT%>% apply(2,sum))/(indepsamplT %>% sum)
+```
+
+A continuación presentamos los porcentajes por fila y columna, estimaciones de las respectivas probabilidades condicionales
+
+```{r indeptblsamplrows, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+res<-kable((indepsamplT/apply(indepsamplT,1,sum)) %>% addmargins  %>% {.[-3,]} ,caption="Porcentajes por fila")
+kable_styling(res,"striped", position = "center",full_width = F)
+```
+
+```{r indeptblsamplcols, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+res<-kable((t(indepsamplT)/apply(t(indepsamplT),1,sum)) %>% t %>% addmargins  %>% {.[,-3]} ,caption="Porcentajes por columna")
+kable_styling(res,"striped", position = "center",full_width = F)
+```
+
+Usted puede verificar que no existe independencia exacta en estos datos, recordemos sin embargo que estos cálculos no representan probabilidades poblacionales, si no estimaciones de estas probabilidades. Veamos esta información en los gráficos de mosaico:
+
+```{r mosaicindepspl, echo=F, fig.width=8, fig.height=4,fig.cap="Grafico de mosaico para una muestra de variables independientes"}
+par(mfrow=c(1,2))
+indepsamplT%>% mosaicplot(color=2:3,main="a) Y|X")
+indepsamplT%>% t %>%  mosaicplot(color=4:5,main="b) X|Y")
+par(mfrow=c(1,1))
+```
+
+Las probabilidades condicionales son similares, aunque no iguales. Apliquemos la prueba de independencia de $\chi^2$ para ver que podemos concluir
+
+```{r , echo=F}
+indepsamplT_chi<-chisq.test(indepsamplT)
+indepsamplT_chi
+```
+
+Como podemos observar, el p-valor de la prueba es `r indepsamplT_chi$p.value %>% round(4) `, lo cual indica que la hipótesis nula no se rechaza, concluyendo que las variables $X$ e $Y$ son independientes a **nivel poblacional**.
+
+### Prueba de hipótesis sobre el estudio de efectos secundarios
+
+Finalizaremos esta discusión aplicando la prueba de independencia de $\chi^2$ al estudio de efectos secundarios. A continuación presentamos los resultados de la prueba:
+
+```{r , echo=F}
+z0_chi<-chisq.test(z0$Treat,z0$SE)
+z0_chi
+```
+
+Como puede observarse, el p-valor es menor al nivel de significancia usual ($\alpha=0.05$), por tanto la hipótesis nula se rechaza y podemos decir que los efectos secundarios dependen de la formulación farmacológica suministrada. La dependencia puede observarse en la figura \@ref(fig:mosaic1).
+
+# Razón de probabilidades (Odds Ratio)
+
+Existe un estadístico que mide la magnitud y orientación de la asociación entre pares de variables cualitativas en un escenario muy particular, aque en el que las dos variables de interés poseen exclusivamente dos categorías cada una, de tal forma que la tabla de contingencia asociada tiene 2 filas y 2 columnas. Este estadístico se denomina _**Razón de probabilidades (Odds Ratio)**_. El uso de este estadístico es bastante común en ciencias de la salud y también es base fundamental para modelos de regresión mas avanzados. Por esta razón dedicaremos un espacio para su estudio.
+
+## La cuota (Odds)
+
+Considere una variable aleatoria $Y$ con dos categorías: $y_1$ y $y_2$. La cuota para la categoría $y_1$ se define como 
+
+\begin{equation}
+odds(y_1)=\frac{P(Y=y_1)}{P(Y=y_2)}=\frac{P(Y=y_1)}{1-P(Y=y_1)}
+(\#eq:odds)
+\end{equation}
+
+Suponga, por ejemplo que la probabilidad de no desarrollar efectos secundarios al recibir un tratamiento clínico es de $0.99$. En notación de probabilidades tendríamos que 
+
+$$P(No ES)=0.99, P(ES)=0.01$$
+
+Donde $ES$ denota efectos secundarios. Entonces la cuota de no desarrollar estos efectos secundarios es 
+
+$$\frac{P(No \; ES)}{1-P(No \; ES)}=\frac{0.99}{1-0.99}=\frac{0.99}{0.01}=`r .99/(1-.99)`$$
+
+La interpretación de este resultado es la siguiente: La probabilidad de no desarrollar efectos secundarios es 99 veces la probabilidad de desarrollar efectos secundarios. Esto surge de realizar una simple manipulación algebraica:
+
+$$\frac{P(No\; ES)}{1-P(No\; ES)}=`r .99/(1-.99)` \Leftrightarrow P(No\; ES)=99\times (1-P(No\; ES))=99\times P(ES)$$
+
+## Definición de Razón de probabilidades (Odds Ratio)
+
+Considere dos variables aleatorias $X$ e $Y$ con categorías $x_1,x_2$ y $y_1,y_2$ respectivamente. Considere a la variable $Y$ como dependiente y en particular, asumamos que la categoría $y_1$ es el desenlace de interés. Entonces la razón de probabilidades (en adelante denominada OR por simplicidad) para el evento $y_1$ en función de la categoría $x_1$ vs $x_2$ es la siguiente:
+
+\begin{equation}
+OR(y_1|x_1 \; vs \; x_2)=\frac{odds(P(Y=y_1|X=x_1))}{odds(P(Y=y_1|X=x_2))}=\frac{\frac{P(Y=y_1|X=x_1)}{1-P(Y=y_1|X=x_1)}}{\frac{P(Y=y_1|X=x_2)}{1-P(Y=y_1|X=x_2)}}
+(\#eq:OR)
+\end{equation}
+
+Veamos un ejemplo: Suponga que se esta estudiando el desarrollo de efectos secundarios en una nueva formulación farmacológica para una enfermedad en particular. Para esto se ha se comparara la probabilidad de desarrollar efectos secundarios con una formulación estándar que ya se encuentra aprobada y estudiada previamente.
+
+Sea $ES$ la variable que indica si se presentaron ($si$) o no ($no$) efectos secundarios y sea $Trat$ la variable que indica si se uso la $nueva$ o la $vieja$ formulación farmacológica. Se tiene la siguiente información:
+
+$$P(ES=si|Trat=vieja)=0.05, \; P(ES=si|Trat=nueva)=0.1$$
+Entonces el OR de desarrollar efectos secundarios de la nueva formulación frente a la vieja es la siguiente:
+
+$$OR(ES=si|nueva \; vs \; vieja)=\frac{\frac{P(ES=si|Trat=nueva)}{1-P(ES=si|Trat=nueva)}}{\frac{P(ES=si|Trat=vieja)}{1-P(ES=si|Trat=vieja)}}=\frac{\frac{0.1}{1-0.1}}{\frac{0.05}{1-0.05}}=`r (.1/.9)/(.05/.95)`$$
+
+La interpretación es la siguiente: la cuota de desarrollar efectos secundarios en la nueva formulación es $2.11$ veces la cuota de desarrollar efectos secundarios en la formulación antigua. Esto indica que la probabilidad de desarrollar efectos secundarios en la nueva formulación es **mayor** en comparación a la formulación vieja.
+
+Considere una segunda formulación experimental $exp$ tal que $P(ES=si|Trat=exp)=0.01$. Calculemos ahora el OR de esta nueva formulación vs. la vieja:
+
+$$OR(ES=si|exp \; vs \; vieja)=\frac{\frac{P(ES=si|Trat=exp)}{1-P(ES=si|Trat=exp)}}{\frac{P(ES=si|Trat=vieja)}{1-P(ES=si|Trat=vieja)}}=\frac{\frac{0.01}{1-0.01}}{\frac{0.05}{1-0.05}}=`r (.01/.99)/(.05/.95)`$$
+
+En este caso la cuota de desarrollar efectos secundarios en la formulación experimental es $0.19$ veces la cuota de desarrollar efectos secundarios en la formulación antigua. Esto indica que la probabilidad de desarrollar efectos secundarios es **menor** en la formulación experimental en comparación a la formulación vieja.
+
+En general, en términos de la ecuación \@ref(eq:OR), se cumple lo siguiente:
+
+* $OR(y_1|x_1 \; vs \; x_2)>1$ entonces $P(Y=y_1|X=x_1)>P(Y=y_1|X=x_2)$
+* $OR(y_1|x_1 \; vs \; x_2)<1$ entonces $P(Y=y_1|X=x_1)<P(Y=y_1|X=x_2)$
+* $OR(y_1|x_1 \; vs \; x_2)=1$ entonces $P(Y=y_1|X=x_1)=P(Y=y_1|X=x_2)$
+
+Es bastante común que en aplicaciones en ciencias de la salud, $y_1$ se encuentra asociado a un desenlace negativo como la muerte, el desarrollo de una enfermedad o, como en el ejemplo anterior el desarrollo de efectos secundarios. $x_1$ es asociado a factores de exposición que bien pueden ser positivos o negativos: vacunación, exposición a agentes tóxicos, consumo de tabaco, etc. En este sentido suele decirse que si el $OR>1$ se esta hablando de un efecto de riesgo, mientras que si $OR<1$ se esta hablando de un efecto protector. Esto no siempre puede llegar a ser correcto ya que el calculo del OR depende de que son las categorías $y_1,x_1$ y $x_2$.
+
+Usted podrá verificar que $OR(y_1|x_1 \; vs \; x_2)\neq OR(y_2|x_1 \; vs \; x_2)$ y también que $OR(y_1|x_1 \; vs \; x_2)\neq OR(y_1|x_2 \; vs \; x_1)$. Ademas puede usted determinar que relación hay entre $OR(y_1|x_1 \; vs \; x_2)$ y $OR(y_2|x_2 \; vs \; x_1)$ ?
+
+### Independencia de las variables y el OR
+
+Usted podrá verificar que si las variables $X$ e $Y$ son independientes entonces se cumple que 
+
+\begin{equation}
+OR(y_1|x_1 \; vs \; x_2)=1\\
+OR(y_2|x_1 \; vs \; x_2)=1\\
+OR(y_1|x_2 \; vs \; x_1)=1\\
+OR(y_2|x_2 \; vs \; x_1)=1\\
+(\#eq:ORind)
+\end{equation}
+
+## Estimación, intervalo de confianza y prueba de hipótesis del OR
+
+El OR definido en la ecuación \@ref(eq:OR) es realmente un parámetro ya que se encuentra definido en términos de probabilidades condicionales. En esta sección veremos una de las formas usuales en las que el OR se estima usando datos de una muestra. Considera la siguiente tabla de contingencia general para una muestra de dos variables aleatorias $X$ y $Y$:
+
+```{r orstimate, echo=FALSE}
+orestimate<-matrix(c("n11","n12","n21","n22"),nrow=2,dimnames = list(c("x1","x2"),c("y1","y2")),byrow = T)
+res<-kable(orestimate,caption="tabla de contingencia")
+kable_styling(res,"striped", position = "center",full_width = F)
+```
+ Aqui $n11,n12,n21$ y $n22$ son las frecuencias absolutas para cada una de las celdas correspondientes en la tabla de contingencia. Entonce un posible estimador de $OR(y_1|x_1 \; vs \; x_2)$ es el siguiente:
+ \begin{equation}
+\widehat{OR(y_1|x_1 \; vs \; x_2)}=\frac{n11 \times n22}{n12 \times n21}
+(\#eq:ORest)
+\end{equation}
+ 
+Es posible que el calculo del estimador \@ref(eq:ORest) no coincida exactamente con algunas implementaciones en R ya que existen otros estimadores mas precisos para el OR, sin embargo las diferencias son pequeñas.
+
+En cuanto a la prueba de hipótesis, la mas común es la siguiente
+
+\begin{equation}
+H_0: \; OR(y_1|x_1 \; vs \; x_2)=1\\
+H_0: \; OR(y_1|x_1 \; vs \; x_2)\neq1
+(\#eq:ORhp)
+\end{equation}
+
+Como vimos anteriormente, el valor de $OR=1$ implica que las variables son independientes, por lo cual este valor de referencia es el mas usado en la prueba de hipótesis para el OR. No entraremos a estudiar los detalles del estadístico de prueba ni de su distribución bajo la hipótesis nula para esta prueba de hipótesis. Recurriremos a la implementación en R. Lo mismo aplicara para los intervalos de confianza.
+
+
+## Ejemplo: efecto de la vacunación contra la gripe estacional
+
+```{r echo=FALSE, results = 'asis',message = FALSE, warning =F}
+ca_ctr_r<-.3
+n<-250
+nCA<-round(n*ca_ctr_r)
+z0<-data.frame(flu=c(rep("pos",nCA),rep("neg",n-nCA)))
+z0$vac<-NA
+exp_CA<-.35
+exp_CTR<-.75
+z0[z0$flu %in% "pos","vac"]<-ifelse(runif(nCA)<exp_CA,"yes","no")
+z0[z0$flu %in% "neg","vac"]<-ifelse(runif(n-nCA)<exp_CTR,"yes","no")
+z0$vac<-factor(z0$vac,levels = c("yes","no"))
+z0$flu<-factor(z0$flu,levels = c("pos","neg"))
+```
+Se ha realizado un estudio para evaluar la efectividad de una vacuna contra la gripe estacional en una población determinada. Una muestra de `r n` sujetos ha sido seleccionada al azar, a cada sujeto de la muestra se le interroga sobre haber recibido algún tipo de vacunación contra la gripe estacional (variable ``vac`` con categorías ``yes`` y ``no``) y adicionalmente se les interroga si tuvieron gripe en los seis últimos meses (variable ``flu`` con categorías ``pos`` y ``neg``). Los datos del estudio son resumidos en la siguiente tabla de contingencia:
+
+```{r conttblfluvac, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+vacflutab<-t(table(z0))
+res<-kable(vacflutab%>%addmargins,caption="tabla de contingencia flu vs vac")
+kable_styling(res,"striped", position = "center",full_width = F)%>% add_header_above(c("vac","flu"=2," "))
+```
+
+La evaluación de la efectividad de la vacunación contra la gripe estacional puede ser realizada a través de la comparación de las siguientes probabilidades condicionales:
+$$P(Flu=pos|Vac=yes)\; vs \; P(Flu=pos|Vac=yes)$$
+Estas probabilidades pueden ser estimadas a partir de la tabla \@ref(tab:conttblfluvac), calculando las proporciones por filas, las cuales presentamos a continuación:
+
+```{r conttblfluvacrows, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+res<-kable((vacflutab/apply(vacflutab,1,sum)) %>% addmargins  %>% {.[-3,]} ,caption="Porcentajes por fila, flu vs vac")
+kable_styling(res,"striped", position = "center",full_width = F)
+```
+
+Podemos visualizar esta información mediante el uso del grafico de mosaico
+
+```{r fluvacmosaic, echo=F, fig.width=4, fig.height=4,fig.cap="Grafico de mosaico representando las probabilidades condicionales ``flu`` $|$ ``vac``"}
+vacflutab %>% mosaicplot(color=2:3)
+```
+
+Según la información presentada en la tabla \@ref(tab:conttblfluvacrows) y en la figura \@ref(fig:fluvacmosaic), queda claro que en esta muestra, en el conjunto de personas que recibieron la vacuna se presentaron menos contagios de gripe, mientras que en el conjunto de personas que no recibieron la vacuna se presentaron mas contagios de gripe. Podemos usar el OR para representar esta asociación. Estimaremos entonces el siguiente OR
+
+$$OR(Flu=pos|Vac=yes \; vs \; Vac=no)$$
+
+Usando la formula \@ref(eq:ORest), la estimación es la siguiente:
+
+$$\widehat{OR(Flu=pos|Vac=yes \; vs \; Vac=no)}=
+\frac{`r vacflutab[1,1]`\times`r vacflutab[2,2]`}{`r vacflutab[1,2]`\times`r vacflutab[2,1]`}=
+`r (vacflutab[1,1]*vacflutab[2,2])/(vacflutab[1,2]*vacflutab[2,1])`$$
+
+Podemos comparar este resultado con la función ``oddsratio``  del paquete ``epitools`` en R:
+
+```{r , echo=F}
+oddsratio(vacflutab)
+```
+Esta función retorna varios resultados que explicaremos a continuación:
+
+``## $data``
+\
+``##        flu``
+\
+``## vac     pos neg Total``
+\
+``##   yes    31 140   171``
+\
+``##   no     44  35    79``
+\
+``##   Total  75 175   250``
+\
+Esta es simplemente la tabla de contingencia de las variables estudiadas
+
+Las siguientes lineas presentan el OR estimado, junto con su intervalo de confianza
+
+``## $measure``
+\
+``##      odds ratio with 95% C.I.``
+\
+``## vac    estimate      lower     upper``
+\
+``##   yes 1.0000000         NA        NA``
+\
+``##   no  0.1780129 0.09741062 0.3194209``
+\
+La estimación del OR que nos interesa esta en la linea correspondiente a la categoría ``no`` de la variable``vac``. Nótese que la estimación es ligeramente diferente a la calculada usando la formula \@ref(eq:ORest) como se anticipo previamente.
+Finalmente el p-valor de la prueba de hipótesis \@ref(eq:ORhp) se encuentra en las siguientes lineas:
+
+``## $p.value``
+\
+``##      two-sided``
+\
+``## vac     midp.exact fisher.exact   chi.square``
+\
+``##   yes           NA           NA           NA``
+\
+``##   no  4.424087e-09 6.143342e-09 1.678414e-09``
+\
+
+De nuevo, el p-valor que nos interesa se encuentra en la linea correspondiente a la categoría ``no`` de la variable``vac``. Hay tres posibles p-valores, correspondientes a tres formas distintas de realizar esta prueba. Nosotros usaremos la correspondiente a la columna ``chi.square``. Vemos que el p-valor es menor al nivel de significancia usual ($\alpha=0.05$) y por tanto se rechaza la hipótesis nula. En conclusión podemos estar seguros de que a nivel poblacional $OR(Flu=pos|Vac=yes \; vs \; Vac=no) \neq 1$
+
+Teniendo en cuenta todos los resultados anteriores podemos considerar que la vacuna es un factor protector frente a la gripe ya que 
+
+$$P(Flu=pos|Vac=yes)<P(Flu=pos|Vac=yes)$$

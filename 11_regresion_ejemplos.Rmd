@@ -1,0 +1,431 @@
+---
+title: "Ejemplos Regresión lineal"
+author: "Nicolás Molano González"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  bookdown::html_document2:
+    toc: true
+    toc_float: 
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+    number_sections: true
+    theme: flatly
+    highlight: tango
+    css: ["styles.css"]
+    includes:
+      in_header: header.html
+      after_body: footer.html
+bibliography: references.bib  
+---
+
+```{r echo=F, message = FALSE, warning =F}
+library(pacman)
+p_load(mvtnorm)
+p_load(car)
+p_load(tidyverse)
+p_load(kableExtra)
+p_load(knitr)
+p_load(latex2exp)   
+p_load(ggrepel)
+p_load(magick)
+p_load(reshape2)
+p_load(cowplot)
+p_load(gridGraphics)
+p_load(GA)
+p_load(datasets)
+p_load("HSAUR")
+p_load("car")
+p_load(MASS)
+
+set.seed(150)
+```
+
+# Introducción
+
+En este documento presentaremos algunos ejemplos aplicados sobre el análisis de regresión y todos los conceptos estudiados previamente.
+
+# Edad y peso de unos escarabajos
+
+```{r echo=F, message = FALSE, warning =F}
+my_mean<-c(12.5,25)
+mycors<-seq(-1,1,by=.25)
+sd_vec<-c(5,7)
+
+i<-8
+temp_cor<-matrix(c(1,mycors[i],
+                   mycors[i],1),
+                 byrow = T,ncol=2)
+V<-sd_vec %*% t(sd_vec) *temp_cor
+
+my_int<-(my_mean[2]-(V[1,2]*my_mean[1]/V[1,1]))
+my_slp<-V[1,2]/V[1,1]
+
+z0n<-100
+z0_esc<-data.frame(age=rnorm(z0n,my_mean[1],sqrt(V[1,1])))
+z0_esc$weight<-my_int+z0_esc$age*my_slp+rnorm(z0n,sd=3)
+
+```
+
+Un biólogo ha colectado una muestra de `r z0n` escarabajos y ha determinado su edad en dias y su peso en gramos. Los datos de esta muestra son representados en la figura \@ref(fig:escarabajos1).
+
+<center>
+```{r escarabajos1, echo=F,warning =F,message=F, fig.width=4.5, fig.height=3.5, fig.cap="Datos de la edad y peso de una muestra de escarabajos"}
+z0_esc %>% ggplot(aes(x=age,y=weight))+geom_point()+
+  #geom_smooth(method='lm', se=FALSE, color="blue") +
+  theme_bw()+xlab("age")+ylab("weight")+ylim(c(0,50))
+```
+</center>
+
+Algunas estadísticas descriptivas para las dos variables son presentadas a continuación:
+
+<center>
+```{r , echo=F}
+summary(z0_esc)
+```
+</center>
+
+Al inspeccionar la figura \@ref(fig:escarabajos1), parece plausible pensar que la relación entre la edad y el peso es lineal. Procederemos ahora a estimar la recta de regresión para estos datos. A nivel poblacional estamos interesados en conocer
+
+$$E(Weight|Age=x)=\beta_0+\beta_1x$$
+Junto con la varianza del error $V(\epsilon)$. Estimaremos los parámetros $\beta_0$ (intercepto), $\beta_1$ (pendiente) y $V(\epsilon)$ (varianza del error).
+A continuación presentamos los resultados:
+
+```{r , echo=F}
+m0_esc<-lm(weight~age,data=z0_esc)
+m0_esc_summ<-summary(m0_esc)
+m0_esc_summ
+```
+Estos son los resultados de un modelo de regresión lineal construidos con la función ``lm`` en R. Empezaremos con la descripción e interpretación de cada una de las lineas obtenidas.
+
+Las dos primeras lineas hacen referencia al código usado para la estimación de los parámetros de la regresión. podemos ignorarlas.
+
+``## Call:``
+\
+``## lm(formula = weight ~ age, data = z0_esc)``
+
+Las siguientes lineas muestran los cuantiles de los residuales de los datos.
+
+``## Residuals:``
+\
+``##     Min      1Q  Median      3Q     Max ``
+\
+``## -5.0765 -2.0402 -0.4237  1.6354  7.5092 ``
+\
+Nótese que el promedio no se reporta ya que este siempre sera igual a $0$.
+
+
+Las siguientes lineas son de sumo interés y poseen la mayoría de resultados que analizaremos
+
+
+``Coefficients:``
+\
+``##              Estimate Std. Error t value Pr(>|t|)    ``
+\
+``## (Intercept) 10.38168    0.70443   14.74   <2e-16 ***``
+\
+``## age          1.17989    0.05182   22.77   <2e-16 ***``
+\
+``---``
+\
+``Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1``
+\
+
+Esto es una tabla, tiene dos filas correspondientes a los términos ``(Intercept)`` y ``age``. Estos son nuestros parámetros de intercepto ($\beta_0$) y pendiente ($\beta_1$). El nombre del primer termino es consecuente con nuestra notación (``(Intercept)``) mientras que el segundo hace referencia a la variable que acompaña al intercepto, es decir, la variable ``age``. Esta es una notación recurrente en R, los parámetros no se nombran, se nombran las variables asociadas a los parámetros de interés.
+
+Ahora estudiemos cada una de las columnas de la tabla: La columna ``Estimate`` presenta los estimadores de los parámetros asociados al ``(Intercept)`` y ``age``, es decir, intercepto ($\beta_0$) y pendiente ($\beta_1$). Esto quiere decir, y siguiendo nuestra notación, que
+
+* El valor estimado del intercepto es ``10.38168``, $\widehat{\beta_0}=10.38168$
+* El valor estimado de la pendiente es ``1.17989``, $\widehat{\beta_1}=1.17989$
+
+Las columnas ``Std. Error`` y ``t value`` no las usaremos. Son la desviación estándar de los estimadores y el estadístico de prueba usado en las pruebas de hipótesis respectivamente.
+Finalmente la columna ``Pr(>|t|)`` contiene los _**p-valores**_ para el intercepto y la pendiente respectivamente.
+
+Estos p-valores corresponden a los siguientes sistemas de hipótesis:
+
+Para el intercepto
+$$H_0: \; \beta_0 =0$$
+$$H_a: \; \beta_0 \neq 0$$
+
+Y para la pendiente
+
+$$H_0: \; \beta_1 =0$$
+$$H_a: \; \beta_1 \neq 0$$
+
+Recuérdese que los p-valores son una manera simple de determinar si la hipótesis nula se acepta o se rechaza. Si el p-valor $< \alpha$ la hipótesis nula se rechaza, en caso contrario se acepta. Por lo general y a no ser que se especifique lo contrario, $\alpha=0.05$. Según la información de la tabla, el p-valor asociado al intercepto es ``<2e-16`` un numero bastante menor que $0.05$, por lo cual $H_0: \; \beta_0 =0$ se rechaza. De manera similar sucede con la pendiente, su p-valor asociado es ``<2e-16`` un numero bastante menor que $0.05$, por lo cual $H_0: \; \beta_1 =0$ se rechaza.
+
+Recapitulando, $\widehat{\beta_0}=10.38168$ y al evaluar su correspondiente p-valor encontramos que este valor de intercepto puede ser considerado significativamente diferente de $0$ (ya que el p-valor es menor a 0.05, lo cual hace que la hipótesis nula se rechace, $H_0: \; \beta_0 =0$ sugiriendo la hipótesis alternativa, $H_a: \; \beta_0 \neq0$ ). Recordemos que el intercepto es el valor esperado dela variable $Y$, en este caso el peso de los escarabajos, condicionado a valores de $0$ en la variable $X$, es decir:
+
+$$\beta_0=E(Weight|Age=0)$$
+
+El análisis de regresión nos dice que su valor estimado es ``10.38168`` y que este valor puede ser considerado como estadísticamente diferente de $0$, de tal forma que podemos interpretar que el valor esperado del peso de los escarabajos recién nacidos es igual a ``10.38168``. Puede usted corroborar este valor en la figura \@ref(fig:escarabajos1)?
+
+En cuanto a la pendiente, habíamos visto que su interpretación estaba relacionada con una tasa de cambio. Según el análisis, el valor estimado de la pendiente es de ``1.17989`` y su p-valor ratifica que este valor puede ser considerado significativamente diferente de $0$. Este valor se interpreta de la siguiente manera:
+
+"el escarabajo aumenta ``1.17989``gr de peso por día".
+
+Aquí es sumamente importante las unidades de medida de cada variable. La variable edad se encuentra medida en días y la variable peso se encuentra medida en gramos, luego la tasa de crecimiento tiene unidades de $gr/dia$.
+
+Queda finalmente, las ultimas lineas de los resultados del análisis de regresión:
+
+``## Residual standard error: 2.669 on 98 degrees of freedom``
+\
+``## Multiple R-squared:  0.841,  Adjusted R-squared:  0.8394 ``
+\
+``## F-statistic: 518.4 on 1 and 98 DF,  p-value: < 2.2e-16``
+\
+
+``Residual standard error`` es simplemente el estimador de la raíz cuadrada de la varianza del error, es decir $\widehat{\sqrt{V(\epsilon)}}$. Según los resultados su valor estimado es de ``2.669``, esto es 
+$$\widehat{\sqrt{V(\epsilon)}}=2.669$$
+
+A cerca de ``98 degrees of freedom``, no entraremos en muchos detalles, este numero proviene de restar al tamaño de muestra el numero 2, que corresponde a los parámetros de la recta de regresión (omitiendo el parámetro de varianza del error).
+
+``## Multiple R-squared:  0.841`` corresponde a el valor $R^2$, es decir $R^2=0.841$ y según habíamos visto anteriormente su interpretación es la siguiente:
+
+"EL 84.1% de la variación observada en el peso de los escarabajos, es explicada por la variación observada en la edad de los escarabajos".
+
+``Adjusted R-squared`` sera ignorado en este curso. Se usa en otro tipo de modelos de regresión mas complejos.
+
+Finalmente, la linea ``## F-statistic: 518.4 on 1 and 98 DF,  p-value: < 2.2e-16``, corresponde al reporte de un estadístico de prueba (``F-statistic``) y su correspondiente p-valor, que en este caso es el mismo p-valor correspondiente al parámetro de pendiente, $\beta_1$.
+
+De esta manera, hemos calculado he interpretado las siguientes cantidades:
+
+* Estimadores del intercepto, pendiente, raíz cuadrada de la varianza del error
+* p-valores del intercepto y pendiente
+* $R^2$
+
+Presentamos a continuación el grafico de dispersión junto con la recta estimada de regresión
+
+<center>
+```{r escarabajos2, echo=F,warning =F,message=F, fig.width=4.5, fig.height=3.5, fig.cap="Datos de la edad y peso de una muestra de escarabajos junto con la recta de regresión estimada"}
+z0_esc %>% ggplot(aes(x=age,y=weight))+geom_point()+
+  geom_smooth(method='lm', se=FALSE, color="blue") +
+  theme_bw()+xlab("age")+ylab("weight")+ylim(c(0,50))
+```
+</center>
+## Validación de los supuestos del modelo de regresión
+
+Anteriormente vimos que existen 3 supuestos que validan el uso de los p-valores del intercepto y la pendiente que anteriormente interpretamos. A continuación presentamos la validación de 2 de los tres supuestos, con el fin de asegurarnos que las conclusiones hechas sobre los p-valores son validas. Iniciaremos con la prueba de normalidad condicional.
+
+### Supuesto de normalidad condicional
+Recordemos que el supuesto de normalidad condicional se evaluá sobre los residuales. Los residuales son las distancias verticales de cada punto a la recta. Para evaluar este supuesto extraeremos los residuales del modelo de regresión y los evaluaremos con la prueba de _**Shapiro-Wilk**_ (el procedimiento exacto de como hacer esto sera estudiado en detalle en el taller y en los videos tutoriales). Recordemos que el sistema de hipótesis de la prueba de normalidad es el siguiente:
+
+* $H_0$: Los residuales $r_i$ **poseen** una distribución normal
+* $H_0$: Los residuales $r_i$ **no poseen** una distribución normal
+
+A continuación presentamos el resultado de aplica la prueba de normalidad a los residuales de este modelo:
+
+```{r , echo=F}
+m0_esc_norm<-m0_esc%>%{shapiro.test(residuals(.))}
+m0_esc_norm
+```
+
+Observamos que el p-valor de la prueba de hipótesis es ``p-value = 0.1274``, valor que es mayor a $0.05$, por tanto la hipótesis nula no se puede rechazar, la cual dice que los residuales tienen una distribución normal, concluimos entonces que el supuesto de normalidad condicional es valido para estos datos. Inspeccionemos un histograma de los residuales para verificar esto:
+
+<center>
+```{r escarabajos3, echo=F,warning =F,message=F, fig.width=4.5, fig.height=3.5, fig.cap="Histograma de los residuales del modelo de regresión"}
+m0_esc %>% {data.frame(Residuales=residuals(.))} %>% ggplot(aes(x=Residuales)) + 
+ geom_histogram(aes(y=..density..), colour="black", fill="white",bins=10)+
+ geom_density(alpha=.2) +theme_bw()
+
+```
+</center>
+
+Queda claro que gráficamente es difícil determinar si los residuales son o no normales, afortunadamente contamos con la prueba de Shapiro-Wilk para ayudarnos a definir si el supuesto se cumple o no.
+
+### Supuesto de homocedasticidad
+
+El supuesto de homocedasticidad sera validado con la _**prueba del score para varianza no constante del error**_. De nuevo extraeremos los residuales y les aplicaremos esta prueba para evaluar si este supuesto se cumple o no. Recordemos que el sistema de hipótesis de esta prueba es el siguiente:
+
+* $H_0$: los residuales **son** homocedásticos
+* $H_a$: los residuales **no son** homocedásticos
+
+Presentamos ahora el resultado de aplicar esta prueba a los residuales de nuestro modelo de regresión:
+
+```{r , echo=F}
+m0_esc%>%{ncvTest(.)}
+```
+
+Observamos que el p-valor de la prueba de hipótesis es ``p-value = 0.4253``, valor que es mayor a $0.05$, por tanto la hipótesis nula no se puede rechazar, la cual dice que los residuales **son** homocedásticos, concluimos entonces que el supuesto de homocedasticidad es valido para estos datos.
+
+## Conclusiones
+
+Finalmente, y asumiendo que los datos de este análisis provienen de un muestreo probabilístico, y teniendo en cuenta que los supuestos de normalidad condicional y homocedasticidad fueron validados,se puede confiar en las conclusiones derivadas sobre los p-valores del intercepto y pendiente, en particular:
+
+* Que el valor esperado del peso al nacer de los escarabajos es significativamente diferente de 0
+* Que la tasa de crecimiento de los escarabajos es significativamente diferente de 0
+
+Ademas, si quisiéramos reportar los intervalos de confianza (por ejemplo al 95% de confianza) para el intercepto y la pendiente, lo podríamos hacer ya que los supuestos fueron validados. Los presentamos a continuación:
+
+```{r , echo=F}
+confint(m0_esc)
+```
+
+# Alometría entre peso del cuerpo y peso del corazón en gatos domésticos
+
+Un estudiante de veterinaria ha hecho un estudio sobre la relación entre el peso corporal (Bwt por sus siglas en ingles) y el peso del corazón (Hwt). Para esto se midieron las variables Bwt (unidades de kilogramos), Hwt (unidades de gramos) y el sexo de 144 gatos. A continuación se presentan las estadísticas descriptivas de las tres variables: 
+```{r , echo=F}
+data("cats")
+cats%>%summary
+```
+
+Para este análisis solamente nos concentraremos en las variables ``Bwt`` y ``Hwt``. Consideraremos la variable ``Hwt`` como variable dependiente y ``Bwt`` como variable independiente. A continuación presentamos el diagrama de dispersión para estas dos variables:
+
+```{r cats1, echo=F, fig.width=6, fig.height=4,fig.cap="Diagrama de dispersión para el peso del cuerpo y el peso del corazón"}
+cats%>%ggplot(aes(x=Bwt,y=Hwt)) + geom_point()+
+  xlab("Bwt Kg")+ylab("Hwt g")+
+  scale_x_continuous(limits=c(0,4))+theme_bw()
+```
+
+Como puede observarse en la figura \@ref(fig:cats1) un modelo lineal para estas dos variables parece adecuado. También puede notarse que el rango de pesos del cuerpo de los gatos incluidos en los datos va desde los $2kg$ hasta los $4kg$ aproximadamente. Ya veremos la importancia de este rango mas adelante.
+
+Procedemos a estimar el siguiente modelo de regresión:
+
+\begin{equation}
+E(Hwt|Bwt=x)=\beta_0+\beta_1x (\#eq:catsmodel1)
+\end{equation}
+
+A continuación presentamos los resultados de la estimación:
+```{r , echo=F}
+m0_cats<-lm(Hwt~Bwt,data=cats)
+cats_coefs<-coef(m0_cats)
+summary(m0_cats)
+```
+
+Vemos que el estimador del intercepto es $\widehat{\beta_0}=`r round(cats_coefs[1],4)`$. Esto querría decir que el valor esperado del peso del corazón es de `r round(cats_coefs[1],4)`, cuando el peso del cuerpo es de $0$. Esto no parece tener mucho sentido. Biológicamente estaríamos tentados a pensar que si no hay cuerpo ($Bwt=0$) entonces, no hay corazón ($Hwt=0$). Aun mas, el intercepto definido como $\beta_0=E(Hwt|Bwt=0)$ esta hablando del comportamiento del valor esperado de $Hwt$ para valores de $Bwt$ que no fueron estudiados. Como dijimos anteriormente, el rango de pesos del cuerpo esta entre 2 y 4, y el intercepto se encuentra asociado a valores de peso por fuera de este rango. En la figura \@ref(fig:cats2), ilustramos la recta de regresión estimada junto con los ejes $x$ y $y$ para mostrar que el intercepto esta bastante alejado del lugar en donde la mayoría de observaciones se encuentran.
+
+
+```{r cats2, echo=F, fig.width=6, fig.height=4,fig.cap="Diagrama de dispersión con la recta de regresión estimada."}
+
+cats%>%ggplot(aes(x=Bwt,y=Hwt)) + geom_point()+
+  geom_abline(intercept = cats_coefs[1], slope = cats_coefs[2],color="blue")+
+  geom_vline(xintercept = 0)+
+  geom_hline(yintercept=0)+
+  xlab("Bwt Kg")+ylab("Hwt g")+
+  scale_x_continuous(limits=c(0,4))+
+  scale_y_continuous(limits=c(-5,24))+theme_bw()
+```
+
+Esto es un gran inconveniente, ya que el intercepto esta realizando inferencias acerca de valores que no fueron estudiados, por tal motivo, el valor del intercepto carece de valides estadística y no podemos confiar en este valor. Mas adelante veremos una forma de solucionar este problema.
+
+Mientras tanto asumamos que el valor estimado del intercepto tiene validez. Como podemos interpretar un valor negativo como peso del corazón? algo no esta bien aquí. Miremos el p-valor asociado al intercepto. su valor es de ``0.607``. Este valor es mayor a $0.05$, por tanto la hipótesis nula no se puede rechazar. Recordemos que el sistema de hipótesis asociado a este p-valor es el siguiente:
+
+$$H_0: \; \beta_0 =0$$
+$$H_a: \; \beta_0 \neq 0$$
+
+En conclusión el pvalor de ``0.607`` no esta indicando que no es posible descartar el escenario en que el intercepto es igual a $0$. Si nos fijamos, el valor del intercepto estimado, `r round(cats_coefs[1],4)`, esta bastante cerca de $0$ y el análisis de la prueba de hipótesis nos dice que los datos son compatibles con la hipótesis de que $\beta_0 =0$. En conclusión el valor `r round(cats_coefs[1],4)` no es estilísticamente significativo y puede considerarse prácticamente como $0$. Estos nos trae un poco de alivio ya que era el resultado que biológicamente tiene sentido. Sin embargo seguimos con el problema de que el intercepto esta haciendo inferencias por fuera del rango de valores observados.
+
+En cuanto a la pendiente vemos que su valor estimado es de $\widehat{\beta_1}=`r round(cats_coefs[2],4)`$ y el p-valor asociado es de ``<2e-16 ``, lo cual indica que la hipótesis nula es rechazada, confirmando que la pendiente es significativamente diferente de $0$. Interpretando el estimador de la pendiente diríamos que por cada kilogramo de peso corporal que el gato aumenta, el corazón aumenta en $`r round(cats_coefs[2],4)`$ gramos.
+
+La estimación de la desviación estándar del error ,es decir la raíz cuadrada de la varianza $\widehat{\sqrt{V(\epsilon)}}$, es de ``1.452`` y el $R^2$ es de ``0.6466``. Diríamos entonces que el 64.66% de la varianza observada en el peso del corazón, es explicada por la variación observada en el peso del cuerpo.
+
+Finalmente reportamos los p-valores de la prueba de normalidad condicional y de homocedasticidad:
+
+```{r , echo=F}
+m0_cats%>%{data.frame(Info="p-value",Shapiro.Wilk=shapiro.test(residuals(.))$p.value,Non_constant_Variance=ncvTest(.)$p)}
+```
+
+El p-valor de la prueba de normalidad es de ``0.1046116`` por lo cual no se puede rechazar la hipótesis nula y el supuesto de normalidad condicional se valida. Sin embargo en el caso del supuesto de homocedasticidad, el p-valor es de ``0.001232889``, indicando que la hipótesis nula se rechaza y por tanto el supuesto de homocedasticidad no se cumple. Esto pondría en duda la precisión de los p-valores del intercepto y pendiente.
+
+Que hacer en caso de que los supuestos del modelo de regresión no se cumplen? existen varias posibilidades para forzar una validación de los supuestos, una de ellas es transformar los datos. Nosotros no cubriremos estos temas en este curso. Lo único que diremos es que los p-valores calculados no son los correctos, y desconocemos la magnitud del error debida al no cumplimiento de los supuestos. Los valores estimados del intercepto y la pendiente, sin embargo, si son confiables y no son afectados por las violaciones de los supuestos.
+
+## Intercepto alternativo
+
+En esta sección mostraremos una forma de solucionar el problema de la inferencia del estimador del intercepto por fuera de los valores observados.
+Usted puede verificar que el peso promedio del peso del cuerpo para estos gatos es de $\overline{Bwt}=`r round(mean(cats$Bwt),4)`$
+
+Consideraremos ahora, el siguiente modelo de regresión:
+\begin{equation}
+E(Hwt|Bwt=x)=\beta_0+\beta_1(x-\overline{Bwt})=\beta_0+\beta_1(x-`r round(mean(cats$Bwt),4)`) (\#eq:catsmodel2)
+\end{equation}
+
+Nótese que ahora la pendiente multiplica a $(x-`r round(mean(cats$Bwt),4)`)$ en ves de a $x$, como ocurría en el modelo \@ref(eq:catsmodel1). Estudiamos ahora que significado tiene el intercepto. Usted puede verificar que 
+
+$$E(Hwt|Bwt= `r round(mean(cats$Bwt),4)`) =\beta_0$$
+
+Es decir que ahora el intercepto es el valor esperado del peso del corazón cuando el peso del cuerpo tiene un valor de $`r round(mean(cats$Bwt),4)`$. Es decir el intercepto es el valor esperado del peso del corazón para valores promedio del peso del cuerpo.
+
+Graficaremos la recta de regresión para este nuevo modelo
+```{r cats3, echo=F, fig.width=6, fig.height=4,fig.cap="Diagrama de dispersión con la recta de regresión para el nuevo modelo"}
+cats%>%ggplot(aes(x=Bwt-mean(Bwt),y=Hwt)) + geom_point()+
+  geom_smooth(method = "lm",formula=y~x,se = F)+
+  xlab("Bwt-2.7236")+
+  geom_vline(xintercept=0, colour=1)+theme_bw()
+```
+
+Nótese como el eje $x$ ha cambiado en la figura \@ref(fig:cats3), este eje corresponde ahora al peso del cuerpo menos su valor promedio, es decir $x-`r round(mean(cats$Bwt),4)`$. A continuación presentamos los resultados de ajustar este nuevo modelo de regresión:
+
+```{r , echo=F}
+m1_cats<-lm(Hwt~I(Bwt-2.724),data=cats)
+cats1_coefs<-coef(m1_cats)
+summary(m1_cats)
+```
+
+Vemos que ahora, el valor estimado del intercepto ha cambiado y su valor es $\widehat{\beta_0}= `r round(cats1_coefs[1],4)`$. Este valor corresponde a la estimación del valor esperado del peso del corazón cuando el peso del cuerpo es de `r round(mean(cats$Bwt),4)`. 
+
+De esta forma, se ha solucionado el problema del intercepto. En este nuevo modelo, el intercepto hace inferencias dentro del rango de valores observados y es estadísticamente valido.
+
+Usted puede verificar que todos los demás valores (estimador del intercepto, su p-valor, la desviación estándar del error y el $R^2$) se mantienen iguales con respecto al primer modelo. Incluso los p-valores de las pruebas de normalidad y homocedasticidad son los mismos. El único cambio obtenido atañe al valor de la estimación del intercepto y a su p-valor.
+
+## Utilidad del modelo
+
+Pueden ustedes imaginar como este estudio fue llevado a cabo? como fue posible determinar el peso del corazón y del cuerpo para cada uno de los gatos en el estudio? Estos gatos debieron estar muertos para poder llevar a cabo una medición precisa del peso del corazón. Sin embargo, con los resultados de este análisis, podemos tener una aproximación al peso del corazón de un gato, conociendo el peso de su cuerpo y sin necesidad de sacrificar al animal.
+
+Conociendo su valor de peso del cuerpo podemos aplicar la siguiente ecuación: 
+
+$$\widehat{E(Hwt|Bwt=x)}=`r round(cats1_coefs[1],4)`+`r round(cats1_coefs[2],4)`(x-`r round(mean(cats$Bwt),4)`)$$
+
+Supongamos que un gato pesa $3.5Kg$ entonces aplicando la formula anterior podemos tener una estimación del peso de su corazón:
+
+$$\widehat{E(Hwt|Bwt=3.5)}=`r round(cats1_coefs[1],4)`+`r round(cats1_coefs[2],4)`(3.5-`r round(mean(cats$Bwt),4)`)=`r round(cats1_coefs[1],4)+round(cats1_coefs[2],4)*(3.5-round(mean(cats$Bwt),4))`$$
+
+Según la formula, una buena aproximación al peso del corazón del gato es de $`r round(cats1_coefs[1],4)+round(cats1_coefs[2],4)*(3.5-round(mean(cats$Bwt),4))`$. Lo que acabamos de hacer se llama la predicción del modelo de regresión y su aplicación debe ser sumamente cuidadosa. Para realizar estas predicciones se deben tener en cuenta los siguientes puntos:
+
+* Las predicciones son solamente validas en el rango de valores observados
+* Las predicciones son solamente validas para sujetos de la población estudiada.
+
+El primer punto ya lo hemos visto antes con el problema del intercepto. Si quisiéramos hacer predicciones sobre el peso del corazón para un gato pequeño, por ejemplo, con un peso corporal de $0.8Kg$, este modelo no serviría ya que el rango de valores con el cual fue construido es de 2 a 4 kilogramos.
+
+El otro punto habla de la población objeto de estudio. Si por ejemplo, el muestreo de estos gatos fue llevado acabo en una población de gatos europeos, no tendría sentido hacer predicciones para un gato africano.
+
+# Modelo de regresión lineal para una relación no lineal
+
+En el siguiente ejemplo exploraremos que sucede cuando se ajusta un modelo de regresión a unos datos que presentan una relación no lineal. Considere el siguiente grafico de dispersión:
+
+```{r nonlinear1, echo=F,warning =F, message=F, fig.width=4, fig.height=3, fig.cap="Datos con una relación no lineal."}
+z0n<-100
+x<-runif(z0n,-4,4)
+y<-x^2+rnorm(z0n)
+z0<-data.frame(x,y)
+
+z0 %>% ggplot(aes(x=x,y=y))+
+  geom_point()+
+  theme_bw()
+```
+
+Como puede verse en la figura \@ref(fig:nonlinear1), la relación entre las variables $x$ y $y$ no es lineal. Sin embargo ajustaremos un modelo de regresión lineal para ver lo que se sucede. A continuación presentamos los resultados:
+
+```{r , echo=F}
+m0_nonlm<-lm(y~x,data=z0)
+nonlm_coefs<-coef(m0_nonlm)
+summary(m0_nonlm)
+```
+
+Adicionalmente presentamos la recta de regresión estimada en el grafico
+
+```{r nonlinear2, echo=F,warning =F, message=F, fig.width=4, fig.height=3, fig.cap="Datos con una relacion no lineal y su recta de regresion estimada"}
+z0 %>% ggplot(aes(x=x,y=y))+
+  geom_point()+
+  geom_smooth(method = "lm",formula=y~x,se = F)+
+  theme_bw()
+```
+
+Como puede verse, la estimación de la pendiente es de $\widehat{\beta_1}=`r round(nonlm_coefs[2],4)`$, sin embargo, su p-valor es de ``0.629``. Esto indica que la pendiente no es significativamente diferente de $0$. Esto sugeriría que el valor esperado de la variable $Y$ condicionada a valores de la variable $X$ no cambia. Adicionalmente, si observamos el valor del $R^2= 0.002393$ diríamos que apenas el $0.2$% de la variación observada en la variable $y$ es explicada por la variación observada en la variable $x$. Sin embargo, la figura \@ref(fig:nonlinear1) cuenta otra historia, es claro que si existe una relación entre ambas variables. Esta discrepancia surge por la relación no lineal entre las variables $X$ y $Y$. Claramente ajustar una linea recta a algo que no lo es produce malos resultados (por ejemplo en términos del $R^2$).
+
+Veamos ahora las pruebas de hipótesis del supuesto de normalidad condicional y de homocedasticidad:
+
+```{r , echo=F}
+m0_nonlm%>%{data.frame(Info="p-value",Shapiro.Wilk=shapiro.test(residuals(.))$p.value,Non_constant_Variance=ncvTest(.)$p)}
+```
+
+Vemos que el supuesto de normalidad condicional no es validado, mientras que el de homocedasticidad si lo es. Muchas veces cuando existen problemas con los supuestos del modelo de regresión, una de sus causas puede radicar en el hecho de que la relación entre las variables de estudio no es del tipo lineal.

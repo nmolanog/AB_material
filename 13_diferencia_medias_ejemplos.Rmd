@@ -1,0 +1,284 @@
+---
+title: "Ejemplos diferencia de medias"
+author: "Nicolás Molano González"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  bookdown::html_document2:
+    toc: true
+    toc_float: 
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+    number_sections: true
+    theme: flatly
+    highlight: tango
+    css: ["styles.css"]
+    includes:
+      in_header: header.html
+      after_body: footer.html
+bibliography: references.bib  
+---
+
+```{r echo=F, message = FALSE, warning =F}
+library(pacman)
+p_load(mvtnorm)
+p_load(car)
+p_load(faraway)
+p_load(tidyverse)
+p_load(kableExtra)
+p_load(knitr)
+p_load(latex2exp)   
+p_load(ggrepel)
+p_load(magick)
+p_load(reshape2)
+p_load(cowplot)
+p_load(gridGraphics)
+p_load(GA)
+p_load(datasets)
+p_load("HSAUR")
+p_load("car")
+p_load(MASS)
+
+set.seed(150)
+data(coagulation)
+
+```
+
+# Introducción
+
+En este documento presentaremos algunos ejemplos aplicados sobre el análisis de regresión en donde la variable independiente es una variable categórica.
+
+# Peso corporal de gatos y su genero
+
+En el contexto del estudio del peso del cuerpo y el peso del corazón, estudiado previamente en capítulos anteriores, el investigador nota que existen diferencias importantes en la variable ``Hwt`` con respecto al sexo de los gatos, como se puede apreciar a continuación:
+
+A continuación presentamos las estadísticas descriptivas marginales de las variables de interés, así como las estadísticas descriptivas de la variable ``Hwt`` en cada genero.
+```{r pesocats, echo=F, fig.width=4, fig.height=3.2,fig.cap="Gráficos de caja y bigotes para el peso corporal en cada genero"}
+cats%>%ggplot(aes(x=Sex,y=Hwt))+
+  geom_boxplot()+theme_bw()
+```
+
+```{r , echo=F}
+summary(cats[,c(1,3)])
+by(cats$Hwt,cats$Sex,summary)
+```
+
+Observando la figura \@ref(fig:pesocats) observamos que los gatos masculinos pean en general mas que los gatos femeninos, también puede notarse que la varianza del peso en los machos es algo mayor que en las hembras. Para corroborar esto calcularemos la varianza en cada sexo:
+
+```{r , echo=F}
+cats_ttest<-t.test(Hwt~Sex,data=cats,alternative ="less")
+cats_ttest<-t.test(Hwt~Sex,data=cats)
+by(cats$Hwt,cats$Sex,var)
+```
+
+Según los resultados presentados, la distribución de la variable ``Hwt`` no solamente difiere en el valor esperado, sino que también presenta diferencias en la varianza. Teniendo esto en cuenta, usaremos la prueba T para diferencia de medias, la cual como se recordara, puede trabajar con varianzas desiguales entre los grupos.
+
+Ya que el investigador sabe que por lo general en los felinos, las hembras son de menor tamaño, se usara el siguiente sistema de hipótesis:
+
+$$H_0: \; E(Hwt|Sex=F)-E(Hwt|Sex=M)\geq0 $$
+$$H_a: \; E(Hwt|Sex=F)-E(Hwt|Sex=M)<0 $$
+Es decir que nos interesa demostrar el escenario de la hipotesis alternativa en donde $E(Hwt|Sex=F)-E(Hwt|Sex=M)<0$ que es lo mismo que $E(Hwt|Sex=F)<E(Hwt|Sex=M)$.
+
+La diferencia de medias estimada es de `r cats_ttest$estimate %>% {.[1]-.[2]} %>% round(4)`. A continuación presentamos los resultados de esta prueba 
+
+```{r , echo=F}
+cats_ttest
+```
+
+El p-valor de la prueba ``1.186e-09`` confirma que la hipótesis nula se rechaza y por ende se demuestra que $E(Hwt|Sex=F)-E(Hwt|Sex=M)<0$ que es lo mismo que $E(Hwt|Sex=F)<E(Hwt|Sex=M)$, según lo esperábamos del análisis descriptivo por grupos y de lo observado en la figura \@ref(fig:pesocats).
+
+El intervalo de confianza reportado, provee un limite superior para la diferencia de medias de `r cats_ttest$conf.int[2] %>% round(4)`. El intervalo de confianza del 95% para la diferencia de medias es 
+
+```{r , echo=F}
+cats_ttest$conf.int
+```
+
+En conclusión, el valor esperado del peso corporal de las gatas hembras es  `r cats_ttest$estimate %>% {.[1]-.[2]} %>% round(4) %>% abs`$kg$ menor que el valor esperado del peso corporal de los gatos machos. Adicionalmente, notamos que la varianza en el peso de las gatas hembras es menor en comparación a la varianza del peso de los gatos machos.
+
+## Análisis de regresión
+
+Solo con fines ilustrativos, ajustaremos un modelo de regresión para comparar los resultados obtenidos con la prueba T y así destacar las diferencias, ventajas y desventajas. De entrada, intuimos que habrá un supuesto que se violara en este análisis. Puede usted intuir cual es?
+
+El sistema de codificación que usaremos es el siguiente:
+
+```{r catssexcod, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+lendosecod<-kable(data.frame(Sex=c("M","F"),If=c(0,1)),caption="Codificación numérica de la variable Sex, referencia M")
+kable_styling(lendosecod,"striped", position = "center",full_width = F)
+```
+
+y el modelo de regresión a estimar sera el siguiente:
+
+\begin{equation}
+E(Hwt|I_F=x)=\beta_0+\beta_1x (\#eq:catsmodel1)
+\end{equation}
+
+Usted puede verificar que para este modelo
+
+$$\beta_0=E(Hwt|Sex=M)$$
+$$\beta_1=E(Hwt|Sex=F)-E(Hwt|Sex=M)$$
+A continuación presentamos los resultados de estimar este modelo en R:
+```{r , echo=F}
+cats$Sex<-relevel(cats$Sex,ref="M")
+cats_m0<-lm(Hwt~Sex,data=cats)
+cats_m0_summ<-summary(cats_m0)
+cats_m0_coef<-coef(cats_m0)
+cats_m0_summ
+```
+
+Como puede observarse, $\widehat{\beta_1}=`r cats_m0_coef[2] %>% round(4)`$, el mismo valor obtenido en el análisis anterior. Sin embargo, el p-valor para este parámetro, ``3.38e-07``, es diferente al obtenido previamente (``1.186e-09``). Calculemos el intervalo de 95% confianza para este parámetro:
+```{r , echo=F}
+cats_m0 %>% confint() %>% {.[2,]}
+```
+Comparémoslo con el intervalo de confianza usando la prueba T
+
+```{r , echo=F}
+cats_ttest$conf.int
+```
+
+Puede notarse que el intervalo de confianza construido con la prueba T es ligeramente mas estrecho que el construido usando el modelo de regresión. La diferencia radica en que el modelo de regresión no tuvo en cuenta las diferencias en varianza entre los dos grupos, mientras la prueba T si lo tuvo en cuenta. En consecuencia, la prueba T provee un intervalo de confianza mas preciso (es decir mas estrecho) que el intervalo de confianza construido con la regresión.
+
+Evaluemos ahora los supuestos del modelo de regresión:
+
+```{r , echo=F}
+cats_m0%>%{data.frame(Info="p-value",Shapiro.Wilk=shapiro.test(residuals(.))$p.value,Non_constant_Variance=ncvTest(.)$p)}
+```
+Vemos que los supuestos del modelo no se cumplen. Si asumimos que el análisis de la prueba T es el correcto, pues involucra las varianzas diferentes en cada grupo, ahora podemos entender las discrepancias observadas en el p-valor y en el intervalo de 95% de confianza de la diferencia de medias estimada por el modelo de regresión. Ya que los supuestos del modelo no se cumplen, la teoría estadística indica que los p-valores y los intervalos de confianza no son los correctos. 
+
+Este es un buen ejemplo de las consecuencias de violar los supuestos del modelo de regresión. Sin embargo, nótese que las diferencias entre los p-valores y los intervalos de confianza no son tan grandes y lo mas importante, no cambian la interpretación de los resultados. Las diferencias atribuibles a la violación de los supuestos del modelo son pequeñas en este caso. Vale la pena destacar que si bien los p-valores y los intervalos de confianza discrepan, las estimaciones de la diferencia de medias coinciden en ambos análisis, lo cual es bastante conveniente.
+
+Una ventaja que si tenemos con la regresión, es que tenemos la medida de resumen $R^2$ la cual nos dice que el 16.8% de la variación observada en la variable ``Hwt`` es explicada por la variación observada en el sexo de los gatos.
+
+Aprovechamos esta ocasión para resaltar el siguiente hecho:
+
+``## F-statistic: 28.66 on 1 and 142 DF,  p-value: 3.38e-07``
+
+Este es el p-valor de la prueba del ANOVA y debe notarse que coincide exactamente con el p-valor del parámetro $\beta_1$. Esto es porque en este modelo en donde solo hay una variable indicadora, la prueba de hipo tesis del anova coincide exactamente con la prueba de hipótesis del parámetro $\beta_1$ ya que solo existe una sola diferencia de medias a estimar en este modelo, pues solo son dos categorías.
+
+# Tiempos de coagulación por dietas
+
+Unos investigadores están estudiando el efecto de diferentes dietas sobre los tiempos de coagulación de la sangre. Para esto, 24 animales fueron asignados de manera aleatoria a cuatro regímenes dietarios: ``A,B,C`` y ``D``. A continuación presentamos las estadísticas descriptivas marginales y condicionales para los datos de este estudio:
+
+```{r , echo=F}
+summary(coagulation)
+by(coagulation$coag,coagulation$diet,summary)
+```
+Adicionalmente presentamos las estimaciones de las varianzas condicionales para cada dieta:
+
+```{r , echo=F}
+summary(coagulation)
+by(coagulation$coag,coagulation$diet,var)
+```
+
+
+La variable ``coag`` presenta los tiempos de coagulación en segundos. A continuación presentamos el resumen grafico para estas dos variables:
+
+```{r coag, echo=F, fig.width=4, fig.height=3.2,fig.cap="Gráficos de caja y bigotes para los tiempos de coagulación en cada dieta"}
+coagulation%>%ggplot(aes(x=diet,y=coag))+
+  geom_boxplot()+theme_bw()
+```
+
+Teniendo en cuenta la información descriptiva, es claro que las dietas ``B`` y ``C`` presentan los mayores tiempos de coagulación, mientras que las dietas ``A`` y ``D`` presentan los menores tiempos de coagulación. Adicionalmente en la figura \@ref(fig:coag) vemos que en las dietas ``B`` y ``C`` hay algunos datos atípicos y que las varianzas de los tiempos de coagulación para las dietas ``B`` y ``D`` son mucho mayores que las de las dietas ``A`` y ``C``.
+
+Procederemos a formular un modelo de regresión apropiado para analizar este estudio. El primer paso sera escoger el sistema de codificación para la variable ``diet``. La selección de la categoría de referencia es clave y depende del contexto y los objetivos del estudio. Supongamos por un momento que la dieta ``A`` es la dieta estándar que se le suministra comúnmente a los animales y que las demás dietas son dietas experimentales que buscan aumentar el tiempo de coagulación. Es claro entonces que el experimento busca determinar que dietas producen los mayores tiempos de coagulación. Ya que le dieta ``A`` es la dieta estándar, usaremos esta dieta como un _**control**_ y compararemos las demás dietas con esta. En este sentido la dieta ``A`` sera la dieta de referencia y un posible sistema de codificación es el siguiente:
+
+```{r dietcod, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+lendosecod<-kable(data.frame(diet=LETTERS[1:4],
+                             Ib=c(0,1,0,0),
+                             Ic=c(0,0,1,0),
+                             Id=c(0,0,0,1)),caption="Codificación numérica de la variable diet, referencia A")
+kable_styling(lendosecod,"striped", position = "center",full_width = F)
+```
+
+Es decir que nuestro modelo de regresión sera el siguiente:
+
+\begin{equation}
+E(Coag|I_b=x_1,I_c=x_2,I_d=x_3)=\beta_0+\beta_1 x_1+\beta_2 x_2+\beta_3 x_3 (\#eq:coagmodel1)
+\end{equation}
+
+Usted puede verificar que para este modelo
+
+$$\beta_0=E(Coag|Diet=A)=E(Coag|I_b=0,I_c=0,I_d=0)$$
+
+$$\beta_1=E(Coag|Diet=B)-E(Coag|Diet=A)$$
+$$\beta_2=E(Coag|Diet=C)-E(Coag|Diet=A)$$
+$$\beta_3=E(Coag|Diet=D)-E(Coag|Diet=A)$$
+
+Procederemos a ajustar el modelo de regresión \@ref(eq:coagmodel1) en R. A continuación se presentan los resultados:
+
+```{r , echo=F}
+diet_m0<-lm(coag~diet,data=coagulation)
+diet_m0_summ<-summary(diet_m0)
+diet_m0_coef<-coef(diet_m0)
+diet_m0_summ
+```
+Se puede observar, por ejemplo, que la dieta ``B`` posee tiempos de coagulación promedio de `r diet_m0_coef[2] %>% round(4)` segundos mas que el tiempo promedio para la dieta ``A`` y que esta diferencia es estadísticamente significativa (p-valor=``0.003803``), de manera similar la dieta ``C`` posee tiempos de coagulación promedio de `r diet_m0_coef[3] %>% round(4)` segundos mas que el tiempo promedio para la dieta ``A`` y que esta diferencia es estadísticamente significativa (p-valor=``0.000181``). Finalmente, la dieta ``D`` posee una diferencia en el tiempos de coagulación promedio, con respecto a la dieta ``A``, de `r diet_m0_coef[4] %>% round(4)` segundos y esta diferencia es **no** es estadísticamente significativa (p-valor=``1.000000``).
+
+En conclusión los tiempos de coagulación esperados son mayores para las dietas ``B`` y ``C`` y los tiempos de coagulación esperados para las dietas ``A`` y ``D`` son prácticamente iguales.
+
+El p-valor de la prueba del ANOVA (``4.658e-05``) confirma que en efecto existe al menos una diferencia de medias que es diferente de $0$. Ya vimos que las diferencias de medias que involucran a las dietas ``B`` y ``C`` son estadísticamente significativas y diferentes de $0$.
+
+Finalmente el $R^2$ indica que el 67.06% de la variación observada en los tiempos de coagulación pueden ser explicados por la variación observada en la dieta. A continuación presentamos los resultados de las pruebas que evalúan los supuestos del modelo
+
+```{r , echo=F}
+diet_m0%>%{data.frame(Info="p-value",Shapiro.Wilk=shapiro.test(residuals(.))$p.value,Non_constant_Variance=ncvTest(.)$p)}
+```
+
+Vemos que el modelo supera las pruebas de normalidad condicional y homocedasticidad, a pesar de las diferencias en varianzas observada previamente.
+
+## Modelo con diferente categoría de referencia
+
+Como mencionamos anteriormente, la elección de la categoria de referencia es sumamente importante y a continuación mostraremos los resultados de un modelo de regresión en donde la categoría de referencia es diferente. Supongamos ahora que se desea usar a la dieta ``B`` como categoría de referencia. El sistema de codificación es el siguiente:
+
+```{r dietcod2, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+lendosecod<-kable(data.frame(diet=LETTERS[1:4],
+                             Ia=c(1,0,0,0),
+                             Ic=c(0,0,1,0),
+                             Id=c(0,0,0,1)),caption="Codificación numérica de la variable diet, referencia B")
+kable_styling(lendosecod,"striped", position = "center",full_width = F)
+```
+El modelo de regresión asociado es el siguiente:
+
+\begin{equation}
+E(Coag|I_a=x_1,I_c=x_2,I_d=x_3)=\beta_0+\beta_1 x_1+\beta_2 x_2+\beta_3 x_3 (\#eq:coagmodel2)
+\end{equation}
+
+Usted puede verificar que para este modelo
+
+$$\beta_0=E(Coag|Diet=B)=E(Coag|I_a=0,I_c=0,I_d=0)$$
+
+$$\beta_1=E(Coag|Diet=A)-E(Coag|Diet=B)$$
+$$\beta_2=E(Coag|Diet=C)-E(Coag|Diet=B)$$
+$$\beta_3=E(Coag|Diet=D)-E(Coag|Diet=B)$$
+
+Nótese que ahora todos los parámetros que codifican diferencias de medias están especificados contrastando contra la dieta ``B`` y el parámetro $\beta_0$ ahora especifica el valor esperado del tiempo de coagulación para la dieta ``B``. Presentamos a continuación el resultado de ajustar este modelo de regresión:
+
+```{r , echo=F}
+coagulation$diet<-relevel(coagulation$diet,ref="B")
+diet_m01<-lm(coag~diet,data=coagulation)
+diet_m01_summ<-summary(diet_m01)
+diet_m01_coef<-coef(diet_m01)
+diet_m01_summ
+```
+
+Usted podrá verificar ahora que en efecto los valores estimados de los parámetros para el modelo \@ref(eq:coagmodel2) tienen valores diferentes a los estimados para el modelo \@ref(eq:coagmodel1). en particular mencionaremos que del análisis anterior habíamos concluido que 
+
+$$E(Coag|Diet=A)=E(Coag|Diet=D)$$
+
+Y ahora esto puede confirmarse aquí también, ya que $\widehat{\beta_1}=\widehat{\beta_3}$. Sin embargo este modelo ofrece un resultado que el modelo \@ref(eq:coagmodel1) no ofrecía y es el hecho de que 
+
+$$\beta_2=E(Coag|Diet=C)-E(Coag|Diet=B)=0$$
+
+teniendo en cuenta que el p-valor de este parámetro es igual a ``0.158776``. Es decir que, según este resultado $E(Coag|Diet=C)=E(Coag|Diet=B)$.
+ Por lo demás usted podrá verificar que todas las demás métricas son iguales: el $R^2$ y el p-valor del ANOVA siguen iguales. Incluso los p-valores de las pruebas de normalidad condicional y homocedasticidad permanecen iguales.
+ 
+```{r , echo=F}
+diet_m01%>%{data.frame(Info="p-value",Shapiro.Wilk=shapiro.test(residuals(.))$p.value,Non_constant_Variance=ncvTest(.)$p)}
+```
+
+## Conclusión
+En este ejemplo comparamos dos modelos de regresión en donde cambiamos las categorías de referencia. Conceptualmente son modelos diferentes ya que se evalúan diferencias de medias completamente diferentes. Dependiendo del modelo algunos resultados son obtenidos y otros no. Por ejemplo el análisis del modelo \@ref(eq:coagmodel1) revelo que $E(Coag|Diet=D)=E(Coag|Diet=A)$ mientras que el modelo \@ref(eq:coagmodel2) revela que $E(Coag|Diet=C)=E(Coag|Diet=B)$. Ambos resultados no pueden ser alcanzados usando un solo modelo. Debe tenerse en cuenta que, en teoría, usted solo puede ajustar un solo modelo y es importante escoger bien la categoría de referencia. El ajuste de dos modelos para el mismo conjunto de datos conduce al problema de las _**comparaciones multiples**_ el cual no abordaremos en detalle en este curso, sin embargo invitamos a los estudiantes a revisar el tema.
+
+Otra nota importante es el alcance de las conclusiones obtenidas en estos modelos. Nótese que lo que es igual entre las dietas ``B`` y ``C`` (o ``A`` y ``d``) son los valores esperados de la variable ``coag``. Si dispusiéramos de otras herramientas para evaluar diferencias en términos de otros parámetros, como por ejemplo la varianza o la mediana, seria posible encontrar resultados diferentes. El punto es que el valor esperado es solo uno de muchos parámetros que caracterizan las funciones de densidad condicionales y el hecho de que el valor esperado sea el mismo en dos grupos, no implica que las distribuciones condicionales sean iguales. Los valores esperados son iguales, pero puede que otros parámetros no lo sean y por ende, seria incorrecto decir que los tiempos de coagulación son los mismos en las dietas ``B`` y ``C`` (o ``A`` y ``d``).

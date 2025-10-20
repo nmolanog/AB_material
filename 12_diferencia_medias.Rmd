@@ -1,0 +1,612 @@
+---
+title: "Diferencia de medias"
+author: "Nicolás Molano González"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  bookdown::html_document2:
+    toc: true
+    toc_float: 
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+    number_sections: true
+    theme: flatly
+    highlight: tango
+    css: ["styles.css"]
+    includes:
+      in_header: header.html
+      after_body: footer.html
+bibliography: references.bib  
+---
+
+```{r echo=F, message = FALSE, warning =F}
+library(pacman)
+p_load(car)
+p_load(mvtnorm)
+p_load(tidyverse)
+p_load(kableExtra)
+p_load(knitr)
+p_load(latex2exp)   
+p_load(ggrepel)
+p_load(magick)
+p_load(reshape2)
+p_load(cowplot)
+p_load(gridGraphics)
+p_load(GA)
+p_load(ggbeeswarm)
+set.seed(150)
+```
+
+# Introducción
+
+Continuamos nuestro estudio de las variables aleatorias condicionales estudiando la relación entre una variable cuantitativa y una cualitativa. En particular estudiaremos la variable aleatoria condiciona $Y|X=c$ donde $Y$ es una variable cuantitativa y $X$ es una variable cualitativa con un numero finito de categorias y $c$ es una de las posibles categorías que puede tomar la variable $X$.
+
+```{r echo=F, message = FALSE, warning =F}
+n<-260
+
+z01<-data.frame(sexo=factor(rep(c("F","M"),each=n/2)),peso=NA)
+
+z01[z01$sexo %in% "F","peso"]<-rnorm(n/2,55,8)
+z01[z01$sexo %in% "M","peso"]<-rnorm(n/2,70,12)
+```
+
+Considere el siguiente ejemplo: se ha realizado un estudio en donde `r n/2` hombres y `r n/2` mujeres se les ha medido el peso. Los resultados de este estudio se presentan a continuación:
+
+```{r , echo=F}
+summary(z01)
+by(z01$peso,z01$sexo,summary)
+```
+
+Como puede verse, el promedio de la variable peso es de `r z01$peso %>% mean %>% round(4)`. Este promedio corresponde al estimador del valor esperado de la _**distribución marginal**_ de la variable peso. El promedio del peso de las mujeres es de `r z01[z01$sexo %in% "F","peso"] %>% mean %>% round(4)` y este promedio corresponde al estimador del valor esperado de la _**distribución del peso condicionado al sexo femenino**_. De manera similar, el promedio del peso de los hombres es de `r z01[z01$sexo %in% "M","peso"] %>% mean %>% round(4)` y este promedio corresponde al estimador del valor esperado de la _**distribución del peso condicionado al sexo masculino**_.
+
+Los datos de este estudio son visualizados de manera optima mediante el uso de los gráficos de caja y bigotes:
+
+<center>
+```{r sexopeso1, echo=F,warning =F,message=F, fig.width=4.5, fig.height=3.5, fig.cap="Gráficos de caja y bigotes para el peso en cada sexo"}
+z01 %>% ggplot(aes(x=sexo,y=peso))+geom_boxplot()+theme_bw()
+```
+</center>
+
+Como puede observarse en la figura \@ref(fig:sexopeso1), los hombres pesan, en general mas que las mujeres. A nivel poblacional, asumiendo que la proporción de hombres  y mujeres es la misma ($50$%), el escenario seria el siguiente:
+
+<center>
+```{r sexopeso2, echo=FALSE, results = 'asis',fig.width=7, fig.height=6, fig.cap="Distribución marginal y condicional del peso para hombres y mujeres"}
+mixnorm<-function(x,mu1,mu2,sd1,sd2,w1,w2){
+  w1*dnorm(x,mu1,sd1)+w2*dnorm(x,mu2,sd2)
+}
+p1<-ggplot(data = data.frame(peso = c(30,110)), aes(peso)) +
+  stat_function(fun = mixnorm, n = 101, args = list(mu1 = 55,mu2=70,sd1 = 8,sd2=12,w1=.5,w2=.5))+
+  ggtitle("a) Distribucion marginal del peso")+
+  scale_x_continuous(breaks=seq(30,110, by=5)) +
+  ylab("f(peso)")+
+  theme_bw()
+
+p2<-ggplot(data = data.frame(peso = c(30,110)), aes(peso)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = 55, sd = 8),color=2) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = 70, sd = 12),color=1) +
+  ylab("f(peso|sexo)") + scale_x_continuous(breaks=seq(30,110, by=5)) + 
+  annotate("text", x = c(65,80), y = c(.04,.03), 
+           label = c("F","M") , size=4 , 
+           color=c("red","black"))+
+  ggtitle("b) Distribucion condicional del peso")+
+  theme_bw()
+gridExtra::grid.arrange(grobs =list(p1,p2),nrow=2,ncol=1)
+```
+</center>
+
+Para evaluar la relación entre el sexo y el peso, basta con realizar las estimaciones de los parámetros de interés (como por ejemplo valor esperado, varianza, mediana, etc.) para el peso en cada uno de los grupos, como se presento al inicio del ejemplo. Vimos que en promedio los hombres pesan mas que las mujeres. Podría también calcularse intervalos de confianza para el valor esperado del peso en cada sexo, si así se quisiera. Sin embargo, seria deseable tener un estadístico que, de alguna manera, cuantificara la magnitud de la relación entre el sexo y el peso, de manera análoga a la correlación en el caso de dos variables cuantitativas. Una primea aproximación seria la diferencia de valores esperados (o diferencia de medias).
+
+$$E(Peso|Sexo=F)-E(Peso|Sexo=M)$$
+Si esta diferencia es positiva, las mujeres pesaran (en general) mas que los hombres, si es negativa los hombres pesaran mas que las mujeres (en general) y si es igual a $0$ los hombres y mujeres tendrán pesos similares. Veremos como estimar este parámetro.
+
+Nota:
+
+Seria posible considerar otro tipo de distribuciones condicionales: $f(Sexo|Peso =p)$ donde $p$ es un valor de peso cualquiera. Sin embargo este tipo de análisis no sera cubierto en este curso. Para quienes estén interesados, pueden consultar todo lo relacionado a la _**regresión logística**_
+
+# Diferencia de medias.
+
+Sea $Y$ una variable cuantitativa y $X$ una variable cualitativa dicotómica (es decir, con dos categorías). Sean $A$ y $B$ los posibles valores que puede tomar la variable $X$. Se define entonces la diferencia de medias de la variable $Y$, entre el grupo $A$ y $B$ como 
+
+\begin{equation}
+E(Y|X=A)-E(Y|X=B) (\#eq:difm)
+\end{equation}
+
+donde $E(Y|X=A)$ y $E(Y|X=B)$ son los valores esperados condicionales de la variable $Y$ condicionada a valores de la variable $X$ igual a $A$ y $B$ respectivamente.
+
+Para estimar este parámetro, basta con estimar $E(Y|X=A)$ y $E(Y|X=B)$, ya que son valores esperados, sabemos que el promedio es un buen estimador, de tal forma que 
+
+\begin{equation}
+\widehat{E(Y|X=A)-E(Y|X=B)}=\widehat{E(Y|X=A)}-\widehat{E(Y|X=B)} = \overline{Y_A}-\overline{Y_b} (\#eq:difmest)
+\end{equation}
+
+donde $\overline{Y_A}$ y $\overline{Y_B}$ son los promedios de la variable $Y$ en los grupos $A$ y $B$ respectivamente.
+
+Esto quiere decir que, en el ejemplo anterior del sexo y el peso, la diferencia de medias puede ser estimada como 
+
+$$\overline{Peso_F}-\overline{Peso_M}=`r z01[z01$sexo %in% "F","peso"] %>% mean %>% round(4)`-`r z01[z01$sexo %in% "M","peso"] %>% mean %>% round(4)`=
+`r z01[z01$sexo %in% "F","peso"] %>% mean %>% round(4)- z01[z01$sexo %in% "M","peso"] %>% mean %>% round(4)`$$
+
+Ya que esta diferencia es negativa, indica que el valor esperado del peso para las mujeres es menor que el valor esperado del peso para los hombres y esta diferencia es de `r z01[z01$sexo %in% "F","peso"] %>% mean %>% round(4)- z01[z01$sexo %in% "M","peso"] %>% mean %>% round(4)` unidades.
+
+## Prueba de hipótesis e intervalo de confianza para la diferencia de medias
+
+Existen al menos dos enfoques para la construcción de intervalos de confianza y pruebas de hipótesis para la diferencia de medias. Ambos enfoques asumen que las distribuciones de las variables aleatorias $Y|X=A$ y $Y|X=B$ son distribuciones normales (de manera similar a lo visto en la regresión lineal). Sin embargo existe un enfoque en donde se puede asumir que las varianzas de ambas variables aleatorias condicionales pueden ser diferentes, es decir $V(Y|X=A) \neq V(Y|X=B)$, es decir que no se requiere del supuesto de homocedasticidad. Abordaremos este enfoque.
+
+Dicho procedimiento es denominado en la literatura como la prueba _**T para diferencia de medias con varianzas desiguales**_. No abordaremos los detalles para la construcción del estadístico de prueba y la determinación de los limites de aceptación y de rechazo, así como las formulas para la construcción de los intervalos de confianza. Recurriremos a la implementación disponible en R, el estudiante puede consultar la documentación de la función ``?t.test``.
+
+Sin embargo estudiaremos los posibles sistemas de hipótesis que pueden ser usados en esta prueba:
+
+\begin{equation}
+H_0: \; E(Y|X=A)-E(Y|X=B)=c \\
+H_a: \; E(Y|X=A)-E(Y|X=B) \neq c
+(\#eq:difph1)
+\end{equation}
+
+\begin{equation}
+H_0: \; E(Y|X=A)-E(Y|X=B)\leq c \\
+H_a: \; E(Y|X=A)-E(Y|X=B) > c
+(\#eq:difph2)
+\end{equation}
+
+\begin{equation}
+H_0: \; E(Y|X=A)-E(Y|X=B)\geq c \\
+H_a: \; E(Y|X=A)-E(Y|X=B) < c
+(\#eq:difph3)
+\end{equation}
+
+En estos sistemas de hipótesis, el valor de $c$ por lo general es igual a $0$, ya que este valor indica que los valores esperados condicionales entre los dos grupos son iguales. Cada uno de los tres sistemas de hipótesis es usado de acuerdo a los intereses del estudio, el sistema \@ref(eq:difph1) se usa para evaluar diferencias entre los grupos sin importar la dirección, el sistema \@ref(eq:difph2) se usa para evaluar si el valor esperado del grupo $A$ es mayor al del $B$ y el sistema \@ref(eq:difph3) se usa para evaluar si el valor esperado del grupo $A$ es menor al del $B$.
+
+
+A continuación presentaremos los resultados de aplicar la función ``t.test`` a los datos del ejemplo del sexo y el peso para el sistema de hipótesis \@ref(eq:difph1). Para este caso el sistema de hipótesis es el siguiente:
+
+$$H_0: \; E(Peso|Sexo=F)-E(Peso|Sexo=M)=0 $$
+$$H_a: \; E(Peso|Sexo=F)-E(Peso|Sexo=M)=0 $$
+Los detalles de como hacer esto en R serán cubiertos en el taller.
+
+```{r , echo=F}
+t.test(peso~sexo,data=z01)
+```
+
+La linea
+\
+``## t = -11.47, df = 239.1, p-value < 2.2e-16``
+
+Indica el valor del estadístico de prueba ``t = -11.47``, sus grados de libertad ``df = 239.1`` y el p-valor de la prueba de hipótesis ``p-value < 2.2e-16``.
+
+La linea 
+\
+``## alternative hypothesis: true difference in means is not equal to 0``
+
+Indica que el sistema de hipótesis usado es el \@ref(eq:difph1).
+
+Las lineas
+\
+``## 95 percent confidence interval:``
+\
+``##  -16.03364 -11.33330``
+
+proveen el intervalo de 95% de confianza para la diferencia de medias
+
+Y las lineas 
+
+``## sample estimates:``
+\
+``## mean in group F mean in group M ``
+\
+``##        55.64456        69.32803``
+\
+
+proveen los promedios de peso en cada grupo.
+
+Según los resultados, el p-valor de esta prueba es ``p-value < 2.2e-16`` un numero bastante menor al nivel de significancia usual ($\alpha=0.05$), por tanto la hipótesis nula se rechaza y se concluye que existen diferencias en los valores esperados del peso condicionado al genero.
+
+Aplicamos ahora el sistema de hipotesis \@ref(eq:difph2), que para nuestro ejemplo seria el siguiente:
+$$H_0: \; E(Peso|Sexo=F)-E(Peso|Sexo=M)\leq0 $$
+$$H_a: \; E(Peso|Sexo=F)-E(Peso|Sexo=M)>0 $$
+
+```{r , echo=F}
+t.test(peso~sexo,data=z01,alternative ="greater")
+```
+
+Para este caso el intervalo de confianza cambio y solo se provee un limite inferior para la diferencia de medias. El p-valor es igual a $1$ indicando que no se puede rechazar la hipótesis nula, por tanto se falla en demostrar que el $(Peso|Sexo=F)>E(Peso|Sexo=M)$, lo cual es consistente con los datos observados.
+
+Finalmente evaluaremos el sistema \@ref(eq:difph3), que para nuestro ejemplo seria el siguiente:
+$$H_0: \; E(Peso|Sexo=F)-E(Peso|Sexo=M)\geq0 $$
+$$H_a: \; E(Peso|Sexo=F)-E(Peso|Sexo=M)<0 $$
+
+```{r , echo=F}
+t.test(peso~sexo,data=z01,alternative ="less")
+```
+
+Esta vez el p-valor es pequeño, indicando que la hipótesis nula se rechaza y confirmando que $(Peso|Sexo=F)<E(Peso|Sexo=M)$ como ya lo habíamos identificado en análisis anteriores.
+De nuevo, para este caso el intervalo de confianza es diferente y solamente provee un limite superior para la diferencia de medias.
+
+# Análisis con mas de dos categorías
+
+Ahora exploraremos las estrategias de análisis en el caso en que la variable categórica tiene mas de dos categorías. Considérese el siguiente ejemplo:
+
+En un experimento, se estudia el efecto de la vitamina C sobre el desarrollo de los dientes en unos conejillos de indias. Se estudiaron tres dosis diferentes de vitamina C y su efecto sobre el crecimiento de los odontoblastos. La variable ``len`` es la longitud en micrómetros de los odontoblastos (células responsables del crecimiento de los dientes). La variable ``dose`` es una variable categórica con tres categorias: ``low``, ``med`` y ``high`` describiendo de manera cualitativa las concentraciones de vitamina C suministradas a los ratones en la dieta. A continuación presentamos algunas estadísticas descriptivas marginales para las dos variables.
+
+```{r , echo=F}
+ToothGrowth$dose<-factor(ToothGrowth$dose,labels = c("low","med","high"))
+ToothGrowth[,c(1,3)] %>% summary
+```
+
+Adicionalmente presentamos la distribución condicional de la variable ``len`` para cada una de las dosis de vitamina C:
+
+
+```{r , echo=F}
+summary(z01)
+by(ToothGrowth$len,ToothGrowth$dose,summary)
+```
+
+A continuación se muestra el grafico de cajas y bigotes para la variable ``len`` en cada dosis de vitamina C
+
+```{r tg1, echo=F, fig.width=6, fig.height=4, fig.cap="Gráficos de caja y bigotes para la longitud en cada dosis"}
+ToothGrowth%>%ggplot(aes(x=dose,y=len))+
+  geom_boxplot()+
+ theme_bw()
+```
+
+Teniendo en cuenta la información anterior, es evidente que a medida que la dosis aumenta, la longitud de los odontoblastos también aumenta. Es claro que la dosis ``low`` presenta las menores longitudes, mientras que la dosis ``high`` presenta las mayores longitudes y la dosis ``med`` presenta longitudes intermedias.
+
+Siguiendo la estrategia aprendida en la sección anterior, podríamos estar interesados en las siguientes diferencias de medias posibles:
+
+$$E(Len|Dose=low)-E(Len|Dose=med)$$
+$$E(Len|Dose=low)-E(Len|Dose=high)$$
+$$E(Len|Dose=med)-E(Len|Dose=high)$$
+
+Sin embargo esas no son todas los posibles diferencias de medias y estudiarlas todas tendría algún sentido?
+
+Desde el punto de vista estadístico, no es visto con buenos ojo estimar todas las posibles diferencias de medias debido a un fenómeno conocido como el _**problema de las comparaciones múltiples**_ (Este tema no sera cubierto en este curso sin embargo invitamos a los estudiantes a que investiguen este asunto por su cuenta).
+
+De alguna manera, se desea hacer un solo análisis que responda a la siguiente pregunta:
+
+"¿la dosis tiene algún efecto sobre la longitud de los odontoblastos?"
+
+Nosotros ya intuimos la respuesta después de ver las estadísticas descriptivas de los datos del estudio. Es mas si la variable dosis fuera una variable cuantitativa, un modelo de regresión podría ser aplicado y la descripción de la relación entre la variable ``len`` y la variable ``dose`` podría ser resumida a través de una medida como por ejemplo el $R^2$.
+
+Pues bien, esa sera la estrategia. Veremos como una variable categórica puede ser analizada a través de un modelo de regresión.
+
+## Modelo de regresión para variable independiente categórica
+
+En esta sección estudiaremos como introducir una variable categórica independiente en un modelo de regresión. Para esto nos devolveremos al ejemplo anterior del peso y el sexo y veremos como una variable con dos categorías puede ser introducida en un modelo de regresión lineal. La estrategia es simple, de alguna manera volver las categorías, números con algún sentido practico.
+
+Lo primero que haremos, sera codificar la variable sexo de la siguiente manera:
+
+```{r sexodummycod, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+sexodummycod<-kable(data.frame(sexo=c("F","M"),Im=0:1),caption="Codificación numérica de la variable sexo")
+kable_styling(sexodummycod,"striped", position = "center",full_width = F)
+```
+Hemos creado la variable $Im$ que toma el valor $0$ si $sexo=F$ y toma el valor $1$ si $sexo=M$. Este tipo de variables se denominan _**variables indicadoras**_, por eso usamos la letra $I$ y el subíndice $m$ lo usamos para indicar que la variable es indicadora del sexo masculino. Ya que la variable $Im$ es una variable numérica, perfectamente podemos formular el siguiente modelo de regresión lineal
+
+\begin{equation}
+E(Peso|Im=x)=\beta_0+\beta_1 x (\#eq:regm1)
+\end{equation}
+
+Donde $x$ solamente toma los valores $0$ y $1$ dependiendo del sexo de la persona. Estudiemos como se comporta la ecuación \@ref(eq:regm1) para los dos posibles valores de $Im$:
+
+* Si la persona es una mujer entonces tenemos que
+
+$$E(Peso|Sexo=F)=E(Peso|Im=0)=\beta_0+\beta_1 \times 0=\beta_0$$
+
+Es decir que $\beta_0=E(Peso|Sexo=F)$.
+
+* Si la persona es un hombre entonces tenemos que
+
+$$E(Peso|Sexo=M)=E(Peso|Im=1)=\beta_0+\beta_1 \times 1=\beta_0+\beta_1$$
+Sin embargo, del análisis anterior sabemos que $\beta_0=E(Peso|Sexo=F)$, así que la ecuación anterior se puede reescribir como
+
+$$E(Peso|Sexo=M)=E(Peso|Sexo=F)+\beta_1$$
+Ahora despejaremos la ecuación anterior para $\beta_1$
+
+$$\beta_1=E(Peso|Sexo=M)-E(Peso|Sexo=F)$$
+En conclusión, para el modelo de regresión \@ref(eq:regm1) tenemos que los parámetros $\beta_0$ y $\beta_1$ corresponden a 
+
+$$\beta_0=E(Peso|Sexo=F)$$
+$$\beta_1=E(Peso|Sexo=M)-E(Peso|Sexo=F)$$
+
+El "intercepto" corresponde al valor esperado del peso para las mujeres y la "pendiente" corresponde a la _**diferencias de medias**_ del peso de los hombres menos el de las mujeres. Esto es sorprendente, como al convertir la variable sexo en una variable indicadora y construir un modelo de regresión llegamos a la diferencia de medias que habíamos estudiado en la sección anterior. Nótese sin embargo, que el signo de esta diferencia de medias es el opuesto del trabajado al principio del capitulo usando la diferencia de medias.
+
+Ajustaremos entonces, el modelo de regresión usando la función ``lm`` de R y comparemos los resultados de este modelo con los análisis anteriores.
+
+```{r , echo=F}
+m0_sexopeso<-lm(peso~sexo,data=z01)
+m0_sexopeso_summ<-summary(m0_sexopeso)
+m0_sexopeso_summ
+```
+
+Vemos que el estimador del parámetro $\beta_0$ es igual a `r coef(m0_sexopeso)[1] %>% round(4)` y el estimador del parámetro $\beta_1$ es igual a `r coef(m0_sexopeso)[2]%>% round(4)` lo cual concuerda con los resultados anteriores usando la función ``t.test`` (Nótese de nuevo, que la diferencia de medias es opuesta a la estudiada anteriormente y por ende, el signo negativo ahora aparece como positivo en la diferencia de medias codificada en el parámetro $\beta_1$).
+
+el p-valor asociado a el parámetro $\beta_1$, como se recordara, tiene el siguiente sistema de hipótesis:
+
+$$H_0: \beta_1 =0$$
+$$H_a: \beta_1 \neq 0$$
+si reemplazamos $\beta_1$ por $E(Peso|Sexo=M)-E(Peso|Sexo=F)$ obtenemos
+
+$$H_0: E(Peso|Sexo=M)-E(Peso|Sexo=F) =0$$
+$$H_a: E(Peso|Sexo=M)-E(Peso|Sexo=F) \neq 0$$
+El mismo sistema de hipotesis \@ref(eq:difph1) de la prueba de hipótesis asociada a la diferencia de medias.
+
+Adicionalmente, tenemos la medida de resumen $R^2$, su interpretación no cambia y para este caso podríamos decir que 
+
+"el $33.77$% de la variación observada en el peso puede ser explicada por la variación observada en el sexo". Ahora estamos listos para avanzar en nuestro análisis de una variable categórica con mas de dos categorías.
+
+### Codificación de una variable con mas de 2 categorías
+
+Retomemos nuestro ejemplo de la longitud de los odontoblastos y la dosis de vitamina C. Como podemos codificar la variable dosis para poderla involucrar en el modelo de regresión? Observemos la siguiente tabla en donde codificamos las tres categorías de dosis:
+
+```{r lendosecod, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+lendosecod<-kable(data.frame(dose=c("low","med","high"),Im=c(0,1,0),Ih=c(0,0,1)),caption="Codificación numérica de la variable dose")
+kable_styling(lendosecod,"striped", position = "center",full_width = F)
+
+```
+
+Esta vez, la codificación debe hacerse a través de dos variables indicadoras: $Im$ (variable indicadora de la dosis ``med``) e $Ih$ (variable indicadora de la dosis ``high``). Formulemos el modelo de regresión para este experimento
+
+\begin{equation}
+E(Len|Im=x_1,Ih=x_2)=\beta_0+\beta_1x_1+\beta_2x_2 (\#eq:regm2)
+\end{equation}
+
+
+donde $x_1$ y $x_2$ son los valores que puede tomar las variables  $Im$ e $Ih$ respectivamente, es decir $0$ o $1$. Nótese que es el primer modelo de regresión que encontramos que involucra mas de "una" variable independiente. Estudiemos como se comporta el modelo para cada nivel de la dosis.
+
+Si la dosis es ``low`` entonces
+
+$$E(Len|Dose=low)=E(Len|Im=0,Ih=0)=\beta_0+\beta_1\times0+\beta_2\times0=\beta_0$$
+
+De manera similar al caso anterior, $\beta_0=E(Len|Dose=low)$
+
+Si la dosis es ``med`` entonces
+
+$$E(Len|Dose=med)=E(Len|Im=1,Ih=0)=\beta_0+\beta_1\times1+\beta_2\times0=\beta_0+\beta_1$$
+
+Ya que $\beta_0=E(Len|Dose=low)$ la ecuación anterior se puede reescribir como
+
+$$E(Len|Dose=med)=E(Len|Dose=low)+\beta_1$$
+
+y despejando $\beta_1$ obtenemos que
+
+$$\beta_1=E(Len|Dose=med)-E(Len|Dose=low)$$
+
+Es decir que $\beta_1$ es la diferencia de medias entre la dosis ``med`` y la dosis ``low``.
+
+De manera similar, si la dosis es ``high``
+$$E(Len|Dose=high)=E(Len|Im=0,Ih=1)=\beta_0+\beta_1\times0+\beta_2\times1=E(Len|Dose=low)+\beta_2$$
+Luego
+$$\beta_2=E(Len|Dose=high)-E(Len|Dose=low)$$
+
+Es decir que $\beta_2$ es la diferencia de medias entre la dosis ``high`` y la dosis ``low``.
+
+En resumen, para el modelo \@ref(eq:regm2), los parámetros $\beta_0,\beta_1$ y $\beta_2$ tienen los siguientes significados:
+
+* $\beta_0=E(Len|Dose=low)$, es decir $\beta_0$ es el valor esperado de la variable ``len`` para la dosis ``low``.
+* $\beta_1=E(Len|Dose=med)-E(Len|Dose=low)$, es decir $\beta_1$ es la diferencia de medias entre la dosis ``med`` y la dosis ``low``
+* $\beta_2=E(Len|Dose=high)-E(Len|Dose=low)$, es decir $\beta_2$ es la diferencia de medias entre la dosis ``high`` y la dosis ``low``
+
+Hay varias cosas que notar en este modelo. Nótese que en el sistema de codificación presentado en la tabla \@ref(tab:lendosecod), ninguna de las dos variables indicadores $Im$ e $Ih$ toman simultáneamente el valor de $1$. Si eso sucediera, seria indicio de que una dosis es ``med``  y ``high`` simultáneamente, lo cual es imposible. 
+
+La categoría ``low`` se denominada la _**categoría de referencia**_ y es aquella codificada en $0$ en ambas variables indicadoras. Esta categoría es la que se usa para _**contrastar**_ con las restantes categorías. Nótese que los parámetros asociados a diferencias de medias ($\beta_1$ y $\beta_2$) están construidos restando siempre el valor esperado de la variable len para la dosis ``low``.
+
+Adicionalmente, nótese que en este modelo de regresión, no se encuentra especificada una tercera posible diferencia de medias, aquella que contrasta las dosis ``med`` y ``high``.
+
+Finalmente, señalamos que la selección de la dosis ``low`` como categoría de referencia fue arbitraria y que cualquiera de las otras dos categorías pudo haber sido escogida como categoría de referencia. A continuación presentamos los sistemas de codificación teniendo como categoría de referencia a las dos restantes categorías.
+
+```{r lendosecod2, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+lendosecod<-kable(data.frame(dose=c("low","med","high"),Il=c(1,0,0),Im=c(0,1,0)),caption="Codificación numérica de la variable dose, referencia high")
+kable_styling(lendosecod,"striped", position = "float_left",full_width = F)
+```
+
+```{r lendosecod3, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+lendosecod<-kable(data.frame(dose=c("low","med","high"),Il=c(1,0,0),Ih=c(0,0,1)),caption="Codificación numérica de la variable dose, referencia med")
+kable_styling(lendosecod,"striped", position = "left",full_width = F)
+
+```
+
+Invitamos al estudiante a que escriba el modelo de regresión y establezca el significado de cada parámetro para cada uno de estos dos sistemas de codificación alternativos.
+
+### Resultado del modelo de regresion en R
+
+Ahora presentaremos los resultados de ajustar el modelo de regresión \@ref(eq:regm2) en R usando la función ``lm``:
+
+```{r , echo=F}
+m0_lendose<-lm(len~dose,data=ToothGrowth)
+m0_lendose_coef<-coef(m0_lendose)
+m0_lendose_summ<-summary(m0_lendose)
+m0_lendose_summ
+
+```
+Compararemos estos resultados con las estadísticas descriptivas de la variable ``len`` en cada dosis
+
+```{r , echo=F}
+by(ToothGrowth$len,ToothGrowth$dose,summary)
+```
+
+En primer lugar note que ``(Intercept)`` $=\widehat{\beta_0}$, ``dosemed`` $=\widehat{\beta_1}$ y  ``dosehigh`` $=\widehat{\beta_2}$. Ademas usted puede verificar que en efecto, $\widehat{\beta_0}$ es simplemente el promedio de la variable ``len`` para la dosis ``low``, $\widehat{\beta_1}$ es la diferencia entre el promedio de la variable ``len`` para la dosis ``med`` menos el promedio de la variable ``len`` en la dosis ``low`` y de manera similar, $\widehat{\beta_2}$ es la diferencia entre el promedio de la variable len para la dosis ``high`` menos el promedio de la variable len en la dosis ``low``. Es decir:
+
+$$\widehat{\beta_0}=\overline{len}_{low}=`r m0_lendose_coef[1]`$$
+$$\widehat{\beta_1}=\overline{len}_{med}-\overline{len}_{low}=`r ToothGrowth[ToothGrowth$dose %in% "med","len"] %>% mean %>% round(4)`-
+`r ToothGrowth[ToothGrowth$dose %in% "low","len"] %>% mean %>% round(4)`=`r m0_lendose_coef[2]`$$
+
+$$\widehat{\beta_2}=\overline{len}_{high}-\overline{len}_{low}=`r ToothGrowth[ToothGrowth$dose %in% "high","len"] %>% mean %>% round(4)`-
+`r ToothGrowth[ToothGrowth$dose %in% "low","len"] %>% mean %>% round(4)`=`r m0_lendose_coef[3]`$$
+
+Donde $\overline{len}_{low},\overline{len}_{med}$ y $\overline{len}_{high}$ son los promedios de la variable ``len`` para cada una de las dosis respectivas.
+
+Puede verse que todos p-valores asociados a los parámetros $\beta_0, \beta_1$ y $\beta_2$ ``5.39e-16``, ``6.70e-09`` y ``< 2e-16`` son todos menores a $\alpha=0.05$ y por ende todos los tres parámetros son significativos.
+
+El $R^2$ de este modelo es de ``0.7029`` indicando que el $70.29$% de la variacion observada en la variable ``len`` es explicada por la variación observada en la variable ``dose``.
+
+Ahora hay una información nueva, que no se había discutido en el caso de la regresión lineal para la variable independiente numérica, es la siguiente información:
+
+``F-statistic: 67.42 on 2 and 57 DF,  p-value: 9.533e-16``
+
+Esta es la prueba de hipótesis del _**ANOVA**_ y sera discutida en breve.
+
+## Codificación de una variable categórica con $k$ categorías.
+
+Sea $X$ una variable categórica con $k$ categorías. Permítase denotar estas categorías como $c_i$ donde $i=0,1,...,k-1$. En el ejemplo anterior de la dosis, $k=3$ y $c_0=low$, $c_1=med$ y $c_2=high$, por ejemplo.
+
+Para involucrar la variable categórica $X$ en un modelo de regresión, esta debe ser codificada usando $k-1$ variables indicadoras. Aquella categoría que no posea una variable indicadora sera considerada la categoría de referencia y su codificación corresponderá a valores de $0$ en todas las $k-1$ variables indicadoras construidas.
+
+### Ejemplos
+
+* En el estudio del peso y el sexo, el numero de categorías es $k=2$ y el numero de variables indicadoras usadas fue $k-1=2-1=1$, ver tabla \@ref(tab:sexodummycod).
+* En el estudio de la longitud de los odontoblastos y la dosis de vitamina C, la variable ``dose`` posee $k=3$ categorías y el numero de variables indicadoras fue de $k-1=3-1=2$. ver tablas \@ref(tab:lendosecod), \@ref(tab:lendosecod2) y \@ref(tab:lendosecod3)
+* En otro estudio, hay una variable categórica denominada dieta, la cual tiene 4 categorías: $A,B,C$ y $D$. Un sistema de codificación posible usando variables indicadoras para esta variable seria el siguiente:
+```{r diet, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+lendosecod<-kable(data.frame(dieta=LETTERS[1:4],Ib=c(0,1,0,0),Ic=c(0,0,1,0),Id=c(0,0,0,1)),caption="Codificación numérica de la variable dieta")
+kable_styling(lendosecod,"striped", position = "center",full_width = F)
+
+```
+En donde la dieta $A$ es la categoría de referencia. Claramente $k=4$ y el numero de variables indicadoras es $k-1=3$
+
+## Especificación general del modelo
+
+Sea $Y$ una variable continua y $X$ una variable categórica con $k$ categorías. Permítase denotar estas categorías como $c_i$ donde $i=0,1,...,k-1$. Sean $I_1, I_2,...,I_{k-1}$ las $k-1$ variables indicadoras correspondientes a las $k-1$ categorías $c_1,c_2,...,c_{k-1}$, de tal forma que si $I_j=1$ es indicación de la pertenencia a la categoría $c_j$, con $j=1,2,...,k-1$. Es claro que bajo estas condiciones la categoría $c_0$ es la categoría de referencia y por ende esta categoría presenta valores de $0$ en todas las variables indicadoras. Definimos entonces  el siguiente modelo de regresión:
+
+\begin{equation}
+ E(Y|I_1=x_1,I_2=x_2,...,I_{k-1}=x_{k-1})=\beta_0+\beta_1x_1+\beta_2x_2+...+\beta_{k-1}x_{k-1}(\#eq:regg)
+\end{equation}
+
+donde $x_1,x_2,...,x_{k-1}$ toman valores de $0$ o $1$. Ademas entre todos los $k-1$ valores de las variables $x_1,x_2,...,x_{k-1}$ solo una puede tomar el valor de $1$ y en el caso de la categoriza de referencia, todas toman el valor de $0$.
+
+El modelo \@ref(eq:regg) tiene el siguiente comportamiento
+
+* $E(Y|X=c_0)=E(Y|I_1=0,I_2=0,...,I_{k-1}=0)=\beta_0$
+* $E(Y|X=c_1)=E(Y|I_1=1,I_2=0,...,I_{k-1}=0)=\beta_0+\beta_1$
+* En general $E(Y|X=c_j)=E(Y|I_1=0,...,I_j=1,...,I_{k-1}=0)=\beta_0+\beta_j$ donde $j=1,2,...,k-1$
+
+Ademas los parámetros pueden ser despejados en términos de valores esperados condicionales de la siguiente forma:
+
+* $\beta_0=E(Y|X=c_0)$
+* $\beta_1=E(Y|X=c_1)-E(Y|X=c_0)$
+* En general $\beta_j=E(Y|X=c_j)-E(Y|X=c_0)$ donde $j=1,2,...,k-1$
+
+### Pruebas de hipótesis en el modelo de regresión general
+
+Para cada uno de los parámetros en el modelo \@ref(eq:regg), comúnmente se plantea el siguiente sistema de hipótesis
+
+\begin{equation}
+H_0: \; \beta_i =0 \\
+H_a: \; \beta_i \neq 0
+(\#eq:parthip)
+\end{equation}
+para $i=0,1,...,k-1$.
+
+si $i=0$ el sistema de hipótesis \@ref(eq:parthip) se puede reescribir como 
+
+$$H_0: \; E(Y|X=c_0) =0$$
+$$H_a: \; E(Y|X=c_0) \neq0$$
+donde $c_0$ es la categoría de referencia. De otra manera, si $i\neq0$ es decir cualquier categoría diferente a la de referencia, entonces el sistema de hipótesis \@ref(eq:parthip) se puede reescribir como 
+
+$$H_0: \; E(Y|X=c_i)-E(Y|X=c_0) =0$$
+$$H_a: \; E(Y|X=c_i)-E(Y|X=c_0) \neq0$$
+
+Lo que equivale a poner a prueba la hipótesis de la diferencia de medias entre la categoría $c_i$ y la categoría de referencia es diferente de $0$.
+
+Sin embargo existe una prueba de hipótesis global, que ayuda a condensar de alguna manera todas las anteriores pruebas de hipótesis anteriores, esta prueba se denomina el _**Análisis de Varianza**_ o por sus siglas _**ANOVA**_
+
+#### Definición de la prueba de hipótesis ANOVA
+
+Sean $c_1,c_2,...,c_{k-1}$ todas las categorías diferentes a la categoría de referencia. Entonces el sistema de hipótesis del ANOVA es el siguiente:
+
+\begin{equation}
+H_0: \; \beta_1=\beta_2=...=\beta_{k-1} =0 \\
+H_a: \; Existe  \;al \; menos \; un \; parámetro  \; \beta_j  \;tal  \;que  \;\beta_j\neq 0
+(\#eq:anova)
+\end{equation}
+
+Este sistema de hipótesis trabaja con todos los parámetros que codifican diferencias de medias. En la hipótesis nula encontramos el escenario en que todos estos parámetros son iguales a $0$, lo que significa que todos los valores esperados de la variable $Y$ condicionados a las diferentes categorías terminan siendo iguales al valor esperado de la categoría de referencia. Esto indica finalmente que la variable $X$ no posee ningún efecto sobre los valores esperados condicionales de la variable $Y$,
+
+En la hipótesis alternativa encontramos el escenario en el cual existe al menos una categoría cuyo valor esperado condicional difiere del valor esperado condicional de la categoría de referencia, demostrando que la variable $X$ tiene algún efecto sobre los valores esperados condicionales de la variable $Y$
+
+## Supuestos del modelo de regresión
+
+Los supuestos del modelo de regresión con la variable independiente siendo una variable categórica con $k$ categorías son los mismos supuestos del modelo para el cual la variable $X$ es una variable numérica, a saber:
+
+* Supuesto de normalidad condicional
+* Supuesto de homocedasticidad
+* Supuesto de independencia
+
+La forma en que se evalúan estos supuestos es exactamente la misma al modelo de regresión lineal donde la la variable $X$ es una variable numérica. Cabe destacar una diferencia importante entre la prueba T para diferencia de medias y este modelo: en la prueba T no se necesita el supuesto de homocedasticidad, mientras que en este modelo si. Es un pequeño precio que debe pagarse por la eficiencia de estimar múltiples diferencias de medias en un solo modelo de regresión.
+
+# Desarrollo completo del estudio de odontoblastos y vitamina C
+
+Ahora ya contamos con todos los elementos para hacer un análisis de regresión completo en donde la variable $X$ es una variable categórica. Retomaremos el estudio de la longitud de los odontoblastos y analizaremos los resultados en detalle.
+
+En un experimento, se estudia el efecto de la vitamina C sobre el desarrollo de los dientes en unos conejillos de indias. Se estudiaron tres dosis diferentes de vitamina C y su efecto sobre el crecimiento de los odontoblastos. La variable ``len`` es la longitud en micrómetros de los odontoblastos (células responsables del crecimiento de lso dientes). La variable ``dose`` es una variable categórica con tres categorías: ``low``, ``med`` y ``high`` describiendo de manera cualitativa las concentraciones de vitamina C suministradas a los ratones en la dieta. A continuación presentamos algunas estadísticas descriptivas marginales para las dos variables.
+
+```{r , echo=F}
+ToothGrowth$dose<-factor(ToothGrowth$dose,labels = c("low","med","high"))
+ToothGrowth[,c(1,3)] %>% summary
+```
+
+Adicionalmente presentamos la estimación de diferentes parámetros de la distribución condicional de la variable ``len`` para cada una de las dosis de vitamina C:
+
+
+```{r , echo=F}
+summary(z01)
+by(ToothGrowth$len,ToothGrowth$dose,summary)
+```
+
+A continuación se muestra el grafico de cajas y bigotes para la variable ``len`` en cada dosis de vitamina C
+
+```{r tg2, echo=F, fig.width=6, fig.height=4, fig.cap="graficos de caja y bigotes para la longitud en cada dosis"}
+ToothGrowth%>%ggplot(aes(x=dose,y=len))+
+  geom_boxplot()+
+ theme_bw()
+```
+
+Se adoptara el siguiente esquema de codificación para la variable ``dose``
+
+```{r lendosecod11, echo=FALSE}
+###see http://haozhu233.github.io/kableExtra/awesome_table_in_html.html
+lendosecod<-kable(data.frame(dose=c("low","med","high"),Im=c(0,1,0),Ih=c(0,0,1)),caption="Codificación numérica de la variable dose")
+kable_styling(lendosecod,"striped", position = "center",full_width = F)
+```
+
+El modelo de regresión que se ajustare es el siguiente
+
+$$E(Len|Im=x_1,Ih=x_2)=\beta_0+\beta_1x_1+\beta_2x_2 $$
+
+A continuación presentamos los resultados de ajustar este modelo:
+
+```{r , echo=F}
+m0_lendose_summ
+```
+
+Recuérdese que ``(Intercept)`` $=\widehat{\beta_0}$, ``dosemed`` $=\widehat{\beta_1}$ y  ``dosehigh`` $=\widehat{\beta_2}$. Ademas 
+
+$$\widehat{\beta_0}=\overline{len}_{low}=`r m0_lendose_coef[1]`$$
+$$\widehat{\beta_1}=\overline{len}_{med}-\overline{len}_{low}=`r ToothGrowth[ToothGrowth$dose %in% "med","len"] %>% mean %>% round(4)`-
+`r ToothGrowth[ToothGrowth$dose %in% "low","len"] %>% mean %>% round(4)`=`r m0_lendose_coef[2]`$$
+
+$$\widehat{\beta_2}=\overline{len}_{high}-\overline{len}_{low}=`r ToothGrowth[ToothGrowth$dose %in% "high","len"] %>% mean %>% round(4)`-
+`r ToothGrowth[ToothGrowth$dose %in% "low","len"] %>% mean %>% round(4)`=`r m0_lendose_coef[3]`$$
+
+Donde $\overline{len}_{low},\overline{len}_{med}$ y $\overline{len}_{high}$ son los promedios de la variable ``len`` para cada una de las dosis respectivas.
+
+Puede verse que todos p-valores asociados a los parámetros $\beta_0, \beta_1$ y $\beta_2$ ``5.39e-16``, ``6.70e-09`` y ``< 2e-16`` son todos menores a $\alpha=0.05$ y por ende todos los tres parámetros son significativos.
+
+El $R^2$ de este modelo es de ``0.7029`` indicando que el $70.29$% de la variación observada en la variable ``len`` es explicada por la variación observada en la variable ``dose``.
+
+Finalmente evaluaremos la prueba del ANOVA
+
+``F-statistic: 67.42 on 2 and 57 DF,  p-value: 9.533e-16``
+
+Según su p-valor se rechaza la hipótesis nula, por lo cual existe al menos alguna dosis que presenta valores esperados de la variable ``len``, diferentes al valor esperado de la misma variable para la dosis ``low``. En efecto, al evaluar los p-valores de cada uno de los parámetros vemos que las dosis ``med`` y``high`` son significativas (``6.70e-09`` y ``< 2e-16``), lo cual quiere decir que las diferencias de medias respectivas son significativamente diferentes de $0$ y por ende que los valores esperados de la variable ``len`` para estas dosis son estadísticamente diferentes al valor esperado para la dosis de referencia ``low``.
+
+Ahora procederemos a evaluar los supuestos del  modelo de regresión:
+
+```{r , echo=F}
+m0_lendose%>%{data.frame(Info="p-value",Shapiro.Wilk=shapiro.test(residuals(.))$p.value,Non_constant_Variance=ncvTest(.)$p)}
+```
+Vemos que los p-valores de la prueba de normalidad y la de homocedasticidad son mayores al nivel de significancia usual, $\alpha=0.05$. Por tanto, concluimos que no existe evidencia de que los supuestos del modelo no se cumplen para los datos de este estudio. Puede confiare en los p-valores de los parámetros y del p-valor de la prueba de ANOVA. 
+
+Con esto terminamos este capitulo. En el próximo documento presentaremos varios ejemplos de los conceptos aquí estudiados.

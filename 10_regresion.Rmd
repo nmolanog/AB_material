@@ -1,0 +1,542 @@
+---
+title: "Regresión lineal"
+author: "Nicolás Molano González"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  bookdown::html_document2:
+    toc: true
+    toc_float: 
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+    number_sections: true
+    theme: flatly
+    highlight: tango
+    css: ["styles.css"]
+    includes:
+      in_header: header.html
+      after_body: footer.html
+bibliography: references.bib  
+---
+
+```{r echo=F, message = FALSE, warning =F}
+library(pacman)
+p_load(mvtnorm)
+p_load(tidyverse)
+p_load(kableExtra)
+p_load(knitr)
+p_load(latex2exp)   
+p_load(ggrepel)
+p_load(reshape2)
+p_load(cowplot)
+p_load(gridGraphics)
+p_load(GA)
+p_load(magick)
+set.seed(150)
+```
+
+# Introducción
+
+En la sección anterior estudiamos los conceptos de función de densidad conjunta, marginal y condicional. Habíamos notado que las funciones de densidad condicional poseen un valor esperado que es determinado por una linea recta en el espacio de las dos variables de interés.
+<center>
+```{r bivardnormres, echo=F,warning =F, fig.width=6, fig.height=5, fig.cap="funciones de densidad conjunta, marginales y condicionales"}
+bivardnorm_res <- image_read("biv_norm.gif") 
+bivardnorm_res
+```
+</center>
+
+Suponiendo que tenemos dos variables aleatorias $X$ y $Y$, las diferentes funciones de densidad son representadas de la siguiente manera:
+
+* funcion de desnidad conjunta de $X$ y $Y$: $f(x,y)$, contornos de nivel azules en la figura \@ref(fig:bivardnormres)
+* funciones de densidad marginales de las variables aleatorias $X$ y $Y$: $f(x)$ y $f(y)$, curvas negras sobre los ejes $x$ y $y$ respectivamente en la figura \@ref(fig:bivardnormres)
+* funciones de densidad condicionales de la variable $Y$ condicionada a valores arbitrarios de la variable $X$, $f(y|x=c)$ (donde $c$ es un valor posible que puede tomar la variable $x$). Curva punteada proyectada sobre el eje $y$ en la figura \@ref(fig:bivardnormres)
+
+el valor esperado de una variable aleatoria condicional, por ejemplo, la variable $Y$ condicionada a valores arbitrarios de la variable $X$ se denota por 
+
+$$E(Y|X=c)$$
+
+Formula que se puede interpretar como "El valor esperado de la variable aleatoria $Y$ condicionada a un valor de $c$ para la variable aleatoria $X$".
+
+Retomemos el ejemplo de la edad y el peso de la sección anterior, véase la figura \@ref(fig:conditional2)
+<center>
+```{r conditional2, echo=F, message = F,warning =F, fig.width=8, fig.height=3.5, fig.cap="función de densidad condicional del peso para edad de 30 y 20 años"}
+my_mean<-c(25,65)
+mycors<-seq(-1,1,by=.25)
+sd_vec<-c(5,7)
+
+i<-8
+temp_cor<-matrix(c(1,mycors[i],
+                   mycors[i],1),
+                 byrow = T,ncol=2)
+V<-sd_vec %*% t(sd_vec) *temp_cor
+
+my_int<-(my_mean[2]-(V[1,2]*my_mean[1]/V[1,1]))
+my_slp<-V[1,2]/V[1,1]
+
+###data for vertical curve
+my_dnorm<- function(x, mean = 0, sd = 1, log = FALSE, new_loc, multplr){
+  new_loc+dnorm(x, mean , sd, log)*multplr
+}
+
+##margina Y distribution
+yden<-data.frame(y=seq(48,82,length.out = 100),x=my_dnorm(seq(48,82,length.out = 100),my_mean[2],sd_vec[2],new_loc=0,multplr=100))
+
+##conditional distribution
+givenX<-30
+mu_givenX<-my_int+givenX*my_slp
+sigma2_givenX<-(1-mycors[i]^2)*V[2,2]
+y_givenX_range<-seq(mu_givenX-3*sqrt(sigma2_givenX),mu_givenX+3*sqrt(sigma2_givenX),length.out = 100)
+
+# yden_x<-data.frame(y=y_givenX_range,
+#                    x=my_dnorm(y_givenX_range,mu_givenX,sqrt(sigma2_givenX),new_loc=givenX,multplr=80))
+
+yden_x<-data.frame(y=y_givenX_range,
+                   x=my_dnorm(y_givenX_range,mu_givenX,sqrt(sigma2_givenX),new_loc=0,multplr=80))
+
+
+data.grid <- expand.grid(x = seq(my_mean[1]-3*sd_vec[1], my_mean[1]+3*sd_vec[1], length.out=200),
+                         y = seq(my_mean[2]-3*sd_vec[2], my_mean[2]+3*sd_vec[2], length.out=200))
+q.samp <- cbind(data.grid, prob = dmvnorm(data.grid, mean = my_mean, sigma = V))
+
+pcond1<-ggplot(q.samp, aes(x=x, y=y, z=prob)) + 
+  geom_contour() + theme_bw()+ 
+  xlim(0, 50)+
+  ylim(40, 90)+xlab("age")+ylab("weight")
+pcond2<-pcond1+geom_path(aes(x=x,y=y), data = yden_x,inherit.aes = FALSE,color=1,linetype="dashed") +
+  geom_vline(xintercept = givenX,linetype="dashed")
+
+givenX<-20
+mu_givenX<-my_int+givenX*my_slp
+sigma2_givenX<-(1-mycors[i]^2)*V[2,2]
+y_givenX_range<-seq(mu_givenX-3*sqrt(sigma2_givenX),mu_givenX+3*sqrt(sigma2_givenX),length.out = 100)
+
+# yden_x<-data.frame(y=y_givenX_range,
+#                    x=my_dnorm(y_givenX_range,mu_givenX,sqrt(sigma2_givenX),new_loc=givenX,multplr=80))
+
+yden_x<-data.frame(y=y_givenX_range,
+                   x=my_dnorm(y_givenX_range,mu_givenX,sqrt(sigma2_givenX),new_loc=0,multplr=80))
+
+pcond3<-pcond1+geom_path(aes(x=x,y=y), data = yden_x,inherit.aes = FALSE,color=1,linetype="dashed") +
+  geom_vline(xintercept = givenX,linetype="dashed")
+
+gridExtra::grid.arrange(grobs =list(pcond2,pcond3), 
+                        ncol = 2, nrow = 1)
+```
+</center>
+
+Aquí destacamos la variable aleatoria peso condicionado a edades de 30 y 20 años respectivamente. En notación de variables aleatorias tendríamos
+
+$$Peso|Edad=30, \; Peso|Edad=20$$
+
+Y las funciones de densidad correspondientes tendrían la siguiente notación:
+
+$$f(peso|edad=30), \; f(peso|edad=20)$$
+
+(curvas punteadas en la figura \@ref(fig:conditional2)) Estas funciones de densidad condicionales poseen un valor esperado, el valor esperado condicional, el cual no es mas que el valor esperado de la función de densidad condicional. Si nos fijamos en la figura \@ref(fig:conditional2), podemos ver que 
+
+$$E(Peso|Edad=30)=71 kg \; y \; E(Peso|Edad=20)=58kg$$
+
+Aproximadamente.
+
+Ahora bien, en la figura \@ref(fig:bivardnormres), es claro que estos valores esperados condicionales caen a lo largo de una linea recta, lo cual se puede escribir matemáticamente de la siguiente manera:
+
+\begin{equation}
+E(Y|X=x)=\beta_0+\beta_1 x (\#eq:regmodel)
+\end{equation}
+
+la ecuación \@ref(eq:regmodel) se conoce como la recta de regresión y sera el objeto de estudio de esta sección.
+
+<center>
+```{r pcond1, echo=F,warning =F, fig.width=4, fig.height=3.5, fig.cap="recta de regresion"}
+pcond1+geom_abline(intercept = my_int, slope = my_slp, color="red", 
+                  linetype="dashed")
+```
+</center>
+
+Nota: Se recomienda a los estudiantes repasar los conceptos de la ecuación de una recta en el plano cartesiano, el intercepto  y la pendiente.
+
+# Interpretación de la recta de regresión
+
+En la ecuación \@ref(eq:regmodel), la recta esta definida a través de un intercepto ($\beta_0$) y una pendiente ($\beta_1$). Estudiaremos la intergeneracional practica que estas cantidades pueden tener en el contexto de un problema practico. Considere el siguiente estudio: un biólogo se encuentra estudiando las variables de peso en gramos y edad en días de una especie de escarabajos en particular. En la figura \@ref(fig:beetleweight) se presenta la función de densidad conjunta para estas dos variables en esta población de escarabajos.
+
+<center>
+```{r beetleweight, echo=F,warning =F, fig.width=4, fig.height=3.5, fig.cap="función de densidad conjunta y recta de regresión para la edad y peso de una población de escarabajos"}
+my_mean<-c(12.5,25)
+mycors<-seq(-1,1,by=.25)
+sd_vec<-c(5,7)
+
+i<-8
+temp_cor<-matrix(c(1,mycors[i],
+                   mycors[i],1),
+                 byrow = T,ncol=2)
+V<-sd_vec %*% t(sd_vec) *temp_cor
+
+my_int<-(my_mean[2]-(V[1,2]*my_mean[1]/V[1,1]))
+my_slp<-V[1,2]/V[1,1]
+
+###data for vertical curve
+my_dnorm<- function(x, mean = 0, sd = 1, log = FALSE, new_loc, multplr){
+  new_loc+dnorm(x, mean , sd, log)*multplr
+}
+
+data.grid <- expand.grid(x = seq(my_mean[1]-3*sd_vec[1], my_mean[1]+3*sd_vec[1], length.out=200),
+                         y = seq(my_mean[2]-3*sd_vec[2], my_mean[2]+3*sd_vec[2], length.out=200))
+q.samp <- cbind(data.grid, prob = dmvnorm(data.grid, mean = my_mean, sigma = V))
+
+pcondbettle<-ggplot(q.samp, aes(x=x, y=y, z=prob)) + 
+  geom_contour() + theme_bw()+ 
+  xlim(0, 25)+
+  ylim(0, 45)+xlab("age")+ylab("weight")
+
+pcondbettle+geom_abline(intercept = my_int, slope = my_slp, color="red", 
+             linetype="dashed")
+
+```
+</center>
+
+En el caso de la figura \@ref(fig:beetleweight), la formula de la recta de regresión es la siguiente:
+
+$$E(Weight|Age=x)= `r my_int`+`r my_slp`x$$
+
+donde $x$ es un valor de edad cualquiera. Bajo el contexto de la formula \@ref(eq:regmodel), $Y=Weight$, $X=Age$, $\beta_0=`r my_int`$ y $\beta_1=`r my_slp`$.
+
+Que significa el valor de la pendiente $\beta_1=`r my_slp`$? Como se podrá recordar, la pendiente es una tasa de cambio, que indica el aumento de unidades en la variable $y$ por cada aumento de una unidad en la variable $x$. En nuestro caso significa lo siguiente:
+
+* Cada vez que el escarabajo aumenta en un día su edad, el valor esperado del peso aumenta en $`r my_slp`$. Es decir que en promedio, los escarabajos crecen $`r my_slp` gr$ diarios.
+
+Si el valor de la pendiente fuera negativo, no estaríamos hablando de un aumento o crecimiento, mas bien de una disminución o perdida.
+
+Y que hay que decir del intercepto, $\beta_0=`r my_int`$? Como se recordara, el intercepto en una linea recta, es simplemente el valor de $y$ cuando la variable $x$ toma el valor $0$. En nuestro caso
+
+$$E(Weight|Age=0)= `r my_int`+`r my_slp` \times 0=`r my_int`$$
+Es decir que el intercepto es simplemente el valor esperado del peso para los escarabajos recién nacidos. 
+
+* El valor esperado del peso de un escarabajo recién nacido es de $`r my_int`gr$
+
+Es claro que los parámetros de intercepto y pendiente pueden tener una interpretación practica y aportar información importante al fenómeno de estudio. Una vez entendida la relevancia de la formulación de la recta de regresión, es hora de hablar de su estimación.
+
+# Parámetros de la recta de regresión
+
+Ya queda claro que existen dos parámetros poblacionales de la recta de regresión: el intercepto $\beta_0$ y la pendiente $\beta_1$, sin embargo, existe un tercer parámetro. Considere la figura \@ref(fig:lmerror)
+
+<center>
+```{r lmerror, echo=F,warning =F, fig.width=4.5, fig.height=3.5, fig.cap="el error en la recta de regresión"}
+z0n<-50
+z0_sim<-rmvnorm(z0n,my_mean,V) %>% data.frame()
+z0_sim$pred<-my_int+z0_sim$X1*my_slp
+z0_sim$res<-z0_sim$pred-z0_sim$X2
+
+id_smpl<-sample(1:z0n,30)
+
+z0_sim %>% ggplot(aes(x=X1,y=X2))+geom_point()+
+  geom_abline(intercept = my_int, slope = my_slp, color="blue", linetype="solid")+
+  theme_bw()+xlab("age")+ylab("weight")+
+  annotate("segment", x = z0_sim[,1], xend = z0_sim[,1], 
+           y = z0_sim[,"pred"], yend = z0_sim[,2], colour = "red", size=.5, alpha=0.6)
+
+```
+</center>
+
+En esta figura la recta azul es la recta de regresión poblacional, en este caso $E(Weight|Age=x)= `r my_int`+`r my_slp`x$. Los puntos representan observaciones de una muestra de escarabajos. Las lineas rojas representan la diferencia entre el valor esperado del peso y el valor de peso observado para cada escarabajo de la muestra. Geométricamente simplemente son las distancias verticales de la recta a cada punto.
+
+En términos matemáticos las magnitudes de estas lineas rojas están dadas por 
+
+\begin{equation}
+\epsilon_i = y_i-E(Y|X=x_i)= y_i-(\beta_0+\beta_1x_i) (\#eq:lmerror)
+\end{equation}
+
+donde $\epsilon_i$ es lo que llamaremos el error para la observación $i$ (magnitud de la linea roja en la figura \@ref(fig:lmerror)), $x_i$ y $y_i$ son las observaciones para las variables $x$ y $y$ del sujeto $i$. En nuestro caso
+
+$$\epsilon_i = y_i-E(Weight|Age=x_i)=y_i- (`r my_int`+`r my_slp`x_i)$$
+
+donde $x_i$, $y_i$ es la edad y el peso del escarabajo $i$, respectivamente.
+
+Nótese que si la linea roja esta por encima de la recta de regresión, entonces $\epsilon_i >0$, si por el contrario, la linea roja esta por debajo de la recta de regresión, $\epsilon_i <0$ (ver figura \@ref(fig:lmerror)).
+
+Como puede observarse, la magnitud y dirección de los errores son variables, lo cual nos haría pensar que de hecho, existe una distribución para estos errores. En particular estos errores tendrán un valor esperado y una varianza. El valor esperado es $0$ (puede usted intuir por que esto es así?). Sin embargo la varianza del error puede variar
+
+<center>
+```{r lmerrorgif, echo=F,warning =F, fig.width=4.5, fig.height=3, fig.cap="Varianza del error"}
+lmerrorgif <- image_read("lmerror.gif") 
+lmerrorgif
+```
+</center>
+
+La varianza del error es el tercer parámetro de la recta de regresión. Este parámetro esta estrechamente relacionado con el valor de la correlación. En particular, si la pendiente de la recta es diferente de 0 ($\beta_1 \neq 0$) y la varianza del error es de 0 ($V(\epsilon)=0$) entonce la correlación es igual a $1$ o $-1$ dependiendo del signo de $\beta_1$. A medida que la varianza del error aumenta, el valor absoluto de la correlación disminuye.
+
+En conclusión, estos son los tres parámetros de la recta de regresión:
+
+* $\beta_0$ el intercepto.
+* $\beta_1$ la pendiente.
+* $V(\epsilon)$ la varianza del error.
+
+# Estimación de los parámetros de la recta de regresión.
+
+Ahora que conocemos cuales son los parámetros de la recta de regresión, el siguiente paso es estimar estos parámetros con los datos de una muestra. A continuación presentamos las formulas de los estimadores de los tres parámetros.
+
+* $\widehat{\beta_1}=\frac{\sum_{i=1}^n (x_i-\bar{x})(y_i-\bar{y})}{\sum_{i=1}^n(x_i-\bar{x})^2}$
+* $\widehat{\beta_0}=\bar{y}-\hat{\beta_1}\bar{x}$
+* $\widehat{V(\epsilon)}=\frac{\sum_{i=1}^n (y_i-\widehat{y_i})^2}{n-2}$
+
+Donde $\widehat{\beta_0}$, $\widehat{\beta_1}$ y $\widehat{V(\epsilon)}$ son los estimadores del intercepto, la pendiente y la varianza del error respectivamente. $n$ es el tamaño de la muestra, $x_i$ y $y_i$ son observaciones de la muestra para las variables $X$ y $Y$ respectivamente. $\bar{x}$ y $\bar{y}$ son los promedios para las variables $X$ y $Y$ respectivamente.
+Finalmente $\widehat{y_i}$ es lo que se conoce como el valor predicho por la recta estimada, es decir $\widehat{y_i}=\widehat{\beta_0} +\widehat{\beta_1}x_i$.
+
+La pregunta que surge a continuación es ¿de donde salen estas formulas?.
+
+La idea fundamental detrás del proceso de estimación de la recta de regresión, es el de encontrar la "mejor" recta posible que atraviese los puntos en un diagrama de dispersión. Intuitivamente, el criterio de "mejor" esta asociado a los distancias verticales entre los puntos observados y la recta propuesta. La idea es encontrar la recta que produzca las distancias verticales mas pequeñas posibles. Los matemáticos han determinado que estas distancias pueden ser minimizadas usando lo que se conoce como el criterio de mínimos cuadrados. Este criterio busca minimizar la siguiente cantidad
+
+$$\sum_{i=1}^n (y_i-\widehat{y_i})^2$$
+la recta que produzca la menor suma de "errores" al cuadrado, es la recta que se usara como estimador de la recta de regresión. A continuación presentamos una ilustración de como diferentes rectas producen diferentes sumas de "errores" al cuadrado
+
+<center>
+```{r mse, echo=F,warning =F, fig.width=6, fig.height=5, fig.cap="suma de \"errores\" al cuadrado"}
+bivardnorm_res <- image_read("mse.gif") 
+bivardnorm_res
+```
+</center>
+
+Las formulas de los estimadores de los parámetros de la recta de regresión aseguran producir la menor suma de "errores" al cuadrado.
+
+Hemos usado el termino "errores" en esta discusión, ya que técnicamente los errores (sin comillas) hacen referencia a las diferencias entre la recta de regresión poblacional $E(Y|X=x)=\beta_0+\beta_1x$ y las observaciones de la muestra. Sin embargo, en el proceso de estimación la recta de regresión poblacional es desconocida y los "errores" corresponden a las diferencias entre la recta de regresión estimada y las observaciones de la muestra. Estas diferencias pueden ser consideradas como los estimadores de los errores y por lo general se denominan residuales:
+
+Definición:
+
+* El residual $r_i$ se define como 
+
+\begin{equation}
+r_i=y_i-\widehat{\beta_0}-\widehat{\beta_1} x_i (\#eq:residual)
+\end{equation}
+
+
+
+Es decir la distancia vertical entre el dato observado en la variable $Y$ y la recta de regresión _**estimada**_
+
+# Intervalos de confianza y pruebas de hipótesis sobre los parámetros de la recta de regresión
+
+En capítulos anteriores hemos visto en detalle los procedimientos de estimación, construcción y calculo de intervalos de confianza y pruebas de hipótesis para la estimación de los parámetros de valor esperado y varianza en variables continuas. En esta ocasión estamos recorriendo el mismo camino para los parámetros de la recta de regresión. Sin embargo, esta vez no cubriremos en detalle las formulas de los intervalos de confianza y estadísticos de prueba y distribuciones bajo la hipótesis nula para estos parámetros. Recurriremos a las implementaciones de estas formulas en R y nos concentraremos, mas bien, en los supuestos subyacentes en el calculo de los intervalos de confianza y pruebas de hipótesis, así como en la interpretación practica de los resultados de estos análisis.
+
+## Supuestos para el calculo de intervalos de confianza y pruebas de hipótesis.
+
+Empezaremos nuestra discusión con el estudio de los supuestos que hacen posible la construcción y calculo de intervalos de confianza y pruebas de hipótesis. Recuérdese que en el caso de los intervalos de confianza y pruebas de hipótesis para el valor esperado y la varianza el supuesto de normalidad es asumido para poder derivar estas cantidades. Aquí se observa algo similar.
+
+### Supuesto de normalidad condicional
+
+Recordemos que la recta de regresión proviene de la determinación que los valores esperados de las funciones de densidad condicionales caen todos en la recta de regresión (ver figura \@ref(fig:lmerror)). El primer supuesto habla precisamente de la forma funcional de estas distribuciones. Se asume que las funciones de densidad condicionales a nivel poblacional tiene la forma funcional de la distribución normal. Es decir que las funciones de densidad condicionales, curva punteada en la figura \@ref(fig:lmerror), debe tener la forma de una distribución normal. Otra representación de este supuesto es presentada a continuación:
+
+<center>
+```{r condnorm, echo=F,warning =F, message=F, fig.width=6, fig.height=5, fig.cap="Supuesto de normalidad condicional"}
+x <- runif(100, 0, 15)
+y <- 1000 + 200*x + rnorm(100, 0, 300)
+df <- data.frame(x, y)
+lm_fit <- lm(y ~ x, data = df)
+
+k <- 2.5
+sigma <- sigma(lm_fit)
+ab <- coef(lm_fit); a <- ab[1]; b <- ab[2]
+
+x <- seq(-k*sigma, k*sigma, length.out = 50)
+y <- dnorm(x, 0, sigma)/dnorm(0, 0, sigma) * 3
+
+x0 <- 0
+y0 <- a+b*x0
+path1 <- data.frame(x = y + x0, y = x + y0)
+segment1 <- data.frame(x = x0, y = y0 - k*sigma, xend = x0, yend = y0 + k*sigma)
+x0 <- 5
+y0 <- a+b*x0
+path2 <- data.frame(x = y + x0, y = x + y0)
+segment2 <- data.frame(x = x0, y = y0 - k*sigma, xend = x0, yend = y0 + k*sigma)
+x0 <- 10
+y0 <- a+b*x0
+path3 <- data.frame(x = y + x0, y = x + y0)
+segment3 <- data.frame(x = x0, y = y0 - k*sigma, xend = x0, yend = y0 + k*sigma)
+
+ggplot(df, mapping = aes(x=x, y=y)) + geom_point(color="blue") + 
+  geom_smooth(method='lm', se=FALSE, color="red") + 
+  geom_path(aes(x,y), data = path1, color = "green") + 
+  geom_segment(aes(x=x,y=y,xend=xend,yend=yend), data = segment1) +
+  geom_path(aes(x,y), data = path2, color = "green") + 
+  geom_segment(aes(x=x,y=y,xend=xend,yend=yend), data = segment2) +
+  geom_path(aes(x,y), data = path3, color = "green") + 
+  geom_segment(aes(x=x,y=y,xend=xend,yend=yend), data = segment3)+
+  theme_bw()
+
+```
+</center>
+
+En la figura \@ref(fig:condnorm) las funciones de densidad verdes representan las funciones de densidad condicionales para diferentes valores de la variable x. Estas distribuciones son las que se asumen como distribuciones normales.
+
+Este es un supuesto fuerte ya que en teoría existen infinitas funciones de densidad condicionales y habría que verificar para cada una de ellas el supuesto de normalidad. Sin embargo, existe un "atajo" teórico para lograr evaluar una sola función de densidad. Puede demostrarse que el supuesto de normalidad condicional es equivalente a asumir que la distribución de los errores tiene la forma funcional de la distribución normal. Entonces si se demuestra que la distribución de los errores puede considerarse como una distribución normal, se puede dar por cumplido dicho supuesto.
+
+Ahora bien, la pregunta es, basados en los datos de la muestra, como podríamos evaluar si este supuesto es plausible o no, para los datos de estudio? La estrategia es simple. Dado un conjunto de datos y habiendo estimado la recta de regresión, es posible estimar el error para cada observación a través de los residuales $r_i$ (ver equacion \@ref(eq:residual)). Con estos residuales aplicamos una _**prueba de normalidad**_.
+
+Existen varias pruebas de normalidad, nosotros usaremos la prueba de _**Shapiro-Wilk**_. Esta prueba es una prueba de hipótesis con el siguiente sistema:
+
+* $H_0$: Los residuales $r_i$ **poseen** una distribución normal
+* $H_0$: Los residuales $r_i$ **no poseen** una distribución normal
+
+No entraremos en los detalles de como funciona y se calcula esta prueba, simplemente la usaremos para evaluar el supuesto de normalidad sobre los residuales. Esta prueba también se puede usar para evaluar el supuesto de normalidad en el calculo de intervalos de confianza y pruebas de hipótesis para el valor esperado y la varianza. En los talleres se trabajara en detalle. Por ahora el estudiante puede consultar la documentación en R de esta prueba: `` ?shapiro.test ``.
+
+### Supuesto de homocedasticidad
+
+El supuesto de normalidad condicional habla de la forma funcional de las funciones de densidad condicionales. Recordemos que la distribución normal tiene dos parámetros, el valor esperado y la varianza. El valor esperado esta dado por la recta de regresión, sin embargo poco se ha dicho sobre la varianza de estas funciones de densidad. El supuesto de _**homocedasticidad**_ establece que la varianza para todas las funciones de densidad condicional son la misma. Por lo general es mucho mas fácil ilustrar cuando no se cumple este supuesto: considere el siguiente diagrama de dispersión.
+
+<center>
+```{r homscedas, echo=F,warning =F, message=F, fig.width=4, fig.height=3.5, fig.cap="Ejemplo de violación del supuesto de homocedasticidad"}
+z0n<-1000
+x<-runif(z0n,40,90)
+y<-rnorm(z0n,50*x,0.12*x^2)
+z0<-data.frame(x,y)
+
+z0 %>% ggplot(aes(x=x,y=y))+
+  geom_point()+theme_bw()+
+  annotate("segment", x = c(50,65,80), xend = c(50,65,80), 
+               y = c(min(z0[z0$x<54 & z0$x>46,"y"]),
+                     min(z0[z0$x<69 & z0$x>61,"y"]),
+                     min(z0[z0$x<84 & z0$x>76,"y"])), 
+           yend =c(max(z0[z0$x<54 & z0$x>46,"y"]),
+                     max(z0[z0$x<69 & z0$x>61,"y"]),
+                     max(z0[z0$x<84 & z0$x>76,"y"])), colour = "red", size=1.5, alpha=0.6)
+
+```
+</center>
+Claramente en la figura \@ref(fig:homscedas) se puede observar que  la variación de la variable $Y$ aumenta a medida que los valores en la variable $X$ aumentan. En este caso el supuesto de homocedasticidad no se cumpliría, ya que la variación de la variable $Y$ condicionada a valores en la variable $X$ no debería cambiar en ninguna forma. 
+
+Esta inspección grafica puede ser útil, pero no deja de ser subjetiva. Para hacer el diagnostico mas objetivo usaremos una prueba de hipótesis para evaluar este supuesto. Se denomina la _**prueba del score para varianza no constante del error**_ y una aproximación a sus sistema de hipótesis puede ser la siguiente:
+
+* $H_0$: los residuales **son** homocedásticos
+* $H_a$: los residuales **no son** homocedásticos
+
+Nótese que de nuevo, la prueba se hace con los residuales y no con la variable original $Y$, ya que la homocedasticidad en la variable condicional $Y$ es análoga a la homocedasticidad evaluada en los residuales con relación a la variable $X$. para mas detalles sobre el funcionamiento de esta prueba, el estudiante puede consultar la documentación en R: `` ?car::ncvTest ``.
+
+### Supuesto de independencia
+
+Finalmente el supuesto de independencia esta relacionado con el proceso de muestreo que hace valido cualquier proceso de inferencia, como vimos antes. Sin embargo, vale la pena presentar algunos ejemplos en donde este supuesto no se cumple. 
+
+Considere por ejemplo un estudio en donde el IMC es medido en 10 sujetos, a lo largo de 10 años. En este escenario, se tienen medidas repetidas del IMC para cada uno de los 10 sujetos del estudio en diferentes tiempos. En este contexto las mediciones del IMC para un mismo sujeto, en diferentes tiempos, no pueden ser consideradas como independientes, ya que de hecho existe una alta probabilidad de que la medición en un tiempo dado _**dependa**_ de la medición en el tiempo anterior.
+
+En la practica un muestreo probabilístico es suficiente para garantizar la independencia entre las mediciones de cada uno de los sujetos de la muestra. Este supuesto no sera evaluado con ningún análisis sobre los datos, y su valides dependerá básicamente de la existencia de un muestreo detrás de la información recolectada.
+
+## Pruebas de hipótesis
+
+De los tres parámetros estudiados ($\beta_0, \beta_1$ y $V(\epsilon)$) solo se realizan pruebas de hipótesis sobre el intercepto y la pendiente. Estas pruebas de hipótesis tienen la siguiente forma
+
+$$H_0: \; \beta_i =c$$
+$$H_a: \; \beta_i \neq c$$
+
+Donde $\beta_i$ hace referencia al intercepto ($i=0$) o a la pendiente $i=1$ y $c$ es un valor de comparación que por lo general es igual a $0$. La prueba de hipótesis sobre el intercepto es poco común utilizarla, mientras que la prueba de hipótesis de la pendiente es comúnmente utilizada y posee  una importancia practica importante. A continuación estudiaremos esta prueba de hipótesis y sus implicaciones.
+
+### Prueba de hipótesis sobre la pendiente
+
+Considere el siguiente sistema de hipótesis:
+
+$$H_0: \; \beta_1 =0$$
+$$H_a: \; \beta_1 \neq 0$$
+
+La hipótesis nula establece que la pendiente es igual a $0$ y la alternativa establece que la pendiente es diferente de $0$. Que implicaciones practicas tiene que la pendiente sea $0$? observemos el siguiente grafico
+
+<center>
+```{r pend0, echo=F,warning =F, message=F, fig.width=4, fig.height=3, fig.cap="pendiente de la recta de regresión igual a 0"}
+z0n<-500
+x<-runif(z0n,40,90)
+y<-rnorm(z0n,10,3)
+z0<-data.frame(x,y)
+
+z0 %>% ggplot(aes(x=x,y=y))+
+  geom_point()+geom_hline(yintercept =10,color="blue")+
+  theme_bw()
+
+```
+</center>
+
+Según la formula de la recta de regresión \@ref(eq:regmodel), si $\beta_1=0$ entonces se tiene que 
+
+$$E(Y|X=x)=\beta_0+\beta_1 x=\beta_0+0 \times x= \beta_0$$
+
+Es decir que el valor esperado de la variable $Y$ condicionada a diferentes valores de la variable $X$, no depende de hecho de los valores de la variable $X$, en particular, el valor esperado es el mismo, sin importar que valor tome la variable $X$. Esto quisiera decir que no existiría relación entre la variable $Y$ y la variable $X$, aunque esta afirmación no siempre es valida.
+
+Considere el siguiente ejemplo
+
+<center>
+```{r pend02, echo=F,warning =F, message=F, fig.width=4, fig.height=3, fig.cap="pendiente de la recta de regresión igual a 0, relación no lineal"}
+z0n<-100
+x<-runif(z0n,-4,4)
+y<-x^2+rnorm(z0n)
+z0<-data.frame(x,y)
+
+z0 %>% ggplot(aes(x=x,y=y))+
+  geom_point()+
+  geom_hline(yintercept =5,color="blue")+
+  theme_bw()
+```
+</center>
+
+Al estimar la recta de regresión se obtiene que la pendiente es igual a $0$. Sin embargo, no es correcto afirmar que no existe relación entre la variable $Y$ y la variable $X$. De hecho existe una relación no lineal entre las dos. El resultado de que el estimador de la pendiente sea igual a $0$, es consecuencia de ajustar una linea recta a algo que no es recto. Esto fenómeno ya lo habíamos encontrado antes en el estudio de la correlación.
+
+Los detalles técnicos del estadístico de prueba y las zonas de aceptación y rechazo para esta prueba de hipótesis no serán cubiertos en este curso. Para saber si la hipótesis nula se acepta o se rechaza usaremos el _**p-valor**_ obtenido de la función para la estimación de la recta de regresión en R. En el taller estudiaremos esto en detalle.
+
+# Medida de resumen $R^2$.
+
+Terminaremos nuestra discusión teórica del proceso de estimación y evaluación del desempeño de la recta de regresión con el estadístico $R^2$, también conocido como _**Coeficiente de determinación**_. Primero observemos el comportamiento de este estadístico para diferentes escenarios:
+
+<center>
+```{r r2, echo=FALSE, results = 'asis',fig.width=5, fig.height=5, fig.cap="datos simulados para diferentes valores de $R^2$"}
+
+n<-100
+my_mean<-c(25,65)
+mycors<-seq(-1,1,by=.25)
+
+data_list<-list()
+
+sd_vec<-c(5,7)
+for(i in seq_along(mycors)){
+  temp_cor<-matrix(c(1,mycors[i],
+                     mycors[i],1),
+                   byrow = T,ncol=2)
+  V<-sd_vec %*% t(sd_vec) *temp_cor
+  data_list[[i]]<-data.frame(rmvnorm(n,mean=my_mean,sigma=V),cor=mycors[i])
+}
+
+z0_cor<-data_list %>% reduce(rbind) %>% as.data.frame()
+colnames(z0_cor)[1:2]<-c("X","Y")
+z0_cor$cor<-factor(z0_cor$cor,labels = paste0("list(hat(rho) == ",mycors,",R^2==",mycors^2,")"))
+
+z0_cor %>% ggplot(aes(x=X,y=Y))+
+  geom_point()+geom_smooth(method = lm, se = FALSE,formula = y ~x)+
+  facet_wrap(~cor,labeller = label_parsed)+
+  theme_bw()
+
+```
+</center>
+
+Usted podrá verificar que en efecto el valor del estadístico $R^2$ es simplemente el valor del estimador de la correlación al cuadrado. Es decir
+
+$$R^2=\hat{\rho}^2$$
+
+La pregunta, entonces es, que nueva información provee el estadístico $R^2$, que no provea ya el estimador de la correlación $\hat{\rho}$. El $R^2$ se usa para hacer la siguiente interpretación:
+
+* $R^2 \times 100$% de la variación observada en la variable $Y$ es explicada por la variación observada en la variable $X$.
+
+De ahí viene el nombre de _**coeficiente de determinación**_ para este estadístico.
+
+Veamos un ejemplo. Suponga que para los datos de la figura \@ref(fig:lmerror), el valor del estadístico $R^2$ es de 0.63. Esto querría decir que 
+
+* el 63% de la variabilidad observada en el peso es explicada por la variabilidad observada en la edad
+
+# Variables dependiente e independiente
+
+En este documento hemos estudiado los parámetros de la recta de regresión, el criterio usado para la estimación de estos parámetros, los supuestos que permiten la construcción de intervalos de confianza y pruebas de hipótesis y por ultimo la medida de resumen $R^2$. Finalmente discutiremos el rol que cumplen las variables $X$ y $Y$ en el análisis.
+
+Clásicamente, la variable en el eje $Y$ se ha denominado variable dependiente y la variable en el eje $X$ se denomina la variable independiente. Pensemos por un momento en el ejemplo de las variables peso y edad y la ecuación del modelo de regresión para este ejemplo:
+
+$$E(Weight|Age=x)= \beta_0+\beta_1x$$
+En este análisis estamos describiendo como cambia el valor esperado del peso para diferentes valores de edad. Biológicamente esto tiene sentido, ya que a medida que el organismo es mayor, el peso de este aumenta. Sin embargo tendría sentido el análisis inverso? tendría sentido pensar en 
+
+$$E(Age|Weight=w)= \beta_0+\beta_1w$$
+
+En este caso, estaríamos pensando en como cambia el valor esperado de la edad, para diferentes valores de peso. Desde el punto de vista biológico, sabemos que el peso _**depende**_ de la edad y no al revés. En este sentido, es claro que en este ejemplo, la variable peso debe ser la variable dependiente y la variable edad debe ser la variable independiente.
+
+Es importante esta distinción pues, al presentar los resultados de la relación entre estas dos variables, usando la edad como variable dependiente seria extraño y los lectores del análisis encontrarían los resultados algo extraños y fuera de lugar.
+
+Resulta claro entonces que la selección de la variable _**dependiente**_ es importante para este análisis y es especifica y determinada por cada contexto.
+
+Con esta discusión acabamos los temas de este documento. En el siguiente, veremos varios ejemplos del análisis de regresión y la aplicación de todos los conceptos aquí vistos a problemas reales.
