@@ -289,7 +289,7 @@ $$\sum_{i=1}^n (y_i-\widehat{y_i})^2$$
 la recta que produzca la menor suma de "errores" al cuadrado, es la recta que se usara como estimador de la recta de regresión. A continuación presentamos una ilustración de como diferentes rectas producen diferentes sumas de "errores" al cuadrado
 
 <center>
-```{r mse, echo=F,warning =F, fig.width=6, fig.height=5, fig.cap="suma de \"errores\" al cuadrado"}
+```{r mse, echo=F,warning =F, fig.width=6, fig.height=5, fig.cap="suma de residuales al cuadrado"}
 bivardnorm_res <- image_read("mse.gif") 
 bivardnorm_res
 ```
