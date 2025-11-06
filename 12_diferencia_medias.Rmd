@@ -236,7 +236,6 @@ Adicionalmente presentamos la distribución condicional de la variable ``len`` p
 
 
 ```{r , echo=F}
-summary(z01)
 by(ToothGrowth$len,ToothGrowth$dose,summary)
 ```
 
